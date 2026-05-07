@@ -1,0 +1,78 @@
+# TradeKit
+
+> TradeKit is a free, open-source trade document generator for international trade. It supports 19 types of trade documents with bilingual (Chinese/English) support and one-click A4 landscape PDF export. All data is stored locally in the browser and never uploaded.
+
+- **Website**: http://tradekit.treedeep.cn/
+- **Home Page**: http://tradekit.treedeep.cn/index.html
+- **License**: Open Source
+- **Price**: Free
+- **Tech Stack**: Vanilla HTML/CSS/JavaScript, html2pdf.js (CDN)
+- **Data Storage**: localStorage (browser-only, no server)
+- **Languages**: Chinese (zh-CN), English (en-US)
+
+## Supported Documents
+
+### Document Generators
+| Document | Chinese | URL |
+|----------|---------|-----|
+| Commercial Invoice | 商业发票 | http://tradekit.treedeep.cn/commercial-invoice.html |
+| Packing List | 装箱单 | http://tradekit.treedeep.cn/packing-list.html |
+| Proforma Invoice | 形式发票 | http://tradekit.treedeep.cn/proforma-invoice.html |
+| Commercial Quotation | 商业报价单 | http://tradekit.treedeep.cn/commercial-quotation.html |
+| Trade Contract | 外贸合同 | http://tradekit.treedeep.cn/trade-contract.html |
+| Cost Estimation | 成本估算单 | http://tradekit.treedeep.cn/cost-estimation.html |
+| Certificate of Origin | 原产地证明 | http://tradekit.treedeep.cn/certificate-of-origin.html |
+
+### Logistics & Certification
+| Document | Chinese | URL |
+|----------|---------|-----|
+| Bill of Lading | 提单 | http://tradekit.treedeep.cn/bill-of-lading.html |
+| Insurance Policy | 保险单 | http://tradekit.treedeep.cn/insurance-policy.html |
+| Customs Declaration | 报关单 | http://tradekit.treedeep.cn/customs-declaration.html |
+| Inspection Certificate | 检验证书 | http://tradekit.treedeep.cn/inspection-certificate.html |
+| Fumigation Certificate | 熏蒸证书 | http://tradekit.treedeep.cn/fumigation-certificate.html |
+| Beneficiary Certificate | 受益人证明 | http://tradekit.treedeep.cn/beneficiary-certificate.html |
+| Shipper's Letter of Instruction | 发货人委托书 | http://tradekit.treedeep.cn/shipper-letter-instruction.html |
+| Commercial Packing List | 详细装箱单 | http://tradekit.treedeep.cn/commercial-packing-list.html |
+
+### Utility Tools
+| Tool | Chinese | URL |
+|------|---------|-----|
+| Currency Converter | 汇率换算 | http://tradekit.treedeep.cn/currency-converter.html |
+| Invoice Number Generator | 发票编号生成器 | http://tradekit.treedeep.cn/invoice-number.html |
+| Shipping Mark Generator | 唛头生成器 | http://tradekit.treedeep.cn/shipping-mark.html |
+| Payment Terms Calculator | 付款条款计算器 | http://tradekit.treedeep.cn/payment-calculator.html |
+
+## Key Features
+- **19 Trade Documents**: Cover all major international trade document types
+- **Bilingual Support**: Chinese and English side-by-side display
+- **A4 PDF Export**: One-click landscape PDF export via html2pdf.js
+- **Local Data**: All data stored in browser localStorage, never uploaded
+- **No Signup Required**: Open and use immediately
+- **Dark Mode**: Built-in light/dark theme toggle
+- **History/Snapshots**: Auto-save document snapshots on PDF export
+- **Auto Calculation**: Automatic totals, weights, and values
+
+## Use Cases
+- Export/import companies generating trade documents
+- Freight forwarders preparing shipping documentation
+- Manufacturers providing quotations and invoices to foreign buyers
+- Trading companies managing contracts and certificates
+- Students learning international trade documentation
+
+## Common Questions
+
+- **Q: Is TradeKit free? / TradeKit 免费吗？**
+  A: Yes, completely free and open source. No signup or login required. / 是的，完全免费开源，无需注册或登录。
+
+- **Q: Where is my data stored? / 数据存储在哪里？**
+  A: All data is stored locally in your browser's localStorage. Nothing is uploaded to any server. / 所有数据存储在浏览器 localStorage 中，不会上传到任何服务器。
+
+- **Q: What documents can I generate? / 能生成哪些单证？**
+  A: 19 types including Commercial Invoice, Packing List, Bill of Lading, Trade Contract, Certificate of Origin, Insurance Policy, Customs Declaration, Inspection Certificate, Fumigation Certificate, and more. / 19 种单证，包括商业发票、装箱单、提单、合同、原产地证明、保险单、报关单、检验证书、熏蒸证书等。
+
+- **Q: What languages are supported? / 支持哪些语言？**
+  A: Bilingual Chinese (zh-CN) and English (en-US) with side-by-side display on document previews. / 中英双语（简体中文和英语），预览页面中英对照显示。
+
+- **Q: What format is the exported PDF? / 导出的PDF是什么格式？**
+  A: A4 landscape format with professional trade document layout, suitable for printing and electronic transmission. / A4横版格式，专业商业单证排版，适合打印和电子传输。

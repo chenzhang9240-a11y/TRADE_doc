@@ -1,0 +1,27 @@
+# TradeKit robots.txt
+# http://tradekit.treedeep.cn/robots.txt
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: http://tradekit.treedeep.cn/sitemap.xml
+
+# AI Crawlers
+User-agent: GPTBot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /

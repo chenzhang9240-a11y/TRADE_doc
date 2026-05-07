@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Home Page -->
+  <url>
+    <loc>http://tradekit.treedeep.cn/</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/?lang=en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="http://tradekit.treedeep.cn/"/>
+    <priority>1.0</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Document Generators -->
+  <url>
+    <loc>http://tradekit.treedeep.cn/commercial-invoice.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/commercial-invoice.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/commercial-invoice.html?lang=en"/>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/packing-list.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/packing-list.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/packing-list.html?lang=en"/>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/proforma-invoice.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/proforma-invoice.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/proforma-invoice.html?lang=en"/>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/commercial-quotation.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/commercial-quotation.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/commercial-quotation.html?lang=en"/>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/trade-contract.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/trade-contract.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/trade-contract.html?lang=en"/>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/cost-estimation.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/cost-estimation.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/cost-estimation.html?lang=en"/>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/certificate-of-origin.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/certificate-of-origin.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/certificate-of-origin.html?lang=en"/>
+    <priority>0.9</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Logistics & Certification -->
+  <url>
+    <loc>http://tradekit.treedeep.cn/bill-of-lading.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/bill-of-lading.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/bill-of-lading.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/insurance-policy.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/insurance-policy.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/insurance-policy.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/customs-declaration.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/customs-declaration.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/customs-declaration.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/inspection-certificate.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/inspection-certificate.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/inspection-certificate.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/fumigation-certificate.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/fumigation-certificate.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/fumigation-certificate.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/beneficiary-certificate.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/beneficiary-certificate.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/beneficiary-certificate.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/shipper-letter-instruction.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/shipper-letter-instruction.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/shipper-letter-instruction.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/commercial-packing-list.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/commercial-packing-list.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/commercial-packing-list.html?lang=en"/>
+    <priority>0.85</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Utility Tools -->
+  <url>
+    <loc>http://tradekit.treedeep.cn/currency-converter.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/currency-converter.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/currency-converter.html?lang=en"/>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/invoice-number.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/invoice-number.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/invoice-number.html?lang=en"/>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/shipping-mark.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/shipping-mark.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/shipping-mark.html?lang=en"/>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>http://tradekit.treedeep.cn/payment-calculator.html</loc>
+    <xhtml:link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/payment-calculator.html"/>
+    <xhtml:link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/payment-calculator.html?lang=en"/>
+    <priority>0.8</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
+</urlset>

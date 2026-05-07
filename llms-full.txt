@@ -1,0 +1,634 @@
+# TradeKit - Complete Reference
+
+> This file contains comprehensive documentation for TradeKit, a free open-source trade document generator. It is designed for LLMs and AI assistants to understand the full capabilities of the product.
+
+## Overview
+
+TradeKit is a browser-based tool that generates 19 types of international trade documents. It requires no server, no signup, and no build process — it runs entirely in the browser using vanilla HTML, CSS, and JavaScript.
+
+**URL**: http://tradekit.treedeep.cn/
+**GitHub**: [Repository]
+**License**: Open Source
+**Tech**: Vanilla HTML/CSS/JS + html2pdf.js (CDN)
+**Data**: localStorage (100% local)
+**Languages**: Chinese (zh-CN) + English (en-US)
+
+## Architecture
+
+### File Structure
+```
+html/
+├── index.html                    # Home page with 19 document cards
+├── common.css                    # Shared styles (light/dark theme)
+├── common.js                     # Shared utilities (i18n, snapshots, PDF export)
+├── robots.txt                    # Crawler directives
+├── sitemap.xml                   # XML sitemap with hreflang
+├── llms.txt                      # LLM discovery file
+├── llms-full.txt                 # This file - comprehensive reference
+│
+├── commercial-invoice.html       # Commercial Invoice / 商业发票
+├── packing-list.html             # Packing List / 装箱单
+├── proforma-invoice.html         # Proforma Invoice / 形式发票
+├── commercial-quotation.html     # Commercial Quotation / 商业报价单
+├── trade-contract.html           # Trade Contract / 外贸合同
+├── cost-estimation.html          # Cost Estimation / 成本估算单
+├── certificate-of-origin.html    # Certificate of Origin / 原产地证明
+├── bill-of-lading.html           # Bill of Lading / 提单
+├── insurance-policy.html         # Insurance Policy / 保险单
+├── customs-declaration.html      # Customs Declaration / 报关单
+├── inspection-certificate.html   # Inspection Certificate / 检验证书
+├── fumigation-certificate.html   # Fumigation Certificate / 熏蒸证书
+├── beneficiary-certificate.html  # Beneficiary Certificate / 受益人证明
+├── shipper-letter-instruction.html # Shipper's Letter of Instruction / 发货人委托书
+├── commercial-packing-list.html  # Commercial Packing List / 详细装箱单
+├── currency-converter.html       # Currency Converter / 汇率换算
+├── invoice-number.html           # Invoice Number Generator / 发票编号
+├── shipping-mark.html            # Shipping Mark Generator / 唛头
+└── payment-calculator.html       # Payment Calculator / 付款条款计算
+```
+
+### Shared Code
+
+#### common.js - Core Functions
+- `getUserId()` / `userKey(key)` — User ID management for localStorage namespacing
+- `getDefaultDoc(dt)` — Returns default empty data for each document type
+- `getEmptyItem(dt)` — Returns empty item structure for document types with item tables
+- `autoCalcItem(dt, item)` — Auto-calculates totals for items (qty × price)
+- `doExportPdf(dt, data, previewElId)` — Exports preview as A4 landscape PDF via html2pdf.js
+- `addSnapshot(dt, ref, data)` — Saves document snapshot after PDF export (max 50)
+- `loadSnapshots(dt)` / `deleteSnapshot(dt, id)` / `clearAllSnapshots(dt)` — History management
+- `loadDocData(dt)` / `saveDocData(dt, data)` — localStorage persistence
+- `getLang()` / `isDark()` / `setLang(lang)` / `setTheme(dark)` — Language and theme
+- `I18N` — Bilingual translation strings (zh/en)
+- `DOC_META` — Document metadata (title, gradient, badge, page URL)
+- `DOC_CARDS` — Home page card data with descriptions and feature tags
+
+#### common.css - Design System
+- CSS custom properties for theming (`--primary`, `--card-bg`, `--text-primary`, etc.)
+- `.dark` class for dark mode
+- Responsive breakpoints for mobile
+- Consistent button, form, table, and card styles
+
+## Document Details
+
+### 1. Commercial Invoice (商业发票)
+**URL**: commercial-invoice.html
+**Purpose**: Standard commercial invoice for customs clearance
+**Fields**:
+- Shipper (name, address, phone, tax ID)
+- Consignee (name, company, address, phone, tax ID)
+- Importer (name, address, phone, tax ID)
+- Invoice details (invoice no, PO no, export date, waybill no, reason)
+- Payment terms (currency, L/C no)
+- Countries (export, destination)
+- Items table: marks, no. of pkgs, packaging type, country of origin, description, HS code, qty, unit, weight, unit value, total value
+- Totals: total pkgs, total weight, total invoice value
+- Declaration, signature
+**Auto-calc**: qty × unitValue = totalValue
+
+### 2. Packing List (装箱单)
+**URL**: packing-list.html
+**Purpose**: Detailed packing list accompanying commercial invoice
+**Fields**:
+- Shipper (name, address, phone)
+- Consignee (name, company, address, phone)
+- Reference (invoice no, PO no, export date, waybill no)
+- Transport (vessel, port of loading, port of discharge)
+- Items: marks, no. of pkgs, packaging type, description, qty, unit, net weight, gross weight, measurement
+- Totals: total pkgs, total net weight, total gross weight, total measurement
+
+### 3. Proforma Invoice (形式发票)
+**URL**: proforma-invoice.html
+**Purpose**: Pre-invoice for import license and L/C application
+**Fields**:
+- Seller/buyer details
+- Proforma invoice no, PO no, date of issue, validity
+- L/C no, waybill no, currency, payment terms
+- Countries (export, destination)
+- Items: item no, marks, description, HS code, qty, unit, unit price, total amount
+- Totals and declaration
+**Auto-calc**: qty × unitPrice = totalAmount
+
+### 4. Commercial Quotation (商业报价单)
+**URL**: commercial-quotation.html
+**Purpose**: Professional price quotation for foreign trade
+**Fields**:
+- Quotation no, date, validity, currency
+- Seller/buyer details with email
+- Payment terms, delivery terms, lead time, MOQ
+- Items: item no, description, specification, qty, unit, unit price, discount, line total
+- Subtotal, total discount, total tax, grand total
+**Auto-calc**: qty × unitPrice - discount = lineTotal
+
+### 5. Trade Contract (外贸合同)
+**URL**: trade-contract.html
+**Purpose**: Formal international trade contract
+**Fields**:
+- Contract no, date of signing, place of signing
+- Seller/buyer full details
+- Currency, payment terms, delivery terms, shipment date
+- Ports (loading, discharge)
+- Insurance, inspection, force majeure, arbitration terms
+- Items: item no, description, specification, qty, unit, unit price, total amount
+- Total amount, penalty clause
+- Dual signature (seller + buyer)
+**Auto-calc**: qty × unitPrice = totalAmount
+
+### 6. Cost Estimation (成本估算单)
+**URL**: cost-estimation.html
+**Purpose**: Detailed cost breakdown for export pricing
+**Fields**:
+- Project reference, date, prepared by, company details
+- Client and product details
+- Currency, validity
+- Items: item name, specification, qty, unit cost, total cost, notes
+- Financials: subtotal, profit margin %, tax rate %, discount %
+- Calculated: profit amount, tax amount, discount amount, grand total
+**Auto-calc**: qty × unitCost = totalCost
+
+### 7. Certificate of Origin (原产地证明)
+**URL**: certificate-of-origin.html
+**Purpose**: Reference template for certificate of origin
+**Fields**:
+- Exporter (name, address, country)
+- Consignee (name, address, country)
+- Transport (means, port of loading, port of discharge, vessel)
+- Countries (origin, destination)
+- Invoice no, date of export
+- Items: marks, no. of pkgs, description, HS code, gross weight, qty
+- Declaration, certifying authority, certifying location, date
+
+### 8. Bill of Lading (提单)
+**URL**: bill-of-lading.html
+**Purpose**: Reference template for bill of lading
+**Fields**:
+- Shipper (name, address)
+- Consignee (name, address)
+- Notify party (name, address)
+- Vessel, voyage no, port of loading, port of discharge
+- Place of receipt, place of delivery
+- B/L no, shipper ref, booking no
+- Freight terms, currency
+- Date of shipment, date of issue
+- Items: marks, no. of pkgs, description, gross weight, measurement, freight
+- Totals and declaration
+
+### 9. Insurance Policy (保险单)
+**URL**: insurance-policy.html
+**Purpose**: Reference template for cargo insurance policy
+**Fields**:
+- Insured (name, address)
+- Beneficiary (name, address)
+- Policy no, invoice no, contract no, date of insurance
+- Voyage from/to
+- Means of transport, vessel
+- Insurance conditions, insurance clauses
+- Currency, total insured amount, premium rate, premium amount
+- Items: marks, no. of pkgs, description, HS code, qty, insured amount
+
+### 10. Customs Declaration (报关单)
+**URL**: customs-declaration.html
+**Purpose**: Reference template for customs declaration
+**Fields**:
+- Declarant (name, code, phone)
+- Shipper, consignee
+- Trade mode, customs port
+- Contract no, invoice no, B/L no
+- Dates (declaration, export)
+- Transport mode, vessel, currency, payment terms
+- Items: item no, HS code, description, specification, qty, unit, unit price, total amount, origin country, destination country, net weight, gross weight
+- Total value, total weight
+- Declaration, declarant signature, date
+
+### 11. Inspection Certificate (检验证书)
+**URL**: inspection-certificate.html
+**Purpose**: Reference template for inspection certificate
+**Fields**:
+- Applicant (name, address)
+- Manufacturer (name, address)
+- Consignee (name, address)
+- Certificate no, invoice no, contract no
+- Dates (inspection, issue)
+- Inspection standard, location, result
+- Transport (vessel, port of loading, port of discharge)
+- Countries (origin, destination)
+- Items: item no, description, specification, qty, unit, batch no
+- Declaration, inspector name, certifying authority, date
+
+### 12. Fumigation Certificate (熏蒸证书)
+**URL**: fumigation-certificate.html
+**Purpose**: Reference template for fumigation certificate
+**Fields**:
+- Shipper (name, address), Consignee (name, address)
+- Commodity (name, description)
+- No. of packages, type of packaging, gross weight, volume
+- Fumigation details: fumigant, method, temperature, duration, date, location
+- Fumigator (name, license no)
+- Transport (vessel, ports, countries)
+- Certificate no, invoice no, date of issue
+- Declaration
+
+### 13. Beneficiary Certificate (受益人证明)
+**URL**: beneficiary-certificate.html
+**Purpose**: Reference template for beneficiary certificate
+**Fields**:
+- Beneficiary (name, address)
+- Consignee (name, address)
+- L/C no, invoice no, contract no, date of issue
+- Issuing bank, vessel
+- Ports (loading, discharge)
+- Countries (origin, destination), shipment date
+- Goods description, certificate type
+- Declaration, beneficiary signature, date
+
+### 14. Shipper's Letter of Instruction (发货人委托书)
+**URL**: shipper-letter-instruction.html
+**Purpose**: Detailed shipping instructions for freight forwarder
+**Fields**:
+- Shipper (name, address, phone, email, tax ID)
+- Consignee (name, company, address, phone)
+- Notify party (name, address)
+- Forwarder (name, contact)
+- Shipment date, vessel
+- Ports (loading, discharge)
+- B/L type, currency, payment terms
+- Insurance (required, value), special instructions
+- Items: description, HS code, qty, unit, weight, value
+- Total value, total weight, total pkgs
+- Shipper signature, date
+
+### 15. Commercial Packing List (详细装箱单)
+**URL**: commercial-packing-list.html
+**Purpose**: Detailed commercial packing list with itemized packaging
+**Fields**:
+- Shipper (name, company, address)
+- Consignee (name, company, address)
+- Reference (invoice no, PO no, contract no)
+- Dates (packing, export)
+- Transport (vessel, ports)
+- Shipping mark, container no, seal no
+- Items: item no, description, specification, no. of pkgs, packaging type, qty per pkg, total qty, unit, net weight per pkg, gross weight per pkg, total net weight, total gross weight, dimensions (L/W/H), measurement CBM
+- Totals: total pkgs, total net weight, total gross weight, total measurement
+- Remarks, preparer name/title, date
+**Auto-calc**: qtyPerPkg × numberOfPkgs = totalQty, weights and CBM calculations
+
+### 16. Currency Converter (汇率换算)
+**URL**: currency-converter.html
+**Purpose**: Currency conversion for trade pricing
+**Features**: Multi-currency batch conversion, manual rate input
+**Currencies**: USD, CNY, EUR, GBP, JPY, HKD, AUD, CAD, KRW, SGD, THB, INR, BRL, RUB, MXN
+
+### 17. Invoice Number Generator (发票编号生成器)
+**URL**: invoice-number.html
+**Purpose**: Auto-generate and manage invoice numbers
+**Features**: Custom prefix, separator, date format, sequence digits, reset rules (daily/monthly/yearly/never)
+
+### 18. Shipping Mark Generator (唛头生成器)
+**URL**: shipping-mark.html
+**Purpose**: Generate standardized shipping marks
+**Features**: 3 styles (standard, minimal, custom), live preview, one-click copy
+**Fields**: Consignee, destination port, PO number, package numbers, item description, specification, weights, country of origin, dimensions, custom lines
+
+### 19. Payment Terms Calculator (付款条款计算器)
+**URL**: payment-calculator.html
+**Purpose**: Calculate trade contract payment amounts
+**Features**: Preset templates (100% advance, 30/70, 30/70/0, 30/60/10), contract value split calculation
+
+## SEO & Discovery
+
+### Structured Data
+Every page includes JSON-LD structured data:
+- Home page: `SoftwareApplication` schema with aggregate rating, feature list, and area of knowledge
+- Document pages: `WebPage` schema with `Service` as main entity
+
+### Sitemap
+XML sitemap at `/sitemap.xml` with:
+- All 20 HTML pages
+- hreflang annotations for zh/en
+- Priority and changefreq metadata
+
+### robots.txt
+- Allows all standard crawlers
+- Explicitly allows GPTBot, CCBot, Google-Extended, anthropic-ai, Claude-Web
+- References sitemap.xml
+
+## Integration Notes
+
+### Adding a New Document Type
+1. Add document type to `DOCUMENT_TYPES` array in common.js
+2. Add entry to `DOC_META` with title, titleZh, gradient, badge, page
+3. Add default data to `getDefaultDoc(dt)` switch
+4. Add empty item to `getEmptyItem(dt)` switch if it has items table
+5. Add auto-calc to `autoCalcItem(dt, item)` switch if needed
+6. Add to `PDF_PREFIX` object
+7. Add to `DOC_CARDS` array for home page card
+8. Add to `DOC_GRADIENTS`, `DOC_BADGES`, `DOC_ICONS`
+9. Create the HTML page file following existing patterns
+10. Add to SEO data in injector, sitemap.xml
+
+### Page Pattern
+Each document page follows this structure:
+- Shared head with SEO meta tags
+- Top bar with back button, language toggle, theme toggle
+- Doc header with title and Chinese subtitle
+- Tab bar (Edit / Preview / History)
+- Edit panel: action bar + form container (rendered dynamically)
+- Preview panel: action bar + preview container (rendered dynamically)
+- History panel: search input + history list
+- Clear confirmation modal
+- Scripts: common.js + inline page script
+
+### Form Rendering Pattern
+Forms are rendered via inline JavaScript:
+- `renderForm()` generates HTML for form fields
+- `renderPreview()` generates HTML for preview display
+- `renderHistory()` generates history list from snapshots
+- Window-level handlers: `window._xxSet()`, `window._xxItem()`, `window._xxAddItem()`, `window._xxRemoveItem()`, `window._xxRestore()`, `window._xxDeleteSnap()`, `window._xxClearAllHistory()`
+- Each page uses a unique prefix (e.g., `_ci` for commercial invoice, `_co` for certificate of origin)
+
+## Common Questions
+
+### General
+
+**Q: What is TradeKit? Is it free? / TradeKit是什么？需要付费吗？**
+A: TradeKit is a free, open-source trade document generator supporting 19 document types for international trade. No signup or login required — open the page and start using it. / TradeKit是免费开源的外贸单证生成工具，支持19种外贸单证类型。完全免费，无需注册或登录，打开网页即可使用。
+
+**Q: Where is my data stored? / 数据存储在哪里？**
+A: All data is stored locally in your browser's localStorage. Nothing is uploaded to any server. Your data cannot be accessed by third parties. / 所有数据仅存储在浏览器 localStorage 中，不会上传至任何服务器。数据完全本地化，不会被第三方访问。
+
+**Q: What languages are supported? / 支持哪些语言？**
+A: Bilingual Chinese (zh-CN) and English (en-US). The document preview displays both languages side-by-side. / 中英双语（简体中文和英语），预览页面中英对照显示。
+
+**Q: How many snapshots are saved? / 最多保存多少个快照？**
+A: Maximum 50 snapshots per document type per user. Oldest are automatically removed when the limit is reached. / 每种单证最多保存50个快照，超出时自动移除最旧的快照。
+
+**Q: Can I use TradeKit offline? / 可以离线使用吗？**
+A: Yes. All form logic, data storage, and preview rendering work offline. html2pdf.js is bundled locally for PDF export. / 可以。表单逻辑、数据存储和预览均可离线使用。html2pdf.js 已本地打包用于PDF导出。
+
+### Document-Specific FAQs
+
+#### Commercial Invoice / 商业发票
+
+**Q: What is a Commercial Invoice used for in international trade?**
+A: A Commercial Invoice is the most critical document in international trade, used for customs clearance (declaring goods value for duty calculation), bank settlement (as a payment demand), and the buyer's accounting records. It details buyer/seller information, product descriptions, HS codes, quantities, unit prices, and total values.
+
+**Q: 商业发票(Commercial Invoice)的主要用途是什么？**
+A: 商业发票是国际贸易中最核心的单证之一，用于海关清关（证明货物价值用于关税计算）、银行结汇（作为收款凭证）、以及买方财务入账。它详细列明买卖双方信息、商品描述、HS编码、数量、单价和总价。
+
+**Q: What is the difference between a Commercial Invoice and a Proforma Invoice?**
+A: A Commercial Invoice is the formal billing document issued after shipment for customs clearance and accounting. A Proforma Invoice is a pre-shipment estimated invoice used by the buyer to obtain import licenses or open letters of credit — it is not a demand for payment.
+
+**Q: 商业发票和形式发票有什么区别？**
+A: 商业发票是实际发货后出具的正式收款凭证，用于海关清关和财务入账；形式发票(Proforma Invoice)是发货前出具的预估发票，主要用于买方申请进口许可证或开立信用证，不具备收款效力。
+
+#### Packing List / 装箱单
+
+**Q: What information does a Packing List contain?**
+A: A Packing List details the physical aspects of the shipment: number of packages, gross/net weights per package, dimensions (CBM), shipping marks, and itemized contents. It is essential for customs inspection and logistics operations.
+
+**Q: 装箱单(Packing List)包含哪些信息？**
+A: 装箱单详细列明了每批货物的包装信息，包括包装件数、每件的毛重/净重、体积(CBM)、唛头、商品明细等。是海关查验和物流操作的重要依据。
+
+**Q: How does a Packing List relate to a Commercial Invoice?**
+A: They are used together: the Commercial Invoice focuses on goods value and transaction terms, while the Packing List focuses on physical packaging and logistics. Both are required for customs clearance and cargo transportation.
+
+**Q: 装箱单和商业发票有什么关系？**
+A: 装箱单和商业发票通常配套使用：发票侧重商品价值和交易条款，装箱单侧重实物包装和物流信息。两者一起用于海关清关和货物运输。
+
+#### Proforma Invoice / 形式发票
+
+**Q: When should a Proforma Invoice be used?**
+A: A Proforma Invoice is used before actual shipment, primarily for the buyer to apply for import licenses, arrange foreign exchange approvals, or open letters of credit. It is an estimated invoice, not a formal payment demand.
+
+**Q: 形式发票(Proforma Invoice)什么时候使用？**
+A: 形式发票在正式发货前使用，主要用于买方申请进口许可证、办理外汇审批、开立信用证等。它是预估的发票，不作为正式的收款凭证。
+
+**Q: Can a Proforma Invoice be used for payment collection?**
+A: No, a Proforma Invoice is not a formal payment document. It only provides estimated transaction amounts for advance procedures. Actual payment collection and customs clearance require a formal Commercial Invoice.
+
+**Q: 形式发票能用来收款吗？**
+A: 形式发票不是正式的收款凭证。它仅用于预估交易金额和提前办理相关手续，实际收款和报关需使用正式的商业发票。
+
+#### Commercial Quotation / 商业报价单
+
+**Q: What key terms should a Commercial Quotation include?**
+A: A Commercial Quotation should include product descriptions, specifications, quantities, unit prices, total amounts, trade terms (FOB/CIF/etc.), payment terms, validity period, and delivery dates. It forms the basis for price negotiation and contract signing.
+
+**Q: 报价单(Commercial Quotation)包含哪些关键条款？**
+A: 报价单包含商品描述、规格参数、数量、单价、总价、贸易术语(FOB/CIF等)、付款条件、有效期、交货期等。是买卖双方议价和签订合同的基础文件。
+
+**Q: How to set the validity period of a quotation?**
+A: A quotation should have a clear validity period (e.g., 30 days). After expiry, the quote automatically becomes invalid, protecting the seller from market price fluctuations and exchange rate changes.
+
+**Q: 报价单的有效期怎么设置？**
+A: 报价单应设置明确的有效期（如30天），超过有效期后报价自动失效。这有助于保护卖方免受市场价格波动和汇率变化的影响。
+
+#### Trade Contract / 外贸合同
+
+**Q: What clauses must a Trade Contract include?**
+A: A Trade Contract should include buyer/seller information, product descriptions, quantity and specifications, unit and total prices, trade terms, payment methods, delivery schedule, packaging requirements, quality standards, inspection clauses, force majeure, and dispute resolution.
+
+**Q: 外贸合同必须包含哪些条款？**
+A: 外贸合同应包含买卖双方信息、商品描述、数量和规格、单价和总价、贸易术语、付款方式、交货期限、包装要求、质量标准、检验条款、不可抗力、争议解决等。
+
+**Q: What is the Force Majeure clause?**
+A: Force Majeure refers to unforeseeable, unavoidable, and insurmountable objective circumstances (natural disasters, war, government actions, etc.). This clause states that the affected party may be partially or fully exempted from contract obligations when such events occur.
+
+**Q: 合同中的不可抗力条款是什么？**
+A: 不可抗力是指无法预见、无法避免且无法克服的客观情况（如自然灾害、战争、政府行为等）。该条款规定在不可抗力事件发生时，受影响方可部分或全部免除合同责任。
+
+#### Cost Estimation / 成本估算单
+
+**Q: How does a Cost Estimation calculate profit and tax?**
+A: Cost Estimation calculates based on itemized costs (product, shipping, insurance, duties, etc.) with configurable profit margin (e.g., 10%) and tax rate (e.g., 13% VAT). It also supports discount and surcharge adjustments.
+
+**Q: 成本估算单如何计算利润和税金？**
+A: 成本估算单根据各项成本（产品成本、运费、保险、关税等）为基础，按设定的利润率（如10%）和税率（如13%增值税）计算。还支持折扣和手续费的调整。
+
+**Q: What is the relationship between Cost Estimation and formal invoice?**
+A: Cost Estimation is a pre-transaction planning tool for quotation reference. A formal invoice is the post-transaction payment document. The two can be cross-referenced, but estimated values do not equal final transaction amounts.
+
+**Q: 成本估算和正式发票有什么关系？**
+A: 成本估算是交易前的预估工具，用于报价参考和成本分析。正式发票是交易后的收款凭证。两者数据可以相互对照，但估算值不等于最终交易金额。
+
+#### Certificate of Origin / 原产地证明
+
+**Q: What is the purpose of a Certificate of Origin?**
+A: A Certificate of Origin certifies where goods were manufactured. It is essential for customs duty assessment, trade policy implementation, and enjoying preferential tariff treatment under free trade agreements.
+
+**Q: 原产地证明(Certificate of Origin)的作用是什么？**
+A: 原产地证明用于证明货物的生产或制造地，是海关征收关税、实施贸易政策和执行原产地优惠政策的重要依据。部分国家凭此享受关税减免。
+
+**Q: Who issues a Certificate of Origin?**
+A: Certificates of Origin are typically issued by the exporter's national chamber of commerce (such as CCPIT in China) or customs authorities. Chinese exporters can apply through local CCPIT or customs offices.
+
+**Q: 原产地证明由哪个机构签发？**
+A: 原产地证明通常由出口国的商会（如中国国际贸易促进委员会CCPIT）或海关签发。中国出口企业可向当地贸促会或海关申请。
+
+#### Bill of Lading / 提单
+
+**Q: What are the three types of Bill of Lading?**
+A: Bills of Lading are classified by transferability: Straight B/L (non-transferable), Order B/L (transferable by endorsement), and Bearer B/L (transferable by possession). They are also classified by transport mode: Ocean B/L and Air Waybill.
+
+**Q: 提单(Bill of Lading)有哪三种类型？**
+A: 提单按物权转移方式分为：记名提单（不可转让）、指示提单（通过背书转让）、不记名提单（持单人可提货）。按运输方式又分为海运提单和空运提单。
+
+**Q: What is the difference between Bill of Lading and Sea Waybill?**
+A: A Bill of Lading is a document of title that can be transferred and used for L/C settlement. A Sea Waybill is NOT a title document, cannot be transferred, and goods are released to the consignee upon identity verification at the destination port.
+
+**Q: 提单和海运单(Sea Waybill)有什么区别？**
+A: 提单是物权凭证，可以转让和用于信用证结汇；海运单不是物权凭证，不能转让，货物到达目的港后收货人凭身份证明即可提货，适用于信用证外的交易。
+
+#### Insurance Policy / 保险单
+
+**Q: What are the basic cargo insurance coverage types?**
+A: International cargo insurance mainly includes: FPA (Free from Particular Average, major losses only), WA (With Average, covers seawater damage), and All Risks (covers all losses). Additional coverage includes war risk, strike risk, theft risk, etc.
+
+**Q: 货运保险有哪些基本险别？**
+A: 国际货运保险主要包括：平安险(FPA，仅保重大损失)、水渍险(WA，保海水损坏)、一切险(All Risks，保全部损失)。附加险包括战争险、罢工险、偷窃险等。
+
+**Q: How to determine the insured amount?**
+A: The insured amount is typically calculated as 110% of the invoice value (CIF price plus 10%), to cover potential losses and related expenses during transit. The exact percentage can be adjusted per contract terms.
+
+**Q: 保险金额如何确定？**
+A: 保险金额通常按发票金额的110%计算（CIF价加10%），以覆盖货物在运输过程中可能发生的损失和相关费用。具体比例可根据合同约定调整。
+
+#### Customs Declaration / 报关单
+
+**Q: Who fills out a Customs Declaration?**
+A: Customs Declarations are typically completed by the exporter's customs broker or a professional customs clearance agency. The declarant must have customs clearance qualifications and knowledge of tariff classification and regulations.
+
+**Q: 报关单由谁来填写申报？**
+A: 报关单通常由出口企业的报关员或委托专业报关行填写。申报人需具备报关资质，熟悉海关法规和商品归类规则，确保申报信息准确。
+
+**Q: What is the role of HS Code in customs declaration?**
+A: The HS Code (Harmonized System Code) is an internationally standardized product classification code used to determine tariff rates, regulatory requirements, and trade policies. Correct HS Code classification is essential for successful customs clearance.
+
+**Q: HS编码在报关中有什么作用？**
+A: HS编码(Harmonized System Code)是国际通用的商品分类编码，用于确定商品的关税税率、监管条件和贸易政策。正确归类HS编码是报关成功的关键。
+
+#### Inspection Certificate / 检验证书
+
+**Q: Who issues an Inspection Certificate?**
+A: Inspection Certificates are issued by independent inspection agencies (such as SGS, BV, Intertek) or inspectors agreed upon by both parties. Some countries require certificates from government-designated inspection bodies.
+
+**Q: 检验证书(Inspection Certificate)由谁出具？**
+A: 检验证书由第三方检验机构（如SGS、BV、Intertek等）或买卖双方约定的检验人员出具。部分国家要求由政府指定的检验机构签发。
+
+**Q: What is the validity period of an Inspection Certificate?**
+A: Inspection Certificates typically do not have a fixed expiry date, but most importing countries require customs clearance within a specified period after goods arrival (usually 30-90 days). Follow L/C or contract requirements.
+
+**Q: 检验证书的有效期是多久？**
+A: 检验证书通常没有固定有效期，但大多数进口国要求在货物到达后的一定时间内完成清关（通常30-90天）。建议按信用证或合同要求执行。
+
+#### Fumigation Certificate / 熏蒸证书
+
+**Q: When is a Fumigation Certificate required?**
+A: Fumigation is required for goods shipped with solid wood packaging (wooden crates, pallets, dunnage) to prevent cross-border pest transmission. Many countries enforce ISPM 15 standards for all wood packaging materials.
+
+**Q: 什么货物需要熏蒸证书(Fumigation Certificate)？**
+A: 使用实木包装材料（如木箱、木托盘、木垫板）的货物需要熏蒸处理并出具证书，以防止有害生物跨境传播。部分国家对所有木质包装强制执行ISPM 15标准。
+
+**Q: What are common fumigation methods?**
+A: Common methods include: methyl bromide fumigation, heat treatment (56°C for 30 minutes), and sulfuryl fluoride fumigation. After treatment, residual gas concentration must be tested and certified as safe before issuing the certificate.
+
+**Q: 熏蒸处理的常用方法有哪些？**
+A: 常用熏蒸方法包括：溴甲烷熏蒸、热处理（56°C持续30分钟）、硫酰氟熏蒸。处理后需在规定时间后检测残留气体浓度，合格后方可出具证书。
+
+#### Beneficiary Certificate / 受益人证明
+
+**Q: When is a Beneficiary Certificate needed?**
+A: A Beneficiary Certificate is typically required in L/C transactions, issued by the beneficiary (seller) to certify that specific actions have been completed as per L/C terms (e.g., sending document copies, notifying shipment). It is part of the L/C document presentation.
+
+**Q: 受益人证明(Beneficiary Certificate)什么时候需要？**
+A: 受益人证明通常在信用证交易中，由受益人（卖方）出具，证明已按信用证要求完成特定操作（如寄送单据副本、通知发货等）。是信用证交单的组成部分。
+
+**Q: What is the relationship between Beneficiary Certificate and Letter of Credit?**
+A: A Beneficiary Certificate is one of the documents required by the L/C. If the L/C terms stipulate a Beneficiary Certificate, the seller must issue it strictly in the format and content specified, otherwise it constitutes a discrepancy.
+
+**Q: 受益人证明和信用证(L/C)的关系？**
+A: 受益人证明是信用证要求的交单单据之一。如果信用证条款规定需要提供受益人证明，卖方必须严格按照信用证要求的格式和内容出具，否则构成不符点。
+
+#### Shipper's Letter of Instruction / 发货人委托书
+
+**Q: Who uses a Shipper's Letter of Instruction (SLI)?**
+A: An SLI is a written instruction from the shipper (exporter) to the freight forwarder, authorizing them to arrange booking, customs clearance, loading, and other logistics operations. It serves as the basis for the forwarder to issue the Bill of Lading.
+
+**Q: 发货人委托书(SLI)给谁使用？**
+A: 发货人委托书是发货人（出口商）向货运代理提供的书面运输指示，用于委托货代安排订舱、报关、装运等物流操作。是货代出具提单的依据。
+
+**Q: What shipping directives are included in an SLI?**
+A: An SLI includes shipper and consignee information, ports of loading and destination, cargo descriptions, piece count, weights, volumes, freight prepaid/collect, B/L type, insurance requirements, and special handling instructions.
+
+**Q: SLI包含哪些运输指示？**
+A: SLI包含发货人和收货人信息、起运港和目的港、货物描述、件数、重量、体积、运费预付/到付、提单类型、保险要求、特殊处理指示等。
+
+#### Commercial Packing List / 详细装箱单
+
+**Q: What is the difference between Commercial Packing List and basic Packing List?**
+A: A Commercial Packing List contains more detailed packaging information than a standard Packing List, such as specific contents per carton, inner item numbers, dimensional specifications, stacking requirements, and hazardous material labels — suitable for complex or customized shipments.
+
+**Q: 详细装箱单(Commercial Packing List)和普通装箱单有什么区别？**
+A: 详细装箱单比标准装箱单包含更精细的包装信息，如每个包装箱的具体内容物、内件编号、尺寸规格、堆放要求、危险品标识等，适合复杂货物和定制化包装。
+
+**Q: How to calculate CBM in a Commercial Packing List?**
+A: CBM (Cubic Meter) is calculated as: length(m) × width(m) × height(m) × number of pieces. The Commercial Packing List automatically sums per-carton volumes to determine total container load capacity and freight costs.
+
+**Q: 详细装箱单如何计算CBM体积？**
+A: CBM(Cubic Meter)计算公式为：长(m)×宽(m)×高(m)×件数。详细装箱单会自动累加每箱体积得出总体积，用于确定集装箱装载量和运费。
+
+#### Currency Converter / 汇率换算
+
+**Q: Do I need to input exchange rates manually?**
+A: Yes, exchange rates must be entered manually or updated from real-time sources. The tool does not auto-fetch live rates. We recommend referencing Bank of China, XE.com, or other authoritative rate sources.
+
+**Q: 汇率需要手动输入吗？**
+A: 汇率需手动输入或根据实时汇率更新。工具本身不自动获取实时汇率，建议参考中国银行、XE.com或其他权威汇率源的数据。
+
+**Q: Which currencies are supported for conversion?**
+A: Major international trade currencies are supported, including USD, EUR, GBP, JPY, CNY, AUD, CAD, CHF, HKD, SGD, KRW, and more — customizable as needed.
+
+**Q: 汇率换算支持哪些货币？**
+A: 支持主要国际贸易货币，包括USD、EUR、GBP、JPY、CNY、AUD、CAD、CHF、HKD、SGD、KRW等，可根据需要自定义添加。
+
+#### Invoice Number Generator / 发票编号生成器
+
+**Q: Can I customize invoice number rules?**
+A: Multiple numbering rules are supported: by date (YYYYMMDD-XXX), by prefix + sequence (CI-0001), custom formats, etc. You can set the starting number and increment step.
+
+**Q: 发票编号可以自定义规则吗？**
+A: 支持多种编号规则：按日期(YYYYMMDD-XXX)、按前缀+序号(CI-0001)、自定义格式等。可设置起始序号和递增步长。
+
+**Q: Can invoice numbers be reset daily/monthly/yearly?**
+A: Yes, automatic date-based reset is supported. In "by date" mode, numbers reset from zero daily/monthly/yearly, ensuring uniqueness and readability.
+
+**Q: 发票编号可以按天/月/年重置吗？**
+A: 支持按日期自动重置。选择"按日期"模式时，编号会在每天/每月/每年自动从零开始，确保编号的唯一性和可读性。
+
+#### Shipping Mark Generator / 唛头生成器
+
+**Q: How many shipping mark styles are available?**
+A: Two styles are supported: Standard Mark (with consignee, destination port, piece number, etc.) and Diamond Mark. Choose based on destination port requirements and customer preferences. Custom content is also supported.
+
+**Q: 唛头(Shipping Mark)有几种样式可选？**
+A: 支持标准唛头（含收发货人、目的港、件号等）和菱形唛头两种样式。可根据目的港要求和客户偏好选择，支持自定义内容。
+
+**Q: What information must a shipping mark contain?**
+A: A standard shipping mark typically includes: consignee abbreviation/code, destination port name, contract or order number, and carton/piece number. Some customers require additional info such as country of origin, weight, and dimensions.
+
+**Q: 唛头必须包含哪些信息？**
+A: 标准唛头通常包含：收货人简称/代码、目的港名称、合同号或订单号、箱号/件号。部分客户要求添加原产地、重量、尺寸等额外信息。
+
+#### Payment Terms Calculator / 付款条款计算器
+
+**Q: What payment methods does the Payment Calculator support?**
+A: It supports common trade payment methods: T/T (advance T/T, deferred T/T), L/C (Letter of Credit), D/P (Documents against Payment), D/A (Documents against Acceptance), and 30% deposit + 70% balance.
+
+**Q: 付款计算器支持哪些付款方式？**
+A: 支持T/T电汇（前T/T、后T/T）、L/C信用证、D/P付款交单、D/A承兑交单、30%定金+70%尾款等常见外贸付款方式。
+
+**Q: How does 30/70 payment work?**
+A: 30/70 means the buyer pays 30% as advance deposit, with the remaining 70% paid after shipment or upon receiving the B/L copy. The calculator automatically computes the deposit and balance amounts for quoting and collection.
+
+**Q: 30/70付款方式怎么计算？**
+A: 30/70表示买方预付30%定金，剩余70%在发货后或见提单副本支付。计算器会自动算出定金金额和尾款金额，方便报价和收款。
