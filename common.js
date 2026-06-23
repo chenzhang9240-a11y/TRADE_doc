@@ -54,6 +54,7 @@ const I18N = {
     uploadLogo: 'Upload / 上传', logoHint: 'Recommended 200x60px, PNG/JPG/SVG, auto-fit',
     logoLabel: 'Company Logo / 企业 Logo',
     toggleLang: '中文/English',
+    save: '保存', saveTemplate: '保存模板',
   },
   en: {
     heroTitle: 'TradeKit — Trade Document Generator',
@@ -92,6 +93,7 @@ const I18N = {
     uploadLogo: 'Upload / 上传', logoHint: 'Recommended 200x60px, PNG/JPG/SVG, auto-fit',
     logoLabel: 'Company Logo / 企业 Logo',
     toggleLang: 'EN/中文',
+    save: 'Save', saveTemplate: 'Save Template',
   }
 };
 
@@ -923,4 +925,116 @@ function generateInvoiceNumber() {
   const d = String(now.getDate()).padStart(2,'0');
   const seq = String(Math.floor(Math.random()*9000)+1000);
   return 'INV' + '-' + y + m + d + '-' + seq;
+}
+
+// ===== Template Management =====
+// Each doc type stores: { currentTemplateId, previewLang, templates: [{ id, name, builtIn, previewLang, fields }] }
+
+function getTmplKey(dt) { return userKey(dt + '_templates_v1'); }
+
+function loadTmplData(dt) {
+  try { var raw = localStorage.getItem(getTmplKey(dt)); return raw ? JSON.parse(raw) : null; }
+  catch(e) { return null; }
+}
+
+function saveTmplData(dt, data) {
+  try { localStorage.setItem(getTmplKey(dt), JSON.stringify(data)); } catch(e) {}
+}
+
+function buildDefaultTmpl(dt, defaultFields) {
+  var fields = {};
+  for (var key in defaultFields) {
+    fields[key] = defaultFields[key];
+  }
+  return {
+    id: 'tmpl_default',
+    name: '完整版 (默认)',
+    builtIn: true,
+    previewLang: 'zh',
+    fields: fields
+  };
+}
+
+function ensureTmplData(dt, defaultFields) {
+  var data = loadTmplData(dt);
+  if (!data || !data.templates || data.templates.length === 0) {
+    data = {
+      currentTemplateId: 'tmpl_default',
+      previewLang: 'zh',
+      templates: [buildDefaultTmpl(dt, defaultFields)]
+    };
+    saveTmplData(dt, data);
+  }
+  return data;
+}
+
+function getCurrentTmpl(dt, defaultFields) {
+  var data = ensureTmplData(dt, defaultFields);
+  var cur = data.templates.find(function(t) { return t.id === data.currentTemplateId; });
+  return cur || data.templates[0];
+}
+
+function setCurrentTmpl(dt, id, defaultFields) {
+  var data = ensureTmplData(dt, defaultFields);
+  data.currentTemplateId = id;
+  saveTmplData(dt, data);
+}
+
+function getTmplPreviewLang(dt, defaultFields) {
+  var t = getCurrentTmpl(dt, defaultFields);
+  return t ? t.previewLang : 'zh';
+}
+
+function isFieldRequired(dt, fieldKey, defaultFields) {
+  return defaultFields[fieldKey] === 'required';
+}
+
+function isFieldVisible(dt, fieldKey, defaultFields) {
+  var t = getCurrentTmpl(dt, defaultFields);
+  if (!t) return true;
+  var val = t.fields[fieldKey];
+  return val === 'required' || val === true;
+}
+
+function isFieldChecked(dt, fieldKey, defaultFields) {
+  var t = getCurrentTmpl(dt, defaultFields);
+  if (!t) return true;
+  var val = t.fields[fieldKey];
+  return val === 'required' || val === true || val === 'required';
+}
+
+function saveNewTmpl(dt, name, fields, previewLang, defaultFields) {
+  var data = ensureTmplData(dt, defaultFields);
+  var newTmpl = {
+    id: 'tmpl_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name: name,
+    builtIn: false,
+    previewLang: previewLang || 'zh',
+    fields: JSON.parse(JSON.stringify(fields))
+  };
+  data.templates.push(newTmpl);
+  data.currentTemplateId = newTmpl.id;
+  saveTmplData(dt, data);
+  return newTmpl;
+}
+
+function updateTmpl(dt, id, updates, defaultFields) {
+  var data = ensureTmplData(dt, defaultFields);
+  var tmpl = data.templates.find(function(t) { return t.id === id; });
+  if (!tmpl || tmpl.builtIn) return false;
+  for (var k in updates) { tmpl[k] = updates[k]; }
+  saveTmplData(dt, data);
+  return true;
+}
+
+function deleteTmpl(dt, id, defaultFields) {
+  var data = ensureTmplData(dt, defaultFields);
+  var idx = data.templates.findIndex(function(t) { return t.id === id; });
+  if (idx === -1 || data.templates[idx].builtIn) return false;
+  data.templates.splice(idx, 1);
+  if (data.currentTemplateId === id) {
+    data.currentTemplateId = data.templates[0] ? data.templates[0].id : 'tmpl_default';
+  }
+  saveTmplData(dt, data);
+  return true;
 }

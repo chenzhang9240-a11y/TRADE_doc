@@ -334,3 +334,23 @@ input[type="number"].input-field::-webkit-inner-spin-button, input[type="number"
 .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; font-size: 14px; color: var(--text-secondary); line-height: 1.7; padding: 0 16px; }
 .faq-item.open .faq-answer { max-height: 500px; padding: 0 16px 14px; }
 @media (max-width: 768px) { .faq-section { padding: 16px; margin-top: 24px; } .faq-section h2 { font-size: 16px; } }
+
+/* ===== Template Toolbar ===== */
+.tmpl-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 14px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; flex-wrap: wrap; }
+.tmpl-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+.tmpl-select { width: auto !important; min-width: 140px; padding: 5px 28px 5px 10px !important; font-size: 13px !important; }
+.tmpl-bar .btn { font-size: 12px !important; padding: 5px 10px !important; }
+
+/* ===== Template Config Modal ===== */
+.tmpl-modal-section { margin-bottom: 12px; }
+.tmpl-modal-section-title { font-size: 13px; font-weight: 700; color: var(--primary); padding: 6px 0; border-bottom: 1px solid var(--border-color); margin-bottom: 6px; }
+.tmpl-field-row { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 4px; }
+.tmpl-field-item { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; padding: 2px 4px; border-radius: 4px; }
+.tmpl-field-item:hover { background: var(--border-color); }
+.tmpl-field-item input[type="checkbox"] { margin: 0; cursor: pointer; accent-color: var(--primary); }
+.tmpl-field-item.required { opacity: 1; }
+.tmpl-field-item.required input[type="checkbox"] { opacity: 0.5; cursor: not-allowed; }
+.tmpl-field-item.disabled-label { color: var(--text-muted); }
+.tmpl-preview-lang { display: flex; align-items: center; gap: 16px; margin-top: 8px; padding: 8px 0; border-top: 1px solid var(--border-color); }
+.tmpl-preview-lang label { font-size: 12px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
+.tmpl-preview-lang input[type="radio"] { accent-color: var(--primary); }
