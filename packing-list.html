@@ -128,7 +128,7 @@ var PL_FIELD_META={
   'items.unitOfMeasure':{label:'UNIT',labelCn:'单位',section:'items'},
   'items.netWeight':{label:'N.W.(KG)',labelCn:'净重',section:'items'},
   'items.grossWeight':{label:'G.W.(KG)',labelCn:'毛重',section:'items'},
-  'items.measurement':{label:'MEAS.(CBM)',labelCn:'体积',section:'items'},
+  'items.measurement':{label:'MEAS.(CBM)',labelCn:'体积(CBM)',section:'items'},
   'totals.totalPkgs':{label:'Total Packages',labelCn:'总件数',section:'totals'},
   'totals.totalNetWeight':{label:'Total Net Weight',labelCn:'总净重',section:'totals'},
   'totals.totalGrossWeight':{label:'Total Gross Weight',labelCn:'总毛重',section:'totals'},
@@ -241,6 +241,7 @@ function renderPreview(){
   var h='<div class="invoice-preview" id="preview-content">';
   h+='<div class="title">'+tr2('PACKING LIST','装箱单')+'</div>';
   h+='<div class="two-col">';
+  h+='<div style="flex:1;">';
   if(isFld('shipper.shipperName')||isFld('shipper.shipperAddress')||isFld('shipper.shipperPhone')){
     h+='<div class="address-block"><div class="addr-label">'+tr2('SHIPPER','发货人')+':</div>';
     if(isFld('shipper.shipperName')&&d.shipperName)h+='<div>'+esc(d.shipperName)+'</div>';
@@ -248,6 +249,7 @@ function renderPreview(){
     if(isFld('shipper.shipperPhone')&&d.shipperPhone)h+='<div>'+esc(d.shipperPhone)+'</div>';
     h+='</div>';
   }
+  h+='</div><div style="flex:1;">';
   if(isFld('consignee.consigneeName')||isFld('consignee.consigneeCompany')||isFld('consignee.consigneeAddress')||isFld('consignee.consigneePhone')){
     h+='<div class="address-block"><div class="addr-label">'+tr2('CONSIGNEE','收货人')+':</div>';
     if(isFld('consignee.consigneeName')&&d.consigneeName)h+='<div>'+esc(d.consigneeName)+'</div>';
@@ -256,6 +258,7 @@ function renderPreview(){
     if(isFld('consignee.consigneePhone')&&d.consigneePhone)h+='<div>'+esc(d.consigneePhone)+'</div>';
     h+='</div>';
   }
+  h+='</div>';
   h+='</div>';
   var leftShipFlds=[
     {key:'shipping.invoiceNo',label:'Invoice No.',labelCn:'发票号',val:d.invoiceNo},
@@ -273,11 +276,11 @@ function renderPreview(){
   if(hasLeft||hasRight){
     h+='<div class="field-row"><div style="flex:1;">';
     leftShipFlds.forEach(function(f){
-      if(isFld(f.key))h+='<div class="field-row"><span class="field-label">'+(isZh2?f.labelCn:f.label)+':</span><span class="field-value">'+esc(f.val||'—')+'</span></div>';
+      if(isFld(f.key))h+='<div class="field-row"><span style="font-weight:bold;min-width:80px;flex-shrink:0;">'+(isZh2?f.labelCn:f.label)+':</span><span class="field-value">'+esc(f.val||'—')+'</span></div>';
     });
     h+='</div><div style="flex:1;">';
     rightShipFlds.forEach(function(f){
-      if(isFld(f.key))h+='<div class="field-row"><span class="field-label">'+(isZh2?f.labelCn:f.label)+':</span><span class="field-value">'+esc(f.val||'—')+'</span></div>';
+      if(isFld(f.key))h+='<div class="field-row"><span style="font-weight:bold;min-width:80px;flex-shrink:0;">'+(isZh2?f.labelCn:f.label)+':</span><span class="field-value">'+esc(f.val||'—')+'</span></div>';
     });
     h+='</div></div>';
   }
@@ -290,7 +293,7 @@ function renderPreview(){
     {key:'items.unitOfMeasure',label:'UNIT',labelCn:'单位',width:'7%',field:'unitOfMeasure',render:function(v){return v||'—';}},
     {key:'items.netWeight',label:'N.W.(KG)',labelCn:'净重(kg)',width:'10%',field:'netWeight',render:function(v){return v||'—';}},
     {key:'items.grossWeight',label:'G.W.(KG)',labelCn:'毛重(kg)',width:'10%',field:'grossWeight',render:function(v){return v||'—';}},
-    {key:'items.measurement',label:'MEAS.(CBM)',labelCn:'体积',width:'10%',field:'measurement',render:function(v){return v||'—';}}
+    {key:'items.measurement',label:'MEAS.(CBM)',labelCn:'体积(CBM)',width:'10%',field:'measurement',render:function(v){return v||'—';}}
   ];
   var visCols=itemCols.filter(function(c){return isFld(c.key);});
   h+='<table class="items"><thead><tr><th style="width:5%;">#</th>';
@@ -358,27 +361,29 @@ function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-m
 document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
 document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
 function renderTmplBar(){
-  var tr=I18N[lang],d2=loadTmplData(DT);
-  var _data=d2||{currentTemplateId:'tmpl_default',previewLang:'zh',templates:[buildDefaultTmpl(DT,PL_DEFAULT_FIELDS)]};
-  document.getElementById('tmpl-config-text').textContent=tr.fieldConfig||'⚙ Field Config';
-  document.getElementById('tmpl-label-text').textContent=tr.template||'Template';
-  document.getElementById('tmpl-save-text').textContent=tr.save||'Save';
-  document.getElementById('tmpl-new-text').textContent=tr.newT||'+New';
-  document.getElementById('tmpl-delete-text').textContent=tr.del||'Delete';
+  var isZh=lang==='zh';
+  var data=ensureTmplData(DT,PL_DEFAULT_FIELDS);
+  var current=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+  document.getElementById('tmpl-config-text').textContent=isZh?'字段配置':'Field Config';
+  document.getElementById('tmpl-label-text').textContent=isZh?'模板':'Template';
+  document.getElementById('tmpl-save-text').textContent=isZh?'保存':'Save';
+  document.getElementById('tmpl-new-text').textContent=isZh?'新建':'New';
+  document.getElementById('tmpl-delete-text').textContent=isZh?'删除':'Delete';
   var sel=document.getElementById('tmpl-selector');sel.innerHTML='';
-  (_data.templates||[]).forEach(function(t){
-    var o=document.createElement('option');o.value=t.id;o.textContent=t.name+(t.builtIn?' ('+(tr.defaultT||'Default')+')':'');
-    if(t.id===_data.currentTemplateId)o.selected=true;sel.appendChild(o);
+  data.templates.forEach(function(t){
+    var o=document.createElement('option');o.value=t.id;
+    o.textContent=t.name+(t.builtIn?(isZh?' (默认)':' (Default)'):'');
+    if(t.id===data.currentTemplateId)o.selected=true;sel.appendChild(o);
   });
-  if(!sel.value&&sel.options.length>0){sel.value=sel.options[0].value;_data.currentTemplateId=sel.value;saveTmplData(DT,_data);}
-  var ct=(_data.templates||[]).find(function(t){return t.id===_data.currentTemplateId;});
-  document.getElementById('btn-tmpl-delete').classList.toggle('hidden',!ct||ct.builtIn);
+  if(!sel.value&&sel.options.length>0){sel.value=sel.options[0].value;}
+  var isBuiltIn=current?current.builtIn:true;
+  document.getElementById('btn-tmpl-delete').classList.toggle('hidden',isBuiltIn);
   previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
 }
 function renderTmplModal(){
-  var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+  var isZh=lang==='zh',t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
   if(!t)return;
-  document.getElementById('tmpl-modal-title').textContent=tr.fieldConfig||'Field Configuration';
+  document.getElementById('tmpl-modal-title').textContent=(isZh?'字段配置 - ':'Field Config - ')+t.name;
   var sections=['shipper','consignee','shipping','items','totals','remarks','signature'];
   var sectionOrder={shipper:0,consignee:1,shipping:2,items:3,totals:4,remarks:5,signature:6};
   var secArr=sections.map(function(s){return{name:s,items:[]};});
@@ -399,65 +404,69 @@ function renderTmplModal(){
       if(isReq){
         body+='<input type="checkbox" checked disabled style="margin-right:4px;"><span style="color:#999;">'+meta.label+' / '+meta.labelCn+' <span style="color:red;">*</span></span>';
       }else{
-        body+='<input type="checkbox" '+(checked?'checked':'')+' data-tmpl-key="'+key+'" style="margin-right:4px;"> <span>'+meta.label+' / '+meta.labelCn+'</span>';
+        body+='<input type="checkbox" '+(checked?'checked':'')+' data-fk="'+key+'" style="margin-right:4px;"> <span>'+meta.label+' / '+meta.labelCn+'</span>';
       }
       body+='</label>';
     });
     body+='</div>';
   });
   body+='<div style="margin-top:12px;border-top:1px solid #ddd;padding-top:12px;">';
-  body+='<label style="font-size:13px;font-weight:700;margin-right:12px;">'+(tr.previewLang||'Preview Language')+':</label>';
+  body+='<span style="font-size:13px;font-weight:600;">'+(isZh?'预览语言':'Preview Language')+':</span>';
   var pl=t.previewLang||'zh';
-  body+='<label style="margin-right:8px;font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="en"'+(pl==='en'?' checked':'')+'> EN</label>';
-  body+='<label style="font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="zh"'+(pl==='zh'?' checked':'')+'> 中文</label></div>';
+  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="zh"'+(pl==='zh'?' checked':'')+'> 中文</label>';
+  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="en"'+(pl==='en'?' checked':'')+'> English</label></div>';
   document.getElementById('tmpl-modal-body').innerHTML=body;
+  var tr=I18N[lang];
+  document.getElementById('btn-tmpl-modal-cancel').textContent=tr.cancel;
+  document.getElementById('btn-tmpl-modal-save').textContent=tr.saveTemplate;
   document.getElementById('tmpl-modal').classList.remove('hidden');
 }
 function doSaveTmplFromModal(){
-  var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
-  if(!t){return;}
-  var checkboxes=document.querySelectorAll('#tmpl-modal-body input[type="checkbox"]:not([disabled])');
-  checkboxes.forEach(function(cb){t.fields[cb.getAttribute('data-tmpl-key')]=cb.checked;});
-  var langRadios=document.querySelectorAll('#tmpl-modal-body input[name="tmpl-pl-lang"]');
-  langRadios.forEach(function(r){if(r.checked)t.previewLang=r.value;});
-  if(d2){saveTmplData(DT,d2);}
-  previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
+  var data=ensureTmplData(DT,PL_DEFAULT_FIELDS);
+  var tmpl=data.templates.find(function(t){return t.id===data.currentTemplateId;});
+  if(!tmpl)return;
+  var langRadio=document.querySelector('input[name="tmpl-pl-lang"]:checked');
+  if(langRadio)tmpl.previewLang=langRadio.value;
+  if(!tmpl.builtIn){
+    var checks=document.querySelectorAll('#tmpl-modal-body input[type="checkbox"]');
+    checks.forEach(function(cb){
+      var fk=cb.getAttribute('data-fk');
+      if(fk&&PL_DEFAULT_FIELDS[fk]!=='required'){tmpl.fields[fk]=cb.checked;}
+    });
+  }
+  saveTmplData(DT,data);
+  previewLang=tmpl.previewLang;
   document.getElementById('tmpl-modal').classList.add('hidden');
   renderTmplBar();renderForm();renderPreview();
 }
 function setupTmplEvents(){
   document.getElementById('btn-tmpl-config').onclick=function(){renderTmplModal();};
   document.getElementById('btn-tmpl-modal-cancel').onclick=function(){document.getElementById('tmpl-modal').classList.add('hidden');};
-  document.getElementById('btn-tmpl-modal-save').onclick=function(){doSaveTmplFromModal();};
+  document.getElementById('btn-tmpl-modal-save').onclick=doSaveTmplFromModal;
+  document.getElementById('btn-tmpl-save').onclick=doSaveTmplFromModal;
   document.getElementById('tmpl-selector').onchange=function(){
-    var d2=loadTmplData(DT);if(!d2)return;
     setCurrentTmpl(DT,this.value,PL_DEFAULT_FIELDS);
     previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
     renderTmplBar();renderForm();renderPreview();
   };
-  document.getElementById('btn-tmpl-save').onclick=function(){
-    var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
-    if(!t||t.builtIn){alert(tr.cannotSaveDefault||'Cannot modify default template');return;}
-    if(!d2)return;
-    var name=prompt(tr.tmplNamePrompt||'Template name:',t.name);
-    if(!name)return;
-    updateTmpl(DT,t.id,{name:name},PL_DEFAULT_FIELDS);
-    renderTmplBar();
-  };
   document.getElementById('btn-tmpl-new').onclick=function(){
-    var tr=I18N[lang],name=prompt(tr.newTmplName||'New template name:','');
+    var name=prompt(lang==='zh'?'请输入新模板名称:':'Enter template name:');
     if(!name)return;
-    var base=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
-    var fields={};for(var k in PL_DEFAULT_FIELDS){fields[k]=false;}
-    var pl=base?base.previewLang:'zh';
-    saveNewTmpl(DT,name,fields,pl,PL_DEFAULT_FIELDS);
+    var newFields={};
+    for(var key in PL_DEFAULT_FIELDS){
+      if(PL_DEFAULT_FIELDS[key]==='required'){newFields[key]='required';}else{newFields[key]=false;}
+    }
+    var t=saveNewTmpl(DT,name,newFields,lang==='zh'?'zh':'en',PL_DEFAULT_FIELDS);
+    previewLang=t.previewLang||'zh';
     renderTmplBar();renderForm();renderPreview();
+    renderTmplModal();
   };
   document.getElementById('btn-tmpl-delete').onclick=function(){
-    var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
-    if(!t||t.builtIn)return;
-    if(!confirm(tr.confirmDelete||'Delete this template?'))return;
-    deleteTmpl(DT,t.id,PL_DEFAULT_FIELDS);
+    var current=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+    if(current.builtIn)return;
+    if(!confirm(lang==='zh'?'确定删除模板 "'+current.name+'" 吗？':'Delete template "'+current.name+'"?'))return;
+    deleteTmpl(DT,current.id,PL_DEFAULT_FIELDS);
+    previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
     renderTmplBar();renderForm();renderPreview();
   };
 }
