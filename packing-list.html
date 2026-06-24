@@ -140,7 +140,7 @@ var PL_FIELD_META={
 };
 function isFld(key){return isFieldVisible(DT,key,PL_DEFAULT_FIELDS);}
 function isFldR(key){return isFieldRequired(DT,key,PL_DEFAULT_FIELDS);}
-function init(){applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);var _td=loadTmplData(DT);if(_td&&_td.templates){var _dt=_td.templates.find(function(t){return t.id==='tmpl_default';});if(_dt){for(var _k in PL_DEFAULT_FIELDS){_dt.fields[_k]=PL_DEFAULT_FIELDS[_k];}saveTmplData(DT,_td);}}renderAll();}
+function init(){applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);var _td=loadTmplData(DT);if(_td&&_td.templates){_td.templates.forEach(function(_t){var changed=false;for(var _k in PL_DEFAULT_FIELDS){if(!(_k in _t.fields)){_t.fields[_k]=PL_DEFAULT_FIELDS[_k];changed=true;}}if(changed)saveTmplData(DT,_td);});}renderAll();}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
@@ -240,7 +240,7 @@ function renderPreview(){
   var totalMeasCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0);
   var h='<div class="invoice-preview" id="preview-content">';
   h+='<div class="title">'+tr2('PACKING LIST','装箱单')+'</div>';
-  h+='<div class="two-col">';
+  h+='<div class="two-col" style="gap:20px;">';
   h+='<div style="flex:1;">';
   if(isFld('shipper.shipperName')||isFld('shipper.shipperAddress')||isFld('shipper.shipperPhone')){
     h+='<div class="address-block"><div class="addr-label">'+tr2('SHIPPER','发货人')+':</div>';
@@ -274,7 +274,7 @@ function renderPreview(){
   var hasLeft=leftShipFlds.some(function(f){return isFld(f.key);});
   var hasRight=rightShipFlds.some(function(f){return isFld(f.key);});
   if(hasLeft||hasRight){
-    h+='<div class="field-row"><div style="flex:1;">';
+    h+='<div class="field-row" style="gap:20px;"><div style="flex:1;">';
     leftShipFlds.forEach(function(f){
       if(isFld(f.key))h+='<div class="field-row"><span style="font-weight:bold;min-width:80px;flex-shrink:0;">'+(isZh2?f.labelCn:f.label)+':</span><span class="field-value">'+esc(f.val||'—')+'</span></div>';
     });
@@ -384,37 +384,36 @@ function renderTmplModal(){
   var isZh=lang==='zh',t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
   if(!t)return;
   document.getElementById('tmpl-modal-title').textContent=(isZh?'字段配置 - ':'Field Config - ')+t.name;
-  var sections=['shipper','consignee','shipping','items','totals','remarks','signature'];
-  var sectionOrder={shipper:0,consignee:1,shipping:2,items:3,totals:4,remarks:5,signature:6};
-  var secArr=sections.map(function(s){return{name:s,items:[]};});
-  var sectionLabel={shipper:'Shipper / 发货人',consignee:'Consignee / 收货人',shipping:'Shipping / 装运信息',
-    items:'Goods Items / 货品明细',totals:'Totals / 合计',remarks:'Remarks / 备注',signature:'Signature / 签名'};
-  for(var key in PL_FIELD_META){
-    var meta=PL_FIELD_META[key],si=sectionOrder[meta.section];
-    if(si!==undefined)secArr[si].items.push(key);
-  }
+  var sections=[
+    {title:isZh?'发货人':'Shipper',fields:['shipper.shipperName','shipper.shipperAddress','shipper.shipperPhone']},
+    {title:isZh?'收货人':'Consignee',fields:['consignee.consigneeName','consignee.consigneeCompany','consignee.consigneeAddress','consignee.consigneePhone']},
+    {title:isZh?'装运信息':'Shipping Info',fields:['shipping.invoiceNo','shipping.poNo','shipping.dateOfExport','shipping.waybillNo','shipping.vessel','shipping.portOfLoading','shipping.portOfDischarge']},
+    {title:isZh?'货品明细列':'Item Table Columns',fields:['items.marks','items.noOfPkgs','items.typeOfPackaging','items.description','items.qty','items.unitOfMeasure','items.netWeight','items.grossWeight','items.measurement']},
+    {title:isZh?'汇总行':'Totals',fields:['totals.totalPkgs','totals.totalNetWeight','totals.totalGrossWeight','totals.totalMeasurement']},
+    {title:isZh?'备注':'Remarks',fields:['remarks.text']},
+    {title:isZh?'签名':'Signature',fields:['signature.name','signature.title','signature.date']}
+  ];
   var body='';
-  secArr.forEach(function(sec){
-    if(sec.items.length===0)return;
-    body+='<div style="margin-bottom:14px;"><div style="font-weight:700;margin-bottom:6px;font-size:14px;">'+sectionLabel[sec.name]+'</div>';
-    sec.items.forEach(function(key){
-      var meta=PL_FIELD_META[key],val=t.fields[key];
-      var checked=(val==='required'||val===true),isReq=(val==='required');
+  sections.forEach(function(sec){
+    if(sec.fields.length===0)return;
+    body+='<div style="margin-bottom:14px;"><div style="font-weight:700;margin-bottom:6px;font-size:14px;">'+sec.title+'</div>';
+    sec.fields.forEach(function(fk){
+      var meta=PL_FIELD_META[fk];if(!meta)return;
+      var val=t.fields[fk];
+      var isReq=val==='required';
+      var checked=isReq||val===true;
       body+='<label style="display:inline-block;width:48%;margin-bottom:4px;font-size:13px;">';
-      if(isReq){
-        body+='<input type="checkbox" checked disabled style="margin-right:4px;"><span style="color:#999;">'+meta.label+' / '+meta.labelCn+' <span style="color:red;">*</span></span>';
-      }else{
-        body+='<input type="checkbox" '+(checked?'checked':'')+' data-fk="'+key+'" style="margin-right:4px;"> <span>'+meta.label+' / '+meta.labelCn+'</span>';
-      }
+      body+='<input type="checkbox" data-fk="'+fk+'" '+(checked?'checked':'')+' '+(isReq?'disabled':'')+'>';
+      body+=(isZh?meta.labelCn:meta.label);
+      if(isReq)body+=' <span style="color:#dc2626;font-size:10px;">*</span>';
       body+='</label>';
     });
     body+='</div>';
   });
   body+='<div style="margin-top:12px;border-top:1px solid #ddd;padding-top:12px;">';
   body+='<span style="font-size:13px;font-weight:600;">'+(isZh?'预览语言':'Preview Language')+':</span>';
-  var pl=t.previewLang||'zh';
-  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="zh"'+(pl==='zh'?' checked':'')+'> 中文</label>';
-  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="en"'+(pl==='en'?' checked':'')+'> English</label></div>';
+  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-preview-lang" value="zh" '+(t.previewLang==='zh'?'checked':'')+'> 中文</label>';
+  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-preview-lang" value="en" '+(t.previewLang==='en'?'checked':'')+'> English</label></div>';
   document.getElementById('tmpl-modal-body').innerHTML=body;
   var tr=I18N[lang];
   document.getElementById('btn-tmpl-modal-cancel').textContent=tr.cancel;
@@ -425,7 +424,7 @@ function doSaveTmplFromModal(){
   var data=ensureTmplData(DT,PL_DEFAULT_FIELDS);
   var tmpl=data.templates.find(function(t){return t.id===data.currentTemplateId;});
   if(!tmpl)return;
-  var langRadio=document.querySelector('input[name="tmpl-pl-lang"]:checked');
+  var langRadio=document.querySelector('input[name="tmpl-preview-lang"]:checked');
   if(langRadio)tmpl.previewLang=langRadio.value;
   if(!tmpl.builtIn){
     var checks=document.querySelectorAll('#tmpl-modal-body input[type="checkbox"]');
