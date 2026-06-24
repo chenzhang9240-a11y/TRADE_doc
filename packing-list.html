@@ -95,8 +95,9 @@
 <script>
 var DT='packing_list',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
 var PL_DEFAULT_FIELDS={
-  'shipper.shipperName':'required','shipper.shipperAddress':'required','shipper.shipperPhone':true,
-  'consignee.consigneeName':'required','consignee.consigneeCompany':true,'consignee.consigneeAddress':'required','consignee.consigneePhone':true,
+  'shipper.shipperCompany':true,'shipper.shipperName':'required','shipper.shipperAddress':'required','shipper.shipperPhone':true,
+  'shipper.shipperCompany':true,'shipper.shipperName':'required','shipper.shipperAddress':'required','shipper.shipperPhone':true,
+  'consignee.consigneeCompany':true,'consignee.consigneeName':'required','consignee.consigneeAddress':'required','consignee.consigneePhone':true,
   'shipping.invoiceNo':'required','shipping.poNo':'required','shipping.dateOfExport':'required',
   'shipping.waybillNo':true,'shipping.vessel':true,'shipping.portOfLoading':true,'shipping.portOfDischarge':true,
   'items.marks':'required','items.noOfPkgs':'required','items.typeOfPackaging':'required','items.description':'required',
@@ -106,11 +107,12 @@ var PL_DEFAULT_FIELDS={
   'signature.name':true,'signature.title':true,'signature.date':true
 };
 var PL_FIELD_META={
+  'shipper.shipperCompany':{label:'Shipper Company',labelCn:'发货人公司',section:'shipper'},
   'shipper.shipperName':{label:'Shipper Name',labelCn:'发货人名称',section:'shipper'},
   'shipper.shipperAddress':{label:'Shipper Address',labelCn:'发货人地址',section:'shipper'},
   'shipper.shipperPhone':{label:'Shipper Phone',labelCn:'发货人电话',section:'shipper'},
-  'consignee.consigneeName':{label:'Consignee Name',labelCn:'收货人名称',section:'consignee'},
   'consignee.consigneeCompany':{label:'Consignee Company',labelCn:'收货人公司',section:'consignee'},
+  'consignee.consigneeName':{label:'Consignee Name',labelCn:'收货人名称',section:'consignee'},
   'consignee.consigneeAddress':{label:'Consignee Address',labelCn:'收货人地址',section:'consignee'},
   'consignee.consigneePhone':{label:'Consignee Phone',labelCn:'收货人电话',section:'consignee'},
   'shipping.invoiceNo':{label:'Invoice No.',labelCn:'发票号',section:'shipping'},
@@ -160,20 +162,29 @@ function renderForm(){
   document.getElementById('btn-switch-preview').onclick=function(){switchTab('preview');renderPreview();};document.getElementById('btn-back-edit').onclick=function(){switchTab('edit');};
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
   document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
+  var totalPkgsCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.noOfPkgs)||0);},0);
   var totalNetW=d.items.reduce(function(s,it){return s+(parseFloat(it.netWeight)||0);},0);
   var totalGrossW=d.items.reduce(function(s,it){return s+(parseFloat(it.grossWeight)||0);},0);
+  var totalMeasCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0);
   var h='';
   h+='<div class="section-card"><h3>'+fB(isZh?'发货人':'Shipper','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'姓名':'Name',d.shipperName,'shipperName','');h+=lI(isZh?'地址':'Address',d.shipperAddress,'shipperAddress','');
-  h+=lI(isZh?'电话':'Phone',d.shipperPhone,'shipperPhone','');h+='</div></div>';
+  if(isFld('shipper.shipperCompany'))h+=lI(isZh?'公司':'Company',d.shipperCompany,'shipperCompany','');
+  if(isFld('shipper.shipperAddress'))h+=lI(isZh?'地址':'Address',d.shipperAddress,'shipperAddress','');
+  if(isFld('shipper.shipperName'))h+=lI(isZh?'姓名':'Name',d.shipperName,'shipperName','');
+  if(isFld('shipper.shipperPhone'))h+=lI(isZh?'电话':'Phone',d.shipperPhone,'shipperPhone','');h+='</div></div>';
   h+='<div class="section-card"><h3>'+fB(isZh?'收货人':'Consignee','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'姓名':'Name',d.consigneeName,'consigneeName','');h+=lI(isZh?'公司':'Company',d.consigneeCompany,'consigneeCompany','');
-  h+=lI(isZh?'地址':'Address',d.consigneeAddress,'consigneeAddress','');h+=lI(isZh?'电话':'Phone',d.consigneePhone,'consigneePhone','');h+='</div></div>';
+  if(isFld('consignee.consigneeCompany'))h+=lI(isZh?'公司':'Company',d.consigneeCompany,'consigneeCompany','');
+  if(isFld('consignee.consigneeAddress'))h+=lI(isZh?'地址':'Address',d.consigneeAddress,'consigneeAddress','');
+  if(isFld('consignee.consigneeName'))h+=lI(isZh?'姓名':'Name',d.consigneeName,'consigneeName','');
+  if(isFld('consignee.consigneePhone'))h+=lI(isZh?'电话':'Phone',d.consigneePhone,'consigneePhone','');h+='</div></div>';
   h+='<div class="section-card"><h3>'+fB(isZh?'装运信息':'Shipment Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
-  h+=lI(isZh?'发票号':'Invoice No.',d.invoiceNo,'invoiceNo','');h+=lI(isZh?'订单号':'PO No.',d.poNo,'poNo','');
-  h+=lID(isZh?'出口日期':'Date of Export',d.dateOfExport,'dateOfExport');h+=lI(isZh?'运单号':'Waybill No.',d.waybillNo,'waybillNo','');
-  h+=lI(isZh?'船名':'Vessel',d.vessel,'vessel','');h+=lI(isZh?'装货港':'Port of Loading',d.portOfLoading,'portOfLoading','');
-  h+=lI(isZh?'卸货港':'Port of Discharge',d.portOfDischarge,'portOfDischarge','');h+='</div></div>';
+  if(isFld('shipping.invoiceNo'))h+=lI(isZh?'发票号':'Invoice No.',d.invoiceNo,'invoiceNo','');
+  if(isFld('shipping.poNo'))h+=lI(isZh?'订单号':'PO No.',d.poNo,'poNo','');
+  if(isFld('shipping.dateOfExport'))h+=lID(isZh?'出口日期':'Date of Export',d.dateOfExport,'dateOfExport');
+  if(isFld('shipping.waybillNo'))h+=lI(isZh?'运单号':'Waybill No.',d.waybillNo,'waybillNo','');
+  if(isFld('shipping.vessel'))h+=lI(isZh?'船名':'Vessel',d.vessel,'vessel','');
+  if(isFld('shipping.portOfLoading'))h+=lI(isZh?'装货港':'Port of Loading',d.portOfLoading,'portOfLoading','');
+  if(isFld('shipping.portOfDischarge'))h+=lI(isZh?'卸货港':'Port of Discharge',d.portOfDischarge,'portOfDischarge','');h+='</div></div>';
   h+='<div class="section-card"><h3>'+fB(isZh?'货品明细':'Goods Details','')+'</h3>';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
   h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加货品。':'Add items.')+'</p>';
@@ -215,8 +226,8 @@ function renderForm(){
   h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总体积':'Total Measurement')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalMeasurement||'—')+'</span></div>';
   h+='</div></div>';
   h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));margin-top:16px;">';
-  h+=lI(isZh?'总件数':'Total Packages',d.totalPkgs,'totalPkgs','');h+=lI(isZh?'总净重':'Total Net Weight',d.totalNetWeight,'totalNetWeight','');
-  h+=lI(isZh?'总毛重':'Total Gross Weight',d.totalGrossWeight,'totalGrossWeight','');h+=lI(isZh?'总体积':'Total Measurement',d.totalMeasurement,'totalMeasurement','');
+  h+=lI(isZh?'总件数':'Total Packages',d.totalPkgs||totalPkgsCalc,'totalPkgs','');h+=lI(isZh?'总净重':'Total Net Weight',d.totalNetWeight||totalNetW.toFixed(2),'totalNetWeight','');
+  h+=lI(isZh?'总毛重':'Total Gross Weight',d.totalGrossWeight||totalGrossW.toFixed(2),'totalGrossWeight','');h+=lI(isZh?'总体积':'Total Measurement',d.totalMeasurement||totalMeasCalc,'totalMeasurement','');
   h+='</div></div>';
   if(isFld('remarks.text')){
     h+='<div class="section-card"><h3>'+fB(isZh?'备注':'Remarks','')+'</h3>';
@@ -242,19 +253,20 @@ function renderPreview(){
   h+='<div class="title">'+tr2('PACKING LIST','装箱单')+'</div>';
   h+='<div class="two-col" style="gap:20px;">';
   h+='<div style="flex:1;">';
-  if(isFld('shipper.shipperName')||isFld('shipper.shipperAddress')||isFld('shipper.shipperPhone')){
+  if(isFld('shipper.shipperCompany')||isFld('shipper.shipperName')||isFld('shipper.shipperAddress')||isFld('shipper.shipperPhone')){
     h+='<div class="address-block"><div class="addr-label">'+tr2('SHIPPER','发货人')+':</div>';
-    if(isFld('shipper.shipperName')&&d.shipperName)h+='<div>'+esc(d.shipperName)+'</div>';
+    if(isFld('shipper.shipperCompany')&&d.shipperCompany)h+='<div>'+esc(d.shipperCompany)+'</div>';
     if(isFld('shipper.shipperAddress')&&d.shipperAddress)h+='<div>'+esc(d.shipperAddress)+'</div>';
+    if(isFld('shipper.shipperName')&&d.shipperName)h+='<div>'+esc(d.shipperName)+'</div>';
     if(isFld('shipper.shipperPhone')&&d.shipperPhone)h+='<div>'+esc(d.shipperPhone)+'</div>';
     h+='</div>';
   }
   h+='</div><div style="flex:1;">';
-  if(isFld('consignee.consigneeName')||isFld('consignee.consigneeCompany')||isFld('consignee.consigneeAddress')||isFld('consignee.consigneePhone')){
+  if(isFld('consignee.consigneeCompany')||isFld('consignee.consigneeName')||isFld('consignee.consigneeAddress')||isFld('consignee.consigneePhone')){
     h+='<div class="address-block"><div class="addr-label">'+tr2('CONSIGNEE','收货人')+':</div>';
-    if(isFld('consignee.consigneeName')&&d.consigneeName)h+='<div>'+esc(d.consigneeName)+'</div>';
     if(isFld('consignee.consigneeCompany')&&d.consigneeCompany)h+='<div>'+esc(d.consigneeCompany)+'</div>';
     if(isFld('consignee.consigneeAddress')&&d.consigneeAddress)h+='<div>'+esc(d.consigneeAddress)+'</div>';
+    if(isFld('consignee.consigneeName')&&d.consigneeName)h+='<div>'+esc(d.consigneeName)+'</div>';
     if(isFld('consignee.consigneePhone')&&d.consigneePhone)h+='<div>'+esc(d.consigneePhone)+'</div>';
     h+='</div>';
   }
@@ -385,8 +397,8 @@ function renderTmplModal(){
   if(!t)return;
   document.getElementById('tmpl-modal-title').textContent=(isZh?'字段配置 - ':'Field Config - ')+t.name;
   var sections=[
-    {title:isZh?'发货人':'Shipper',fields:['shipper.shipperName','shipper.shipperAddress','shipper.shipperPhone']},
-    {title:isZh?'收货人':'Consignee',fields:['consignee.consigneeName','consignee.consigneeCompany','consignee.consigneeAddress','consignee.consigneePhone']},
+    {title:isZh?'发货人':'Shipper',fields:['shipper.shipperCompany','shipper.shipperAddress','shipper.shipperName','shipper.shipperPhone']},
+    {title:isZh?'收货人':'Consignee',fields:['consignee.consigneeCompany','consignee.consigneeAddress','consignee.consigneeName','consignee.consigneePhone']},
     {title:isZh?'装运信息':'Shipping Info',fields:['shipping.invoiceNo','shipping.poNo','shipping.dateOfExport','shipping.waybillNo','shipping.vessel','shipping.portOfLoading','shipping.portOfDischarge']},
     {title:isZh?'货品明细列':'Item Table Columns',fields:['items.marks','items.noOfPkgs','items.typeOfPackaging','items.description','items.qty','items.unitOfMeasure','items.netWeight','items.grossWeight','items.measurement']},
     {title:isZh?'汇总行':'Totals',fields:['totals.totalPkgs','totals.totalNetWeight','totals.totalGrossWeight','totals.totalMeasurement']},
@@ -487,7 +499,7 @@ function esc(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g
 function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
 function lI(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._plSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
 function lID(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._plSet(\''+f+'\',this.value)"></div>';}
-function loadSample(){var s=getDefaultDoc(DT);s.shipperName='Shanghai Export Co.';s.shipperAddress='No.123 Zhangjiang Rd, Shanghai';s.shipperPhone='+86 138 0000 1234';
+function loadSample(){var s=getDefaultDoc(DT);s.shipperCompany='Shanghai Export Co., Ltd.';s.shipperName='Zhang Wei';s.shipperAddress='No.123 Zhangjiang Rd, Shanghai';s.shipperPhone='+86 138 0000 1234';
 s.consigneeName='John Smith';s.consigneeCompany='ABC Trading';s.consigneeAddress='456 Fifth Ave, New York';s.consigneePhone='+1 212 555 0123';
 s.invoiceNo='INV-2026-001';s.poNo='PO-2026-042';s.dateOfExport='2026-05-15';s.waybillNo='AWB-123-456';s.vessel='COSCO SHANGHAI';
 s.portOfLoading='Shanghai';s.portOfDischarge='New York';
