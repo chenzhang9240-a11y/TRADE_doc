@@ -96,7 +96,6 @@
 var DT='packing_list',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
 var PL_DEFAULT_FIELDS={
   'shipper.shipperCompany':true,'shipper.shipperName':'required','shipper.shipperAddress':'required','shipper.shipperPhone':true,
-  'shipper.shipperCompany':true,'shipper.shipperName':'required','shipper.shipperAddress':'required','shipper.shipperPhone':true,
   'consignee.consigneeCompany':true,'consignee.consigneeName':'required','consignee.consigneeAddress':'required','consignee.consigneePhone':true,
   'shipping.invoiceNo':'required','shipping.poNo':'required','shipping.dateOfExport':'required',
   'shipping.waybillNo':true,'shipping.vessel':true,'shipping.portOfLoading':true,'shipping.portOfDischarge':true,
@@ -162,10 +161,11 @@ function renderForm(){
   document.getElementById('btn-switch-preview').onclick=function(){switchTab('preview');renderPreview();};document.getElementById('btn-back-edit').onclick=function(){switchTab('edit');};
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
   document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
-  var totalPkgsCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.noOfPkgs)||0);},0);
-  var totalNetW=d.items.reduce(function(s,it){return s+(parseFloat(it.netWeight)||0);},0);
-  var totalGrossW=d.items.reduce(function(s,it){return s+(parseFloat(it.grossWeight)||0);},0);
-  var totalMeasCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0);
+  var items=d.items||[];
+  var totalPkgsCalc=items.reduce(function(s,it){return s+(parseFloat(it.noOfPkgs)||0);},0);
+  var totalNetW=items.reduce(function(s,it){return s+(parseFloat(it.netWeight)||0);},0);
+  var totalGrossW=items.reduce(function(s,it){return s+(parseFloat(it.grossWeight)||0);},0);
+  var totalMeasCalc=items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0);
   var h='';
   h+='<div class="section-card"><h3>'+fB(isZh?'发货人':'Shipper','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
   if(isFld('shipper.shipperCompany'))h+=lI(isZh?'公司':'Company',d.shipperCompany,'shipperCompany','');
@@ -245,10 +245,11 @@ function renderForm(){
 function renderPreview(){
   var d=data,isZh2=previewLang==='zh';
   function tr2(en,zh){return isZh2?zh:en;}
-  var totalPkgsCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.noOfPkgs)||0);},0);
-  var totalNetW=d.items.reduce(function(s,it){return s+(parseFloat(it.netWeight)||0);},0);
-  var totalGrossW=d.items.reduce(function(s,it){return s+(parseFloat(it.grossWeight)||0);},0);
-  var totalMeasCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0);
+  var items=d.items||[];
+  var totalPkgsCalc=items.reduce(function(s,it){return s+(parseFloat(it.noOfPkgs)||0);},0);
+  var totalNetW=items.reduce(function(s,it){return s+(parseFloat(it.netWeight)||0);},0);
+  var totalGrossW=items.reduce(function(s,it){return s+(parseFloat(it.grossWeight)||0);},0);
+  var totalMeasCalc=items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0);
   var h='<div class="invoice-preview" id="preview-content">';
   h+='<div class="title">'+tr2('PACKING LIST','装箱单')+'</div>';
   h+='<div class="two-col" style="gap:20px;">';

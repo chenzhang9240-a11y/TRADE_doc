@@ -624,8 +624,8 @@ function getDefaultDoc(dt) {
       remarks:'', signatureName:'', signatureTitle:'', signatureDate:''
     };
     case 'packing_list': return {
-      logo:'', shipperName:'', shipperAddress:'', shipperPhone:'',
-      consigneeName:'', consigneeCompany:'', consigneeAddress:'', consigneePhone:'',
+      logo:'', shipperCompany:'', shipperName:'', shipperAddress:'', shipperPhone:'',
+      consigneeCompany:'', consigneeName:'', consigneeAddress:'', consigneePhone:'',
       invoiceNo:'', poNo:'', dateOfExport:'', waybillNo:'',
       vessel:'', portOfLoading:'', portOfDischarge:'',
       items:[empty], totalPkgs:'', totalNetWeight:'', totalGrossWeight:'', totalMeasurement:''
