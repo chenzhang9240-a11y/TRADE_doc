@@ -141,7 +141,7 @@ var PL_FIELD_META={
 };
 function isFld(key){return isFieldVisible(DT,key,PL_DEFAULT_FIELDS);}
 function isFldR(key){return isFieldRequired(DT,key,PL_DEFAULT_FIELDS);}
-function init(){applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);var _td=loadTmplData(DT);if(_td&&_td.templates){_td.templates.forEach(function(_t){var changed=false;for(var _k in PL_DEFAULT_FIELDS){if(!(_k in _t.fields)){_t.fields[_k]=PL_DEFAULT_FIELDS[_k];changed=true;}}if(changed)saveTmplData(DT,_td);});}renderAll();}
+function init(){try{applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);var _td=loadTmplData(DT);if(_td&&_td.templates){_td.templates.forEach(function(_t){var changed=false;for(var _k in PL_DEFAULT_FIELDS){if(!(_k in _t.fields)){_t.fields[_k]=PL_DEFAULT_FIELDS[_k];changed=true;}}if(changed)saveTmplData(DT,_td);});}renderAll();}catch(e){console.error('init error:',e);document.getElementById('form-container').innerHTML='<div style="color:red;padding:20px;">Error: '+esc(e.message)+'</div>';}}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
