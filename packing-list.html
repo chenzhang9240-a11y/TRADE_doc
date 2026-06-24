@@ -86,19 +86,65 @@
 <main class="doc-page"><div class="doc-page-content">
   <div class="doc-header"><h1 id="page-title">Packing List Generator</h1><p id="page-subtitle">装箱单</p></div>
   <div class="tab-bar"><button class="tab-btn active" data-tab="edit" id="tab-edit"></button><button class="tab-btn" data-tab="preview" id="tab-preview"></button><button class="tab-btn" data-tab="history" id="tab-history"></button></div>
-  <div class="tab-panel active" id="panel-edit"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-load-sample"></button><button class="btn btn-secondary btn-sm" id="btn-clear"></button></div><div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button></div></div><div id="form-container"></div></div>
+  <div class="tab-panel active" id="panel-edit"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-load-sample"></button><button class="btn btn-secondary btn-sm" id="btn-clear"></button></div><div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button></div></div><div class="tmpl-bar"><button class="btn btn-secondary btn-sm" id="btn-tmpl-config">&#9881; <span id="tmpl-config-text"></span></button><span class="tmpl-label"><span id="tmpl-label-text"></span>:</span><select class="input-field tmpl-select" id="tmpl-selector"></select><button class="btn btn-secondary btn-sm" id="btn-tmpl-save">&#128190; <span id="tmpl-save-text"></span></button><button class="btn btn-secondary btn-sm" id="btn-tmpl-new">+ <span id="tmpl-new-text"></span></button><button class="btn btn-danger btn-sm hidden" id="btn-tmpl-delete">&#128465; <span id="tmpl-delete-text"></span></button></div><div id="form-container"></div></div>
   <div class="tab-panel" id="panel-preview"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-back-edit"></button><button class="btn btn-secondary btn-sm" id="btn-preview-lang"></button></div><div class="action-bar-right"><button class="btn btn-primary" id="btn-pdf-preview" data-pdf-btn></button><button class="btn btn-secondary btn-sm" id="btn-print"></button></div></div><div id="preview-container"></div></div>
   <div class="tab-panel" id="panel-history"><div class="history-search"><input class="input-field" id="history-search" type="text" placeholder=""></div><div id="history-container"></div></div>
 </div></main>
-<div class="clear-modal hidden" id="clear-modal"><div class="clear-modal-content"><div class="clear-modal-title" id="clear-title"></div><div class="clear-modal-msg" id="clear-msg"></div><div class="clear-modal-actions"><button class="btn btn-secondary btn-sm" id="btn-cancel-clear"></button><button class="btn btn-danger" id="btn-confirm-clear"></button></div></div></div>
+<div class="clear-modal hidden" id="clear-modal"><div class="clear-modal-content"><div class="clear-modal-title" id="clear-title"></div><div class="clear-modal-msg" id="clear-msg"></div><div class="clear-modal-actions"><button class="btn btn-secondary btn-sm" id="btn-cancel-clear"></button><button class="btn btn-danger" id="btn-confirm-clear"></button></div></div></div><div class="clear-modal hidden" id="tmpl-modal"><div class="clear-modal-content" style="max-width:640px;max-height:80vh;overflow-y:auto;"><div class="clear-modal-content"><div class="clear-modal-title" id="tmpl-modal-title"></div><div id="tmpl-modal-body" style="margin-bottom:16px;"></div><div class="clear-modal-actions"><button class="btn btn-secondary btn-sm" id="btn-tmpl-modal-cancel"></button><button class="btn btn-primary" id="btn-tmpl-modal-save"></button></div></div></div></div>
 <script src="common.js"></script>
 <script>
 var DT='packing_list',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
-function init(){applyTheme();var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);renderAll();}
+var PL_DEFAULT_FIELDS={
+  'shipper.shipperName':'required','shipper.shipperAddress':'required','shipper.shipperPhone':true,
+  'consignee.consigneeName':'required','consignee.consigneeCompany':true,'consignee.consigneeAddress':'required','consignee.consigneePhone':true,
+  'shipping.invoiceNo':'required','shipping.poNo':'required','shipping.dateOfExport':'required',
+  'shipping.waybillNo':true,'shipping.vessel':true,'shipping.portOfLoading':true,'shipping.portOfDischarge':true,
+  'items.marks':'required','items.noOfPkgs':'required','items.typeOfPackaging':'required','items.description':'required',
+  'items.qty':true,'items.unitOfMeasure':true,'items.netWeight':'required','items.grossWeight':'required','items.measurement':'required',
+  'totals.totalPkgs':'required','totals.totalNetWeight':'required','totals.totalGrossWeight':'required','totals.totalMeasurement':'required',
+  'remarks.text':true,
+  'signature.name':true,'signature.title':true,'signature.date':true
+};
+var PL_FIELD_META={
+  'shipper.shipperName':{label:'Shipper Name',labelCn:'发货人名称',section:'shipper'},
+  'shipper.shipperAddress':{label:'Shipper Address',labelCn:'发货人地址',section:'shipper'},
+  'shipper.shipperPhone':{label:'Shipper Phone',labelCn:'发货人电话',section:'shipper'},
+  'consignee.consigneeName':{label:'Consignee Name',labelCn:'收货人名称',section:'consignee'},
+  'consignee.consigneeCompany':{label:'Consignee Company',labelCn:'收货人公司',section:'consignee'},
+  'consignee.consigneeAddress':{label:'Consignee Address',labelCn:'收货人地址',section:'consignee'},
+  'consignee.consigneePhone':{label:'Consignee Phone',labelCn:'收货人电话',section:'consignee'},
+  'shipping.invoiceNo':{label:'Invoice No.',labelCn:'发票号',section:'shipping'},
+  'shipping.poNo':{label:'PO / Reference No.',labelCn:'订单号',section:'shipping'},
+  'shipping.dateOfExport':{label:'Date of Export',labelCn:'出口日期',section:'shipping'},
+  'shipping.waybillNo':{label:'Waybill No.',labelCn:'运单号',section:'shipping'},
+  'shipping.vessel':{label:'Vessel',labelCn:'船名',section:'shipping'},
+  'shipping.portOfLoading':{label:'Port of Loading',labelCn:'装货港',section:'shipping'},
+  'shipping.portOfDischarge':{label:'Port of Discharge',labelCn:'卸货港',section:'shipping'},
+  'items.marks':{label:'MARKS',labelCn:'唛头',section:'items'},
+  'items.noOfPkgs':{label:'NO. OF PKGS',labelCn:'件数',section:'items'},
+  'items.typeOfPackaging':{label:'PACKAGING',labelCn:'包装类型',section:'items'},
+  'items.description':{label:'DESCRIPTION',labelCn:'描述',section:'items'},
+  'items.qty':{label:'QTY',labelCn:'数量',section:'items'},
+  'items.unitOfMeasure':{label:'UNIT',labelCn:'单位',section:'items'},
+  'items.netWeight':{label:'N.W.(KG)',labelCn:'净重',section:'items'},
+  'items.grossWeight':{label:'G.W.(KG)',labelCn:'毛重',section:'items'},
+  'items.measurement':{label:'MEAS.(CBM)',labelCn:'体积',section:'items'},
+  'totals.totalPkgs':{label:'Total Packages',labelCn:'总件数',section:'totals'},
+  'totals.totalNetWeight':{label:'Total Net Weight',labelCn:'总净重',section:'totals'},
+  'totals.totalGrossWeight':{label:'Total Gross Weight',labelCn:'总毛重',section:'totals'},
+  'totals.totalMeasurement':{label:'Total Measurement',labelCn:'总体积',section:'totals'},
+  'remarks.text':{label:'Remarks',labelCn:'备注',section:'remarks'},
+  'signature.name':{label:'Signature Name',labelCn:'签名',section:'signature'},
+  'signature.title':{label:'Title',labelCn:'职务',section:'signature'},
+  'signature.date':{label:'Date',labelCn:'日期',section:'signature'}
+};
+function isFld(key){return isFieldVisible(DT,key,PL_DEFAULT_FIELDS);}
+function isFldR(key){return isFieldRequired(DT,key,PL_DEFAULT_FIELDS);}
+function init(){applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);var _td=loadTmplData(DT);if(_td&&_td.templates){var _dt=_td.templates.find(function(t){return t.id==='tmpl_default';});if(_dt){for(var _k in PL_DEFAULT_FIELDS){_dt.fields[_k]=PL_DEFAULT_FIELDS[_k];}saveTmplData(DT,_td);}}renderAll();}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderForm();renderPreview();renderHistory();renderClearModal();}
+function renderAll(){renderTopBar();renderHeader();renderTabs();renderTmplBar();renderForm();renderPreview();renderHistory();renderClearModal();}
 function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
 function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
 function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
@@ -132,22 +178,33 @@ function renderForm(){
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
   h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加货品。':'Add items.')+'</p>';
   h+='<button class="btn btn-success btn-sm" onclick="window._plAddItem()">'+tr.addItem+'</button></div>';
-  h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
-  ['#',isZh?'唛头':'MARKS',isZh?'件数':'NO.PKGS',isZh?'包装类型':'PACKAGING',isZh?'描述':'DESCRIPTION',
-   isZh?'数量':'QTY',isZh?'单位':'UNIT',isZh?'净重(kg)':'N.W.',isZh?'毛重(kg)':'G.W.',isZh?'体积':'MEAS.',
-   isZh?'操作':'Action'].forEach(function(th){h+='<th>'+th+'</th>';});
-  h+='</tr></thead><tbody>';
+  var formItemCols=[
+    {key:'items.marks',field:'marks',label:'MARKS',labelCn:'唛头',type:'text'},
+    {key:'items.noOfPkgs',field:'noOfPkgs',label:'NO.PKGS',labelCn:'件数',type:'text'},
+    {key:'items.typeOfPackaging',field:'typeOfPackaging',label:'PACKAGING',labelCn:'包装类型',type:'text'},
+    {key:'items.description',field:'description',label:'DESCRIPTION',labelCn:'描述',type:'textarea'},
+    {key:'items.qty',field:'qty',label:'QTY',labelCn:'数量',type:'number'},
+    {key:'items.unitOfMeasure',field:'unitOfMeasure',label:'UNIT',labelCn:'单位',type:'text'},
+    {key:'items.netWeight',field:'netWeight',label:'N.W.',labelCn:'净重(kg)',type:'number'},
+    {key:'items.grossWeight',field:'grossWeight',label:'G.W.',labelCn:'毛重(kg)',type:'number'},
+    {key:'items.measurement',field:'measurement',label:'MEAS.',labelCn:'体积',type:'text'}
+  ];
+  var fVisCols=formItemCols.filter(function(c){return isFld(c.key);});
+  h+='<div class="items-table-container"><table class="items-table"><thead><tr><th>#</th>';
+  fVisCols.forEach(function(c){h+='<th>'+(isZh?c.labelCn:c.label)+'</th>';});
+  h+='<th>'+(isZh?'操作':'Action')+'</th></tr></thead><tbody>';
   d.items.forEach(function(it,idx){
     h+='<tr><td class="row-number">'+(idx+1)+'</td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc(it.marks)+'" onchange="window._plItem('+idx+',\'marks\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.noOfPkgs)+'" onchange="window._plItem('+idx+',\'noOfPkgs\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc(it.typeOfPackaging)+'" onchange="window._plItem('+idx+',\'typeOfPackaging\',this.value)"></td>';
-    h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._plItem('+idx+',\'description\',this.value)">'+esc(it.description)+'</textarea></td>';
-    h+='<td><input class="input-field input-field-xs text-center" type="number" min="0" value="'+esc(it.qty)+'" onchange="window._plItem('+idx+',\'qty\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.unitOfMeasure)+'" onchange="window._plItem('+idx+',\'unitOfMeasure\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" type="number" min="0" step="0.01" value="'+esc(it.netWeight)+'" onchange="window._plItem('+idx+',\'netWeight\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" type="number" min="0" step="0.01" value="'+esc(it.grossWeight)+'" onchange="window._plItem('+idx+',\'grossWeight\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" value="'+esc(it.measurement)+'" onchange="window._plItem('+idx+',\'measurement\',this.value)"></td>';
+    fVisCols.forEach(function(c){
+      var val=it[c.field]||'';
+      if(c.type==='textarea'){
+        h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._plItem('+idx+',\''+c.field+'\',this.value)">'+esc(val)+'</textarea></td>';
+      }else if(c.type==='number'){
+        h+='<td><input class="input-field input-field-xs '+(c.field==='netWeight'||c.field==='grossWeight'?'text-right':'text-center')+'" type="number" min="0" '+(c.field==='netWeight'||c.field==='grossWeight'?'step="0.01"':'')+' value="'+esc(val)+'" onchange="window._plItem('+idx+',\''+c.field+'\',this.value)"></td>';
+      }else{
+        h+='<td><input class="input-field input-field-xs '+(c.field==='noOfPkgs'?'text-center':'')+'" value="'+esc(val)+'" onchange="window._plItem('+idx+',\''+c.field+'\',this.value)"></td>';
+      }
+    });
     h+='<td class="actions"><button class="btn btn-danger" onclick="window._plRemoveItem('+idx+')" '+(d.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
   });
   h+='</tbody></table></div>';
@@ -161,44 +218,128 @@ function renderForm(){
   h+=lI(isZh?'总件数':'Total Packages',d.totalPkgs,'totalPkgs','');h+=lI(isZh?'总净重':'Total Net Weight',d.totalNetWeight,'totalNetWeight','');
   h+=lI(isZh?'总毛重':'Total Gross Weight',d.totalGrossWeight,'totalGrossWeight','');h+=lI(isZh?'总体积':'Total Measurement',d.totalMeasurement,'totalMeasurement','');
   h+='</div></div>';
+  if(isFld('remarks.text')){
+    h+='<div class="section-card"><h3>'+fB(isZh?'备注':'Remarks','')+'</h3>';
+    h+='<textarea class="input-field" rows="3" style="width:100%;" onchange="window._plSet(\'remarks\',this.value)">'+esc(d.remarks||'')+'</textarea></div>';
+  }
+  if(isFld('signature.name')||isFld('signature.title')||isFld('signature.date')){
+    h+='<div class="section-card"><h3>'+fB(isZh?'签名':'Signature','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
+    if(isFld('signature.name'))h+=lI(isZh?'签名':'Signature Name',d.signatureName,'signatureName','');
+    if(isFld('signature.title'))h+=lI(isZh?'职务':'Title',d.signatureTitle,'signatureTitle','');
+    if(isFld('signature.date'))h+=lID(isZh?'日期':'Date',d.signatureDate,'signatureDate');
+    h+='</div></div>';
+  }
   document.getElementById('form-container').innerHTML=h;
 }
 function renderPreview(){
   var d=data,isZh2=previewLang==='zh';
   function tr2(en,zh){return isZh2?zh:en;}
+  var totalPkgsCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.noOfPkgs)||0);},0);
   var totalNetW=d.items.reduce(function(s,it){return s+(parseFloat(it.netWeight)||0);},0);
   var totalGrossW=d.items.reduce(function(s,it){return s+(parseFloat(it.grossWeight)||0);},0);
+  var totalMeasCalc=d.items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0);
   var h='<div class="invoice-preview" id="preview-content">';
-  h+='<div class="header-title">'+tr2('PACKING LIST','装箱单')+'</div>';
-  h+='<table><tbody><tr><td style="width:50%;"><div class="section-label2">'+tr2('SHIPPER','发货人')+'</div>';
-  h+='<div class="section-value">'+esc(d.shipperName||'—')+'</div><div class="section-value">'+esc(d.shipperAddress||'—')+'</div></td>';
-  h+='<td style="width:50%;"><div class="section-label2">'+tr2('CONSIGNEE','收货人')+'</div>';
-  h+='<div class="section-value">'+esc(d.consigneeName||'—')+'</div>';
-  if(d.consigneeCompany)h+='<div class="section-value">'+esc(d.consigneeCompany)+'</div>';
-  h+='<div class="section-value">'+esc(d.consigneeAddress||'—')+'</div></td></tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr>';
-  [tr2('INVOICE NO.','发票号'),tr2('PO NO.','订单号'),tr2('DATE OF EXPORT','出口日期'),tr2('WAYBILL NO.','运单号'),
-   tr2('VESSEL','船名'),tr2('PORT OF LOADING','装货港')].forEach(function(t){h+='<th style="width:16%;">'+t+'</th>';});
-  h+='</tr><tr>';
-  [d.invoiceNo,d.poNo,d.dateOfExport,d.waybillNo,d.vessel,d.portOfLoading].forEach(function(v){h+='<td class="text-center">'+esc(v||'—')+'</td>';});
-  h+='</tr></tbody></table>';
-  h+='<table class="mt-2"><thead><tr>';
-  ['#',tr2('MARKS','唛头'),tr2('NO.PKGS','件数'),tr2('PACKAGING','包装'),tr2('DESCRIPTION','描述'),
-   tr2('QTY','数量'),tr2('UNIT','单位'),tr2('N.W.(KG)','净重'),tr2('G.W.(KG)','毛重'),tr2('MEAS.','体积')].forEach(function(t){h+='<th>'+t+'</th>';});
+  h+='<div class="title">'+tr2('PACKING LIST','装箱单')+'</div>';
+  h+='<div class="two-col">';
+  if(isFld('shipper.shipperName')||isFld('shipper.shipperAddress')||isFld('shipper.shipperPhone')){
+    h+='<div class="address-block"><div class="addr-label">'+tr2('SHIPPER','发货人')+':</div>';
+    if(isFld('shipper.shipperName')&&d.shipperName)h+='<div>'+esc(d.shipperName)+'</div>';
+    if(isFld('shipper.shipperAddress')&&d.shipperAddress)h+='<div>'+esc(d.shipperAddress)+'</div>';
+    if(isFld('shipper.shipperPhone')&&d.shipperPhone)h+='<div>'+esc(d.shipperPhone)+'</div>';
+    h+='</div>';
+  }
+  if(isFld('consignee.consigneeName')||isFld('consignee.consigneeCompany')||isFld('consignee.consigneeAddress')||isFld('consignee.consigneePhone')){
+    h+='<div class="address-block"><div class="addr-label">'+tr2('CONSIGNEE','收货人')+':</div>';
+    if(isFld('consignee.consigneeName')&&d.consigneeName)h+='<div>'+esc(d.consigneeName)+'</div>';
+    if(isFld('consignee.consigneeCompany')&&d.consigneeCompany)h+='<div>'+esc(d.consigneeCompany)+'</div>';
+    if(isFld('consignee.consigneeAddress')&&d.consigneeAddress)h+='<div>'+esc(d.consigneeAddress)+'</div>';
+    if(isFld('consignee.consigneePhone')&&d.consigneePhone)h+='<div>'+esc(d.consigneePhone)+'</div>';
+    h+='</div>';
+  }
+  h+='</div>';
+  var leftShipFlds=[
+    {key:'shipping.invoiceNo',label:'Invoice No.',labelCn:'发票号',val:d.invoiceNo},
+    {key:'shipping.poNo',label:'PO No.',labelCn:'订单号',val:d.poNo},
+    {key:'shipping.dateOfExport',label:'Date of Export',labelCn:'出口日期',val:d.dateOfExport},
+    {key:'shipping.waybillNo',label:'Waybill No.',labelCn:'运单号',val:d.waybillNo}
+  ];
+  var rightShipFlds=[
+    {key:'shipping.vessel',label:'Vessel',labelCn:'船名',val:d.vessel},
+    {key:'shipping.portOfLoading',label:'Port of Loading',labelCn:'装货港',val:d.portOfLoading},
+    {key:'shipping.portOfDischarge',label:'Port of Discharge',labelCn:'卸货港',val:d.portOfDischarge}
+  ];
+  var hasLeft=leftShipFlds.some(function(f){return isFld(f.key);});
+  var hasRight=rightShipFlds.some(function(f){return isFld(f.key);});
+  if(hasLeft||hasRight){
+    h+='<div class="field-row"><div style="flex:1;">';
+    leftShipFlds.forEach(function(f){
+      if(isFld(f.key))h+='<div class="field-row"><span class="field-label">'+(isZh2?f.labelCn:f.label)+':</span><span class="field-value">'+esc(f.val||'—')+'</span></div>';
+    });
+    h+='</div><div style="flex:1;">';
+    rightShipFlds.forEach(function(f){
+      if(isFld(f.key))h+='<div class="field-row"><span class="field-label">'+(isZh2?f.labelCn:f.label)+':</span><span class="field-value">'+esc(f.val||'—')+'</span></div>';
+    });
+    h+='</div></div>';
+  }
+  var itemCols=[
+    {key:'items.marks',label:"MARKS",labelCn:'唛头',width:'12%',field:'marks',render:function(v){return v||'—';}},
+    {key:'items.noOfPkgs',label:'NO.PKGS',labelCn:'件数',width:'8%',field:'noOfPkgs',render:function(v){return v||'—';}},
+    {key:'items.typeOfPackaging',label:'PACKAGING',labelCn:'包装类型',width:'10%',field:'typeOfPackaging',render:function(v){return v||'—';}},
+    {key:'items.description',label:'DESCRIPTION',labelCn:'描述',width:'22%',field:'description',render:function(v){return v||'—';}},
+    {key:'items.qty',label:'QTY',labelCn:'数量',width:'7%',field:'qty',render:function(v){return v||'—';}},
+    {key:'items.unitOfMeasure',label:'UNIT',labelCn:'单位',width:'7%',field:'unitOfMeasure',render:function(v){return v||'—';}},
+    {key:'items.netWeight',label:'N.W.(KG)',labelCn:'净重(kg)',width:'10%',field:'netWeight',render:function(v){return v||'—';}},
+    {key:'items.grossWeight',label:'G.W.(KG)',labelCn:'毛重(kg)',width:'10%',field:'grossWeight',render:function(v){return v||'—';}},
+    {key:'items.measurement',label:'MEAS.(CBM)',labelCn:'体积',width:'10%',field:'measurement',render:function(v){return v||'—';}}
+  ];
+  var visCols=itemCols.filter(function(c){return isFld(c.key);});
+  h+='<table class="items"><thead><tr><th style="width:5%;">#</th>';
+  visCols.forEach(function(c){h+='<th style="width:'+c.width+';">'+(isZh2?c.labelCn:c.label)+'</th>';});
   h+='</tr></thead><tbody>';
   d.items.forEach(function(it,idx){
-    h+='<tr><td class="text-center">'+(idx+1)+'</td><td>'+esc(it.marks||'—')+'</td><td class="text-center">'+esc(it.noOfPkgs||'—')+'</td>';
-    h+='<td>'+esc(it.typeOfPackaging||'—')+'</td><td class="whitespace-pre-wrap">'+esc(it.description||'—')+'</td>';
-    h+='<td class="text-center">'+esc(it.qty||'—')+'</td><td class="text-center">'+esc(it.unitOfMeasure||'—')+'</td>';
-    h+='<td class="text-right">'+esc(it.netWeight||'—')+'</td><td class="text-right">'+esc(it.grossWeight||'—')+'</td>';
-    h+='<td class="text-right">'+esc(it.measurement||'—')+'</td></tr>';
+    h+='<tr><td class="text-center">'+(idx+1)+'</td>';
+    visCols.forEach(function(c){
+      var cls='text-center';
+      if(c.field==='netWeight'||c.field==='grossWeight'||c.field==='measurement')cls='text-right';
+      if(c.field==='description')cls='whitespace-pre-wrap';
+      h+='<td class="'+cls+'">'+c.render(it[c.field])+'</td>';
+    });
+    h+='</tr>';
   });
-  h+='<tr class="bg-gray-100"><td colspan="2" class="text-right font-bold">'+tr2('TOTAL','合计')+':</td>';
-  h+='<td class="text-center font-bold">'+(d.totalPkgs||'—')+'</td><td colspan="3"></td>';
-  h+='<td class="text-center font-bold">'+(d.totalNetWeight||totalNetW.toFixed(2))+'</td>';
-  h+='<td class="text-right font-bold">'+(d.totalGrossWeight||totalGrossW.toFixed(2))+'</td>';
-  h+='<td class="text-right font-bold">'+(d.totalMeasurement||'—')+'</td></tr>';
-  h+='</tbody></table></div>';
+  var hasTotals=isFld('totals.totalPkgs')||isFld('totals.totalNetWeight')||isFld('totals.totalGrossWeight')||isFld('totals.totalMeasurement');
+  if(hasTotals){
+    h+='<tr class="total-row"><td></td>';
+    visCols.forEach(function(c,idx){
+      if(idx===0){
+        h+='<td class="text-left font-bold">'+tr2('TOTAL','合计')+':</td>';
+      }else if(c.field==='noOfPkgs'){
+        h+='<td class="font-bold">'+(d.totalPkgs||totalPkgsCalc||'—')+'</td>';
+      }else if(c.field==='netWeight'){
+        h+='<td class="text-right font-bold">'+(d.totalNetWeight||totalNetW.toFixed(2))+'</td>';
+      }else if(c.field==='grossWeight'){
+        h+='<td class="text-right font-bold">'+(d.totalGrossWeight||totalGrossW.toFixed(2))+'</td>';
+      }else if(c.field==='measurement'){
+        h+='<td class="text-right font-bold">'+(d.totalMeasurement||totalMeasCalc||'—')+'</td>';
+      }else{
+        h+='<td></td>';
+      }
+    });
+    h+='</tr>';
+  }
+  h+='</tbody></table>';
+  if(isFld('remarks.text')&&d.remarks){
+    h+='<div class="remarks-block" style="margin-top:10px;font-size:12px;font-style:italic;">';
+    h+='<div style="font-weight:bold;font-style:normal;">'+tr2('Remarks','备注')+':</div>';
+    h+='<div>'+esc(d.remarks)+'</div></div>';
+  }
+  if(isFld('signature.name')||isFld('signature.title')||isFld('signature.date')){
+    h+='<div class="signature-block">';
+    if(isFld('signature.name')&&d.signatureName)h+='<div>'+tr2('Signature','签名')+': '+esc(d.signatureName)+'</div>';
+    if(isFld('signature.title')&&d.signatureTitle)h+='<div>'+tr2('Title','职务')+': '+esc(d.signatureTitle)+'</div>';
+    if(isFld('signature.date')&&d.signatureDate)h+='<div>'+tr2('Date','日期')+': '+esc(d.signatureDate)+'</div>';
+    h+='</div>';
+  }
+  h+='</div>';
   document.getElementById('preview-container').innerHTML=h;
 }
 function renderHistory(){
@@ -216,11 +357,116 @@ function renderHistory(){
 function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
 document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
 document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
+function renderTmplBar(){
+  var tr=I18N[lang],d2=loadTmplData(DT);
+  var _data=d2||{currentTemplateId:'tmpl_default',previewLang:'zh',templates:[buildDefaultTmpl(DT,PL_DEFAULT_FIELDS)]};
+  document.getElementById('tmpl-config-text').textContent=tr.fieldConfig||'⚙ Field Config';
+  document.getElementById('tmpl-label-text').textContent=tr.template||'Template';
+  document.getElementById('tmpl-save-text').textContent=tr.save||'Save';
+  document.getElementById('tmpl-new-text').textContent=tr.newT||'+New';
+  document.getElementById('tmpl-delete-text').textContent=tr.del||'Delete';
+  var sel=document.getElementById('tmpl-selector');sel.innerHTML='';
+  (_data.templates||[]).forEach(function(t){
+    var o=document.createElement('option');o.value=t.id;o.textContent=t.name+(t.builtIn?' ('+(tr.defaultT||'Default')+')':'');
+    if(t.id===_data.currentTemplateId)o.selected=true;sel.appendChild(o);
+  });
+  if(!sel.value&&sel.options.length>0){sel.value=sel.options[0].value;_data.currentTemplateId=sel.value;saveTmplData(DT,_data);}
+  var ct=(_data.templates||[]).find(function(t){return t.id===_data.currentTemplateId;});
+  document.getElementById('btn-tmpl-delete').classList.toggle('hidden',!ct||ct.builtIn);
+  previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
+}
+function renderTmplModal(){
+  var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+  if(!t)return;
+  document.getElementById('tmpl-modal-title').textContent=tr.fieldConfig||'Field Configuration';
+  var sections=['shipper','consignee','shipping','items','totals','remarks','signature'];
+  var sectionOrder={shipper:0,consignee:1,shipping:2,items:3,totals:4,remarks:5,signature:6};
+  var secArr=sections.map(function(s){return{name:s,items:[]};});
+  var sectionLabel={shipper:'Shipper / 发货人',consignee:'Consignee / 收货人',shipping:'Shipping / 装运信息',
+    items:'Goods Items / 货品明细',totals:'Totals / 合计',remarks:'Remarks / 备注',signature:'Signature / 签名'};
+  for(var key in PL_FIELD_META){
+    var meta=PL_FIELD_META[key],si=sectionOrder[meta.section];
+    if(si!==undefined)secArr[si].items.push(key);
+  }
+  var body='';
+  secArr.forEach(function(sec){
+    if(sec.items.length===0)return;
+    body+='<div style="margin-bottom:14px;"><div style="font-weight:700;margin-bottom:6px;font-size:14px;">'+sectionLabel[sec.name]+'</div>';
+    sec.items.forEach(function(key){
+      var meta=PL_FIELD_META[key],val=t.fields[key];
+      var checked=(val==='required'||val===true),isReq=(val==='required');
+      body+='<label style="display:inline-block;width:48%;margin-bottom:4px;font-size:13px;">';
+      if(isReq){
+        body+='<input type="checkbox" checked disabled style="margin-right:4px;"><span style="color:#999;">'+meta.label+' / '+meta.labelCn+' <span style="color:red;">*</span></span>';
+      }else{
+        body+='<input type="checkbox" '+(checked?'checked':'')+' data-tmpl-key="'+key+'" style="margin-right:4px;"> <span>'+meta.label+' / '+meta.labelCn+'</span>';
+      }
+      body+='</label>';
+    });
+    body+='</div>';
+  });
+  body+='<div style="margin-top:12px;border-top:1px solid #ddd;padding-top:12px;">';
+  body+='<label style="font-size:13px;font-weight:700;margin-right:12px;">'+(tr.previewLang||'Preview Language')+':</label>';
+  var pl=t.previewLang||'zh';
+  body+='<label style="margin-right:8px;font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="en"'+(pl==='en'?' checked':'')+'> EN</label>';
+  body+='<label style="font-size:13px;"><input type="radio" name="tmpl-pl-lang" value="zh"'+(pl==='zh'?' checked':'')+'> 中文</label></div>';
+  document.getElementById('tmpl-modal-body').innerHTML=body;
+  document.getElementById('tmpl-modal').classList.remove('hidden');
+}
+function doSaveTmplFromModal(){
+  var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+  if(!t){return;}
+  var checkboxes=document.querySelectorAll('#tmpl-modal-body input[type="checkbox"]:not([disabled])');
+  checkboxes.forEach(function(cb){t.fields[cb.getAttribute('data-tmpl-key')]=cb.checked;});
+  var langRadios=document.querySelectorAll('#tmpl-modal-body input[name="tmpl-pl-lang"]');
+  langRadios.forEach(function(r){if(r.checked)t.previewLang=r.value;});
+  if(d2){saveTmplData(DT,d2);}
+  previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
+  document.getElementById('tmpl-modal').classList.add('hidden');
+  renderTmplBar();renderForm();renderPreview();
+}
+function setupTmplEvents(){
+  document.getElementById('btn-tmpl-config').onclick=function(){renderTmplModal();};
+  document.getElementById('btn-tmpl-modal-cancel').onclick=function(){document.getElementById('tmpl-modal').classList.add('hidden');};
+  document.getElementById('btn-tmpl-modal-save').onclick=function(){doSaveTmplFromModal();};
+  document.getElementById('tmpl-selector').onchange=function(){
+    var d2=loadTmplData(DT);if(!d2)return;
+    setCurrentTmpl(DT,this.value,PL_DEFAULT_FIELDS);
+    previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
+    renderTmplBar();renderForm();renderPreview();
+  };
+  document.getElementById('btn-tmpl-save').onclick=function(){
+    var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+    if(!t||t.builtIn){alert(tr.cannotSaveDefault||'Cannot modify default template');return;}
+    if(!d2)return;
+    var name=prompt(tr.tmplNamePrompt||'Template name:',t.name);
+    if(!name)return;
+    updateTmpl(DT,t.id,{name:name},PL_DEFAULT_FIELDS);
+    renderTmplBar();
+  };
+  document.getElementById('btn-tmpl-new').onclick=function(){
+    var tr=I18N[lang],name=prompt(tr.newTmplName||'New template name:','');
+    if(!name)return;
+    var base=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+    var fields={};for(var k in PL_DEFAULT_FIELDS){fields[k]=false;}
+    var pl=base?base.previewLang:'zh';
+    saveNewTmpl(DT,name,fields,pl,PL_DEFAULT_FIELDS);
+    renderTmplBar();renderForm();renderPreview();
+  };
+  document.getElementById('btn-tmpl-delete').onclick=function(){
+    var tr=I18N[lang],d2=loadTmplData(DT),t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
+    if(!t||t.builtIn)return;
+    if(!confirm(tr.confirmDelete||'Delete this template?'))return;
+    deleteTmpl(DT,t.id,PL_DEFAULT_FIELDS);
+    renderTmplBar();renderForm();renderPreview();
+  };
+}
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
+setupTmplEvents();
 document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
 document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
 window._plSet=function(f,v){data[f]=v;saveDocData(DT,data);};
@@ -240,6 +486,7 @@ s.portOfLoading='Shanghai';s.portOfDischarge='New York';
 s.items=[{marks:'ABC/NYC',noOfPkgs:'50',typeOfPackaging:'Carton',description:'Stainless Steel Water Bottle - 500ml',qty:'500',unitOfMeasure:'pcs',netWeight:'125.00',grossWeight:'140.00',measurement:'2.5 CBM'},
 {marks:'ABC/NYC',noOfPkgs:'20',typeOfPackaging:'Carton',description:'Thermal Flask - 750ml',qty:'200',unitOfMeasure:'pcs',netWeight:'80.00',grossWeight:'95.00',measurement:'1.2 CBM'}];
 s.totalPkgs='70';s.totalNetWeight='205.00';s.totalGrossWeight='235.00';s.totalMeasurement='3.7 CBM';
+s.remarks='Packed in export standard cartons suitable for sea freight.';s.signatureName='Wang Wei';s.signatureTitle='Export Manager';s.signatureDate='2026-05-16';
 data=s;saveDocData(DT,data);renderAll();}
 init();
 </script>
