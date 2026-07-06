@@ -98,11 +98,6 @@ function init(){applyTheme();var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);re
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderForm();renderPreview();renderHistory();renderClearModal();}
-function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
-function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
-function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
-function switchTab(t){['edit','preview','history'].forEach(function(p){document.getElementById('tab-'+p).classList.toggle('active',p===t);document.getElementById('panel-'+p).classList.toggle('active',p===t);});}
 function makeCurOpts(sel){var h='';CURRENCIES.forEach(function(c){h+='<option value="'+c+'"'+(c===sel?' selected':'')+'>'+c+'</option>';});return h;}
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data;
@@ -119,7 +114,7 @@ function renderForm(){
   h+='<div class="section-card"><h3>'+fB(isZh?'单笔换算':'Single Conversion','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));">';
   h+='<div><div class="form-label">'+(isZh?'源货币':'From Currency')+'</div><select class="input-field" onchange="window._ccSet(\'baseCurrency\',this.value)">'+makeCurOpts(d.baseCurrency)+'</select></div>';
   h+='<div><div class="form-label">'+(isZh?'目标货币':'To Currency')+'</div><select class="input-field" onchange="window._ccSet(\'targetCurrency\',this.value)">'+makeCurOpts(d.targetCurrency)+'</select></div>';
-  h+='<div><div class="form-label">'+(isZh?'汇率':'Exchange Rate')+'</div><input class="input-field" type="number" step="0.0001" value="'+esc(d.exchangeRate)+'" onchange="window._ccSet(\'exchangeRate\',this.value)" placeholder="'+(isZh?'手动输入':'Enter rate')+'"></div>';
+  h+='<div><div class="form-label">'+(isZh?'汇率':'Exchange Rate')+'</div><div style="display:flex;gap:4px;"><input class="input-field" style="flex:1;" type="number" step="0.0001" value="'+esc(d.exchangeRate)+'" onchange="window._ccSet(\'exchangeRate\',this.value)" placeholder="'+(isZh?'手动输入':'Enter rate')+'"><button class="btn btn-secondary btn-sm" onclick="window._ccFetchLiveRate()" title="'+(isZh?'获取实时汇率':'Fetch live rate')+'">↻</button></div></div>';
   h+='<div><div class="form-label">'+(isZh?'金额':'Amount')+'</div><input class="input-field" type="number" step="0.01" value="'+esc(d.amount)+'" onchange="window._ccSet(\'amount\',this.value)" placeholder="1000"></div>';
   var result=d.amount&&d.exchangeRate?(parseFloat(d.amount)*parseFloat(d.exchangeRate)).toFixed(2):'';
   h+='<div><div class="form-label">'+(isZh?'换算结果':'Result')+'</div><div style="padding:10px;font-size:18px;font-weight:700;color:var(--primary);">'+(result||'—')+' '+esc(d.targetCurrency)+'</div></div>';
@@ -136,7 +131,7 @@ function renderForm(){
     h+='<tr><td class="row-number">'+(idx+1)+'</td>';
     h+='<td><select class="input-field input-field-xs" onchange="window._ccItem('+idx+',\'fromCurrency\',this.value)">'+makeCurOpts(it.fromCurrency)+'</select></td>';
     h+='<td><select class="input-field input-field-xs" onchange="window._ccItem('+idx+',\'toCurrency\',this.value)">'+makeCurOpts(it.toCurrency)+'</select></td>';
-    h+='<td><input class="input-field input-field-xs text-right" type="number" step="0.0001" value="'+esc(it.rate)+'" onchange="window._ccItem('+idx+',\'rate\',this.value)"></td>';
+    h+='<td><div style="display:flex;gap:2px;"><input class="input-field input-field-xs text-right" style="flex:1;min-width:50px;" type="number" step="0.0001" value="'+esc(it.rate)+'" onchange="window._ccItem('+idx+',\'rate\',this.value)"><button class="btn btn-secondary btn-sm" onclick="window._ccFetchBatchRate('+idx+')" style="padding:0 4px;font-size:12px;" title="'+(isZh?'获取实时汇率':'Fetch live rate')+'">&#x21bb;</button></div></td>';
     h+='<td><input class="input-field input-field-xs text-right" type="number" step="0.01" value="'+esc(it.amount)+'" onchange="window._ccItem('+idx+',\'amount\',this.value)"></td>';
     h+='<td style="font-weight:600;color:var(--primary);">'+(res||'—')+'</td>';
     h+='<td class="actions"><button class="btn btn-danger" onclick="window._ccRemoveItem('+idx+')" '+(d.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
@@ -149,11 +144,6 @@ function renderPreview(){
   function tr2(en,zh){return isZh2?zh:en;}
   var h='<div class="invoice-preview" id="preview-content">';
   h+='<div class="header-title">'+tr2('CURRENCY CONVERSION','汇率换算')+'</div>';
-  if(d.amount&&d.exchangeRate){
-    h+='<table><tbody><tr><th style="width:25%;">'+tr2('FROM','源货币')+'</th><th style="width:25%;">'+tr2('TO','目标货币')+'</th><th style="width:25%;">'+tr2('RATE','汇率')+'</th><th style="width:25%;">'+tr2('AMOUNT','金额')+'</th></tr>';
-    h+='<tr><td class="text-center">'+esc(d.baseCurrency)+' '+esc(d.amount)+'</td><td class="text-center">'+esc(d.targetCurrency)+'</td><td class="text-center">'+esc(d.exchangeRate)+'</td>';
-    h+='<td class="text-center font-bold" style="font-size:18px;">'+(parseFloat(d.amount)*parseFloat(d.exchangeRate)).toFixed(2)+' '+esc(d.targetCurrency)+'</td></tr></tbody></table>';
-  }
   if(d.items&&d.items.length>0&&d.items[0].rate){
     h+='<table class="mt-2"><thead><tr>';
     h+='<th>#</th><th>'+tr2('FROM','源货币')+'</th><th>'+tr2('TO','目标货币')+'</th><th>'+tr2('RATE','汇率')+'</th><th>'+tr2('AMOUNT','金额')+'</th><th>'+tr2('RESULT','结果')+'</th>';
@@ -181,9 +171,6 @@ function renderHistory(){
   h+='</div><div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="window._ccClearAllHistory()">'+tr.clearAll+'</button></div>';}
   document.getElementById('history-container').innerHTML=h;document.getElementById('history-search').oninput=function(){renderHistory();};
 }
-function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
-document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
-document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
   injectSpaButton();
@@ -191,14 +178,34 @@ document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark
   injectPageFaq();
 document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
 document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
-window._ccSet=function(f,v){data[f]=v;saveDocData(DT,data);};
-window._ccItem=function(idx,f,v){data.items[idx][f]=v;saveDocData(DT,data);};
+window._ccSet=function(f,v){data[f]=v;saveDocData(DT,data);if(f==='baseCurrency'||f==='targetCurrency'){if(data.baseCurrency&&data.targetCurrency)window._ccFetchLiveRate();}else{renderForm();renderPreview();}};
+window._ccItem=function(idx,f,v){data.items[idx][f]=v;saveDocData(DT,data);if(f==='fromCurrency'||f==='toCurrency'){var it=data.items[idx];if(it.fromCurrency&&it.toCurrency)window._ccFetchBatchRate(idx);}else{renderForm();renderPreview();}};
 window._ccAddItem=function(){data.items.push({fromCurrency:'USD',toCurrency:'CNY',rate:'',amount:'',result:''});saveDocData(DT,data);renderForm();};
 window._ccRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);saveDocData(DT,data);renderForm();}};
 window._ccRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function(x){return x.id===id;});if(s&&s.data){data=JSON.parse(JSON.stringify(s.data));saveDocData(DT,data);renderAll();}};
 window._ccDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._ccClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
-function esc(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
+function fetchLiveRate(from,to,isBatch,idx){
+  if(!from||!to)return;
+  console.log('fetchLiveRate: fetching',from,'->',to);
+  fetch('https://api.exchangerate-api.com/v4/latest/'+from)
+    .then(function(r){
+      if(!r.ok)throw new Error('HTTP '+r.status);
+      return r.json();
+    })
+    .then(function(d){
+      var rate=d.rates[to];
+      if(!rate)throw new Error('Rate not found for '+to);
+      if(isBatch){data.items[idx].rate=rate.toString();}else{data.exchangeRate=rate.toString();}
+      saveDocData(DT,data);renderForm();renderPreview();
+    })
+    .catch(function(err){
+      console.warn('fetchLiveRate error:',err.message||err);
+    });
+}
+window._ccFetchLiveRate=function(){if(data.baseCurrency&&data.targetCurrency)fetchLiveRate(data.baseCurrency,data.targetCurrency,false,0);};
+window._ccFetchBatchRate=function(idx){var it=data.items[idx];if(it&&it.fromCurrency&&it.toCurrency)fetchLiveRate(it.fromCurrency,it.toCurrency,true,idx);};
+
+
 function loadSample(){var s=getDefaultDoc(DT);s.baseCurrency='USD';s.targetCurrency='CNY';s.exchangeRate='7.2450';s.amount='10000';
 s.items=[{fromCurrency:'USD',toCurrency:'CNY',rate:'7.2450',amount:'10000',result:'72450.00'},
 {fromCurrency:'USD',toCurrency:'EUR',rate:'0.9200',amount:'10000',result:'9200.00'},

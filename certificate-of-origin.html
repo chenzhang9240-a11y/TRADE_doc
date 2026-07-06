@@ -98,11 +98,6 @@ function init(){applyTheme();var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);re
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderForm();renderPreview();renderHistory();renderClearModal();}
-function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
-function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
-function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
-function switchTab(t){['edit','preview','history'].forEach(function(p){document.getElementById('tab-'+p).classList.toggle('active',p===t);document.getElementById('panel-'+p).classList.toggle('active',p===t);});}
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data;
   document.getElementById('btn-load-sample').textContent=tr.loadSample;document.getElementById('btn-clear').textContent=tr.clear;
@@ -157,37 +152,97 @@ function renderForm(){
 function renderPreview(){
   var d=data,isZh2=previewLang==='zh';
   function tr2(en,zh){return isZh2?zh:en;}
-  var h='<div class="invoice-preview" id="preview-content">';
-  h+='<div class="header-title">'+tr2('CERTIFICATE OF ORIGIN','原产地证明')+'</div>';
-  h+='<table><tbody><tr><td style="width:50%;"><div class="section-label2">'+tr2('EXPORTER','出口商')+'</div>';
-  h+='<div class="section-value">'+esc(d.exporterName||'—')+'</div><div class="section-value">'+esc(d.exporterAddress||'—')+'</div>';
-  h+='<div class="section-value">'+esc(d.exporterCountry||'—')+'</div></td>';
-  h+='<td style="width:50%;"><div class="section-label2">'+tr2('CONSIGNEE','收货人')+'</div>';
-  h+='<div class="section-value">'+esc(d.consigneeName||'—')+'</div><div class="section-value">'+esc(d.consigneeAddress||'—')+'</div>';
-  h+='<div class="section-value">'+esc(d.consigneeCountry||'—')+'</div></td></tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr>';
-  [tr2('TRANSPORT','运输方式'),tr2('PORT OF LOADING','装货港'),tr2('PORT OF DISCHARGE','卸货港'),tr2('VESSEL','船名')].forEach(function(t){h+='<th style="width:25%;">'+t+'</th>';});
-  h+='</tr><tr>';
-  [d.meansOfTransport,d.portOfLoading,d.portOfDischarge,d.vessel].forEach(function(v){h+='<td class="text-center">'+esc(v||'—')+'</td>';});
-  h+='</tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr>';
-  [tr2('COUNTRY OF ORIGIN','原产国'),tr2('DESTINATION','目的国'),tr2('INVOICE NO.','发票号'),tr2('DATE OF EXPORT','出口日期')].forEach(function(t){h+='<th style="width:25%;">'+t+'</th>';});
-  h+='</tr><tr>';
-  [d.countryOfOrigin,d.destinationCountry,d.invoiceNo,d.dateOfExport].forEach(function(v){h+='<td class="text-center">'+esc(v||'—')+'</td>';});
-  h+='</tr></tbody></table>';
-  h+='<table class="mt-2"><thead><tr>';
-  ['#',tr2('MARKS','唛头'),tr2('NO.PKGS','件数'),tr2('DESCRIPTION','描述'),tr2('HS CODE','HS编码'),tr2('G.W.','毛重'),tr2('QTY','数量')].forEach(function(t){h+='<th>'+t+'</th>';});
+  var h='<div class="invoice-preview co-preview" id="preview-content">';
+  h+='<div class="co-title">CERTIFICATE OF ORIGIN</div>';
+  // Top section with grid layout (2 cols, shared row tracks)
+  h+='<div class="co-row-top">';
+  // LEFT top: Fields 1 + 2
+  h+='<div class="co-col-group" style="grid-row:1;grid-column:1;">';
+  h+='<div class="co-field" style="border:none;">';
+  h+='<div class="co-field-label">1. '+tr2('Exporter','出口商')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.exporterName||'')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.exporterAddress||'')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.exporterCountry||'')+'</div>';
+  h+='</div>';
+  h+='<div class="co-field">';
+  h+='<div class="co-field-label">2. '+tr2('Consignee','收货人')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.consigneeName||'')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.consigneeAddress||'')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.consigneeCountry||'')+'</div>';
+  h+='</div>';
+  h+='</div>';
+  // LEFT bottom: Fields 3 + 4
+  h+='<div class="co-col-group" style="grid-row:3;grid-column:1;">';
+  h+='<div class="co-field" style="border:none;">';
+  h+='<div class="co-field-label">3. '+tr2('Means of transport and route','运输方式和路线')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.meansOfTransport||'')+'</div>';
+  if(d.portOfLoading||d.portOfDischarge){
+    h+='<div class="co-field-value">'+esc(d.portOfLoading||'')+(d.portOfLoading&&d.portOfDischarge?' \u2192 ':'')+esc(d.portOfDischarge||'')+'</div>';
+  }
+  if(d.vessel){h+='<div class="co-field-value">'+esc(d.vessel)+'</div>';}
+  h+='</div>';
+  h+='<div class="co-field">';
+  h+='<div class="co-field-label">4. '+tr2('Country/region of destination','目的地国家/地区')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.destinationCountry||'')+'</div>';
+  h+='</div>';
+  h+='</div>';
+  // RIGHT top: Certificate No.
+  h+='<div class="co-field" style="grid-row:1;grid-column:3;border:none;">';
+  h+='<div class="co-field-label">'+tr2('Certificate No.','证书编号')+'</div>';
+  h+='<div class="co-field-value">&nbsp;</div>';
+  h+='</div>';
+  // RIGHT bottom: Field 5
+  h+='<div class="co-field co-field-dashed" style="grid-row:3;grid-column:3;margin:6px;">';
+  h+='<div class="co-field-label">5. '+tr2('For certifying authority use only','签证机构专用')+'</div>';
+  h+='<div class="co-field-empty" style="min-height:50px;">&nbsp;</div>';
+  h+='</div>';
+  // Dividers (vertical and horizontal)
+  h+='<div class="co-divider-v"></div>';
+  h+='<div class="co-divider-h"></div>';
+  h+='</div>'; // end row-top
+  // Goods table + Country of Origin wrapper
+  h+='<div class="co-table-wrap">';
+  h+='<table class="co-table"><thead><tr>';
+  h+='<th style="width:12%;">6. '+tr2('Marks & Nos','唛头及编号')+'</th>';
+  h+='<th style="width:38%;">7. '+tr2('Number & kind of packages; Description of goods','包装数量及种类；货物描述')+'</th>';
+  h+='<th style="width:15%;">8. '+tr2('H.S. Code','海关编码')+'</th>';
+  h+='<th style="width:13%;">9. '+tr2('Quantity','数量')+'</th>';
+  h+='<th style="width:22%;">10. '+tr2('Invoice No. & Date','发票号及日期')+'</th>';
   h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
-    h+='<tr><td class="text-center">'+(idx+1)+'</td><td>'+esc(it.marks||'—')+'</td><td class="text-center">'+esc(it.numberOfPkgs||'—')+'</td>';
-    h+='<td>'+esc(it.description||'—')+'</td><td class="text-center">'+esc(it.hsCode||'—')+'</td><td class="text-right">'+esc(it.grossWeight||'—')+'</td>';
-    h+='<td class="text-center">'+esc(it.quantity||'—')+'</td></tr>';
-  });
+  if(d.items&&d.items.length){
+    d.items.forEach(function(it,idx){
+      h+='<tr>';
+      h+='<td class="text-center">'+esc(it.marks||'')+'</td>';
+      h+='<td>'+(it.numberOfPkgs?esc(it.numberOfPkgs)+' - ':'')+esc(it.description||'')+'</td>';
+      h+='<td class="text-center">'+esc(it.hsCode||'')+'</td>';
+      h+='<td class="text-center">'+esc(it.quantity||'')+'</td>';
+      h+='<td class="text-center">'+(idx===0?(esc(d.invoiceNo||'')+(d.invoiceNo?'<br>':'')+esc(d.dateOfExport||'')):'')+'</td>';
+      h+='</tr>';
+    });
+  }else{
+    h+='<tr><td colspan="5" class="text-center">\u2014</td></tr>';
+  }
   h+='</tbody></table>';
-  h+='<div class="mt-2"><div class="section-label2">'+tr2('DECLARATION','声明')+'</div><div class="section-value">'+esc(d.declaration)+'</div></div>';
-  h+='<div class="mt-2" style="text-align:right;"><div class="section-label2">'+tr2('CERTIFICATION','认证')+'</div>';
-  h+='<div class="section-value">'+esc(d.certifyingAuthority||'—')+'</div><div class="section-value">'+esc(d.certifyingLocation||'')+'</div>';
-  h+='<div class="section-value">'+esc(d.certifyingDate||'')+'</div></div></div>';
+  // Country of Origin
+  h+='<div class="co-info-line"><span class="co-info-label">'+tr2('Country of Origin','原产国')+': </span>'+esc(d.countryOfOrigin||'')+'</div>';
+  // end co-table-wrap
+  h+='</div>';
+  // 11. Declaration by the exporter
+  h+='<div class="co-field co-field-sign">';
+  h+='<div class="co-field-label">11. '+tr2('Declaration by the exporter','出口商声明')+'</div>';
+  h+='<div class="co-field-value">'+esc(d.declaration||'')+'</div>';
+  h+='<div class="co-signature"><div class="co-signature-line"></div><div class="co-signature-text">'+tr2('Place and date, signature and stamp of authorized signatory','授权签字人地点、日期、签名和印章')+'</div></div>';
+  h+='</div>';
+  // 12. Certification
+  h+='<div class="co-field co-field-sign">';
+  h+='<div class="co-field-label">12. '+tr2('Certification','认证')+'</div>';
+  var certLine=esc(d.certifyingAuthority||'');
+  if(d.certifyingLocation){certLine+=', '+esc(d.certifyingLocation);}
+  if(d.certifyingDate){certLine+=', '+esc(d.certifyingDate);}
+  h+='<div class="co-field-value">'+certLine+'</div>';
+  h+='<div class="co-signature"><div class="co-signature-line"></div><div class="co-signature-text">'+tr2('Place and date, signature and stamp of certifying authority','签证机构地点、日期、签名和印章')+'</div></div>';
+  h+='</div>';
+  h+='</div>';
   document.getElementById('preview-container').innerHTML=h;
 }
 function renderHistory(){
@@ -202,9 +257,6 @@ function renderHistory(){
   h+='</div><div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="window._coClearAllHistory()">'+tr.clearAll+'</button></div>';}
   document.getElementById('history-container').innerHTML=h;document.getElementById('history-search').oninput=function(){renderHistory();};
 }
-function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
-document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
-document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
   injectSpaButton();
@@ -218,8 +270,7 @@ window._coAddItem=function(){data.items.push(getEmptyItem(DT));saveDocData(DT,da
 window._coRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);saveDocData(DT,data);renderForm();}};
 window._coRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function(x){return x.id===id;});if(s&&s.data){data=JSON.parse(JSON.stringify(s.data));saveDocData(DT,data);renderAll();}};
 window._coDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._coClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
-function esc(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
+
 function lI(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._coSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
 function lID(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._coSet(\''+f+'\',this.value)"></div>';}
 function loadSample(){var s=getDefaultDoc(DT);s.exporterName='Shanghai Export Co., Ltd.';s.exporterAddress='No.123 Zhangjiang Rd, Pudong, Shanghai';s.exporterCountry='China';

@@ -139,17 +139,23 @@ var PL_FIELD_META={
   'signature.title':{label:'Title',labelCn:'职务',section:'signature'},
   'signature.date':{label:'Date',labelCn:'日期',section:'signature'}
 };
+var PL_TMPL_SECTIONS = ['shipper','consignee','shipping','items','totals','remarks','signature'];
+var PL_TMPL_SECTION_LABELS = {
+  shipper: { zh:'发货人', en:'Shipper' },
+  consignee: { zh:'收货人', en:'Consignee' },
+  shipping: { zh:'装运信息', en:'Shipping Info' },
+  items: { zh:'货品明细列', en:'Item Table Columns' },
+  totals: { zh:'汇总行', en:'Totals' },
+  remarks: { zh:'备注', en:'Remarks' },
+  signature: { zh:'签名', en:'Signature' }
+};
 function isFld(key){return isFieldVisible(DT,key,PL_DEFAULT_FIELDS);}
 function isFldR(key){return isFieldRequired(DT,key,PL_DEFAULT_FIELDS);}
-function init(){try{applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);var _td=loadTmplData(DT);if(_td&&_td.templates){_td.templates.forEach(function(_t){var changed=false;for(var _k in PL_DEFAULT_FIELDS){if(!(_k in _t.fields)){_t.fields[_k]=PL_DEFAULT_FIELDS[_k];changed=true;}else if(_t.builtIn&&_t.fields[_k]!==PL_DEFAULT_FIELDS[_k]){_t.fields[_k]=PL_DEFAULT_FIELDS[_k];changed=true;}}if(changed)saveTmplData(DT,_td);});}renderAll();}catch(e){console.error('init error:',e);document.getElementById('form-container').innerHTML='<div style="color:red;padding:20px;">Error: '+esc(e.message)+'</div>';}}
+function init(){try{applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);migrateTmplData(DT,PL_DEFAULT_FIELDS);renderAll();}catch(e){console.error('init error:',e);document.getElementById('form-container').innerHTML='<div style="color:red;padding:20px;">Error: '+esc(e.message)+'</div>';}}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderTmplBar();renderForm();renderPreview();renderHistory();renderClearModal();}
-function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
-function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
-function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
-function switchTab(t){['edit','preview','history'].forEach(function(p){document.getElementById('tab-'+p).classList.toggle('active',p===t);document.getElementById('panel-'+p).classList.toggle('active',p===t);});}
+// Shared functions (renderAll, renderTopBar, renderHeader, renderTabs, switchTab, renderClearModal, esc) in common.js
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data;
   document.getElementById('btn-load-sample').textContent=tr.loadSample;document.getElementById('btn-clear').textContent=tr.clear;
@@ -370,118 +376,10 @@ function renderHistory(){
   h+='</div><div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="window._plClearAllHistory()">'+tr.clearAll+'</button></div>';}
   document.getElementById('history-container').innerHTML=h;document.getElementById('history-search').oninput=function(){renderHistory();};
 }
-function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
-document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
-document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
-function renderTmplBar(){
-  var isZh=lang==='zh';
-  var data=ensureTmplData(DT,PL_DEFAULT_FIELDS);
-  var current=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
-  document.getElementById('tmpl-config-text').textContent=isZh?'字段配置':'Field Config';
-  document.getElementById('tmpl-label-text').textContent=isZh?'模板':'Template';
-  document.getElementById('tmpl-save-text').textContent=isZh?'保存':'Save';
-  document.getElementById('tmpl-new-text').textContent=isZh?'新建':'New';
-  document.getElementById('tmpl-delete-text').textContent=isZh?'删除':'Delete';
-  var sel=document.getElementById('tmpl-selector');sel.innerHTML='';
-  data.templates.forEach(function(t){
-    var o=document.createElement('option');o.value=t.id;
-    o.textContent=t.name+(t.builtIn?(isZh?' (默认)':' (Default)'):'');
-    if(t.id===data.currentTemplateId)o.selected=true;sel.appendChild(o);
-  });
-  if(!sel.value&&sel.options.length>0){sel.value=sel.options[0].value;}
-  var isBuiltIn=current?current.builtIn:true;
-  document.getElementById('btn-tmpl-delete').classList.toggle('hidden',isBuiltIn);
-  previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
-}
-function renderTmplModal(){
-  var isZh=lang==='zh',t=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
-  if(!t)return;
-  document.getElementById('tmpl-modal-title').textContent=(isZh?'字段配置 - ':'Field Config - ')+t.name;
-  var sections=[
-    {title:isZh?'发货人':'Shipper',fields:['shipper.shipperCompany','shipper.shipperAddress','shipper.shipperName','shipper.shipperPhone']},
-    {title:isZh?'收货人':'Consignee',fields:['consignee.consigneeCompany','consignee.consigneeAddress','consignee.consigneeName','consignee.consigneePhone']},
-    {title:isZh?'装运信息':'Shipping Info',fields:['shipping.invoiceNo','shipping.poNo','shipping.dateOfExport','shipping.waybillNo','shipping.vessel','shipping.portOfLoading','shipping.portOfDischarge']},
-    {title:isZh?'货品明细列':'Item Table Columns',fields:['items.marks','items.noOfPkgs','items.typeOfPackaging','items.description','items.qty','items.unitOfMeasure','items.netWeight','items.grossWeight','items.measurement']},
-    {title:isZh?'汇总行':'Totals',fields:['totals.totalPkgs','totals.totalNetWeight','totals.totalGrossWeight','totals.totalMeasurement']},
-    {title:isZh?'备注':'Remarks',fields:['remarks.text']},
-    {title:isZh?'签名':'Signature',fields:['signature.name','signature.title','signature.date']}
-  ];
-  var body='';
-  sections.forEach(function(sec){
-    if(sec.fields.length===0)return;
-    body+='<div style="margin-bottom:14px;"><div style="font-weight:700;margin-bottom:6px;font-size:14px;">'+sec.title+'</div>';
-    sec.fields.forEach(function(fk){
-      var meta=PL_FIELD_META[fk];if(!meta)return;
-      var val=t.fields[fk];
-      var isReq=val==='required';
-      var checked=isReq||val===true;
-      body+='<label style="display:inline-block;width:48%;margin-bottom:4px;font-size:13px;">';
-      body+='<input type="checkbox" data-fk="'+fk+'" '+(checked?'checked':'')+' '+(isReq?'disabled':'')+'>';
-      body+=(isZh?meta.labelCn:meta.label);
-      if(isReq)body+=' <span style="color:#dc2626;font-size:10px;">*</span>';
-      body+='</label>';
-    });
-    body+='</div>';
-  });
-  body+='<div style="margin-top:12px;border-top:1px solid #ddd;padding-top:12px;">';
-  body+='<span style="font-size:13px;font-weight:600;">'+(isZh?'预览语言':'Preview Language')+':</span>';
-  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-preview-lang" value="zh" '+(t.previewLang==='zh'?'checked':'')+'> 中文</label>';
-  body+='<label style="margin-left:8px;font-size:13px;"><input type="radio" name="tmpl-preview-lang" value="en" '+(t.previewLang==='en'?'checked':'')+'> English</label></div>';
-  document.getElementById('tmpl-modal-body').innerHTML=body;
-  var tr=I18N[lang];
-  document.getElementById('btn-tmpl-modal-cancel').textContent=tr.cancel;
-  document.getElementById('btn-tmpl-modal-save').textContent=tr.saveTemplate;
-  document.getElementById('tmpl-modal').classList.remove('hidden');
-}
-function doSaveTmplFromModal(){
-  var data=ensureTmplData(DT,PL_DEFAULT_FIELDS);
-  var tmpl=data.templates.find(function(t){return t.id===data.currentTemplateId;});
-  if(!tmpl)return;
-  var langRadio=document.querySelector('input[name="tmpl-preview-lang"]:checked');
-  if(langRadio)tmpl.previewLang=langRadio.value;
-  if(!tmpl.builtIn){
-    var checks=document.querySelectorAll('#tmpl-modal-body input[type="checkbox"]');
-    checks.forEach(function(cb){
-      var fk=cb.getAttribute('data-fk');
-      if(fk&&PL_DEFAULT_FIELDS[fk]!=='required'){tmpl.fields[fk]=cb.checked;}
-    });
-  }
-  saveTmplData(DT,data);
-  previewLang=tmpl.previewLang;
-  document.getElementById('tmpl-modal').classList.add('hidden');
-  renderTmplBar();renderForm();renderPreview();
-}
-function setupTmplEvents(){
-  document.getElementById('btn-tmpl-config').onclick=function(){renderTmplModal();};
-  document.getElementById('btn-tmpl-modal-cancel').onclick=function(){document.getElementById('tmpl-modal').classList.add('hidden');};
-  document.getElementById('btn-tmpl-modal-save').onclick=doSaveTmplFromModal;
-  document.getElementById('btn-tmpl-save').onclick=doSaveTmplFromModal;
-  document.getElementById('tmpl-selector').onchange=function(){
-    setCurrentTmpl(DT,this.value,PL_DEFAULT_FIELDS);
-    previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
-    renderTmplBar();renderForm();renderPreview();
-  };
-  document.getElementById('btn-tmpl-new').onclick=function(){
-    var name=prompt(lang==='zh'?'请输入新模板名称:':'Enter template name:');
-    if(!name)return;
-    var newFields={};
-    for(var key in PL_DEFAULT_FIELDS){
-      if(PL_DEFAULT_FIELDS[key]==='required'){newFields[key]='required';}else{newFields[key]=false;}
-    }
-    var t=saveNewTmpl(DT,name,newFields,lang==='zh'?'zh':'en',PL_DEFAULT_FIELDS);
-    previewLang=t.previewLang||'zh';
-    renderTmplBar();renderForm();renderPreview();
-    renderTmplModal();
-  };
-  document.getElementById('btn-tmpl-delete').onclick=function(){
-    var current=getCurrentTmpl(DT,PL_DEFAULT_FIELDS);
-    if(current.builtIn)return;
-    if(!confirm(lang==='zh'?'确定删除模板 "'+current.name+'" 吗？':'Delete template "'+current.name+'"?'))return;
-    deleteTmpl(DT,current.id,PL_DEFAULT_FIELDS);
-    previewLang=getTmplPreviewLang(DT,PL_DEFAULT_FIELDS);
-    renderTmplBar();renderForm();renderPreview();
-  };
-}
+function renderTmplBar(){ tmplRenderBar(DT, PL_DEFAULT_FIELDS); }
+function renderTmplModal(){ tmplRenderModal(DT, PL_FIELD_META, PL_TMPL_SECTIONS, PL_TMPL_SECTION_LABELS, PL_DEFAULT_FIELDS); }
+function doSaveTmplFromModal(){ tmplSaveFromModal(DT, PL_DEFAULT_FIELDS); }
+function setupTmplEvents(){ tmplSetupEvents(DT, PL_DEFAULT_FIELDS, { fieldMeta: PL_FIELD_META, sections: PL_TMPL_SECTIONS, sectionLabels: PL_TMPL_SECTION_LABELS }); }
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
   injectSpaButton();
@@ -496,8 +394,8 @@ window._plAddItem=function(){data.items.push(getEmptyItem(DT));saveDocData(DT,da
 window._plRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);saveDocData(DT,data);renderForm();}};
 window._plRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function(x){return x.id===id;});if(s&&s.data){data=JSON.parse(JSON.stringify(s.data));saveDocData(DT,data);renderAll();}};
 window._plDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._plClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
-function esc(str){if(str===null||str===undefined)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
+// esc() defined in common.js
+
 function lI(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._plSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
 function lID(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._plSet(\''+f+'\',this.value)"></div>';}
 function loadSample(){var s=getDefaultDoc(DT);s.shipperCompany='Shanghai Export Co., Ltd.';s.shipperName='Zhang Wei';s.shipperAddress='No.123 Zhangjiang Rd, Shanghai';s.shipperPhone='+86 138 0000 1234';

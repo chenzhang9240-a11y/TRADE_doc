@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>成本估算单生成器 - TradeKit Cost Estimation</title>
-<meta name="description" content="面向出口报价的详细成本分解工具，自动叠加利润、税金、折扣，支持多币种核算。">
+<meta name="description" content="面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。">
 <meta name="keywords" content="成本估算,cost estimation,出口报价,export pricing,成本核算,cost breakdown,利润计算,profit margin,多币种,multi-currency">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <link rel="canonical" href="http://tradekit.treedeep.cn/cost-estimation.html">
@@ -20,7 +20,7 @@
 <meta name="distribution" content="global">
 <meta property="og:type" content="article">
 <meta property="og:title" content="成本估算单生成器 - TradeKit Cost Estimation">
-<meta property="og:description" content="面向出口报价的详细成本分解工具，自动叠加利润、税金、折扣，支持多币种核算。">
+<meta property="og:description" content="面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。">
 <meta property="og:url" content="http://tradekit.treedeep.cn/cost-estimation.html">
 <meta property="og:site_name" content="TradeKit">
 <meta property="og:locale" content="zh_CN">
@@ -30,7 +30,7 @@
 <meta property="article:tag" content="trade document">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="成本估算单生成器 - TradeKit Cost Estimation">
-<meta name="twitter:description" content="面向出口报价的详细成本分解工具，自动叠加利润、税金、折扣，支持多币种核算。">
+<meta name="twitter:description" content="面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。">
 <meta name="twitter:label:1" content="文档类型">
 <meta name="twitter:data:1" content="成本估算单生成器 - TradeKit Cost Estimation">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
@@ -39,7 +39,7 @@
   "@type": "WebPage",
   "name": "成本估算单生成器 - TradeKit Cost Estimation",
   "alternateName": "Cost Estimation Generator - TradeKit",
-  "description": "面向出口报价的详细成本分解工具，自动叠加利润、税金、折扣，支持多币种核算。",
+  "description": "面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。",
   "url": "http://tradekit.treedeep.cn/cost-estimation.html",
   "isPartOf": {
     "@type": "SoftwareApplication",
@@ -53,12 +53,12 @@
   "about": {
     "@type": "Thing",
     "name": "成本估算单生成器 - TradeKit Cost Estimation",
-    "description": "面向出口报价的详细成本分解工具，自动叠加利润、税金、折扣，支持多币种核算。"
+    "description": "面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。"
   },
   "mainEntity": {
     "@type": "Service",
     "name": "成本估算单生成器 - TradeKit Cost Estimation",
-    "description": "面向出口报价的详细成本分解工具，自动叠加利润、税金、折扣，支持多币种核算。",
+    "description": "面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。",
     "serviceType": "Trade Document Generation",
     "provider": {
       "@type": "Organization",
@@ -114,18 +114,25 @@
 <div class="clear-modal hidden" id="clear-modal"><div class="clear-modal-content"><div class="clear-modal-title" id="clear-title"></div><div class="clear-modal-msg" id="clear-msg"></div><div class="clear-modal-actions"><button class="btn btn-secondary btn-sm" id="btn-cancel-clear"></button><button class="btn btn-danger" id="btn-confirm-clear"></button></div></div></div>
 <script src="common.js"></script>
 <script>
-var DT='cost_estimation',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
+var DT='cost_estimation',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang=getLang(),activePreviewTab='sea',data=null,showClearConfirm=false;
+var TAB_KEYS=['sea','lcl','air','courier','parcel'];
+var TAB_ICONS={'sea':'🚢','lcl':'🚢','air':'✈️','courier':'📦','parcel':'🌐'};
+var TAB_NAMES={'sea':{zh:'海运 FCL',en:'Sea FCL'},'lcl':{zh:'海运 LCL',en:'Sea LCL'},'air':{zh:'空运',en:'Air Freight'},'courier':{zh:'快递',en:'Courier'},'parcel':{zh:'跨境小包专线',en:'Parcel'}};
+
 function init(){applyTheme();var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);renderAll();}
-  injectSpaButton();
-  injectBottomCta();
-  injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderForm();renderPreview();renderHistory();renderClearModal();}
-function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
-function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
-function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
-function switchTab(t){['edit','preview','history'].forEach(function(p){document.getElementById('tab-'+p).classList.toggle('active',p===t);document.getElementById('panel-'+p).classList.toggle('active',p===t);});}
+function migrateData(d){
+  if(!d.lcl)d.lcl={sections:[{name:'一、国内段（起运港）', items:[]},{name:'二、主运费（海运）', items:[]},{name:'三、目的港段', items:[]},{name:'四、隐性费用', items:[]}]};
+  // Migrate old containerType/containerQty to containerSpec
+  if(d.containerType!==undefined&&d.containerSpec===undefined){
+    d.containerSpec=(d.containerQty||'')+(d.containerQty&&d.containerType?'×':'')+(d.containerType||'');
+  }
+  return d;
+}
+function init(){applyTheme();var s=loadDocData(DT);data=s?migrateData(s):getDefaultDoc(DT);renderAll();}
+injectSpaButton();injectBottomCta();injectPageFaq();
+
 function renderForm(){
-  var tr=I18N[lang],isZh=lang==='zh',d=data;
+  var tr=I18N[lang],isZh=lang==='zh',d=data,esc2=esc;
   document.getElementById('btn-load-sample').textContent=tr.loadSample;document.getElementById('btn-clear').textContent=tr.clear;
   document.getElementById('btn-switch-preview').textContent=tr.preview;document.getElementById('btn-pdf').textContent=tr.exportPdf;
   document.getElementById('btn-back-edit').textContent=tr.backEdit;document.getElementById('btn-preview-lang').textContent=previewLang==='en'?'Switch to 中文':'Switch to English';
@@ -135,117 +142,280 @@ function renderForm(){
   document.getElementById('btn-switch-preview').onclick=function(){switchTab('preview');renderPreview();};document.getElementById('btn-back-edit').onclick=function(){switchTab('edit');};
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
   document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
-  var sub=d.items.reduce(function(s,it){return s+(parseFloat(it.totalCost)||0);},0);
-  var pm=parseFloat(d.profitMargin)||0,tr_=parseFloat(d.taxRate)||0,dr=parseFloat(d.discountRate)||0;
-  var profit=(sub*pm/100),tax=(sub+profit)*tr_/100,discount=(sub+profit+tax)*dr/100,grand=sub+profit+tax-discount;
-  var h='',esc2=esc;
+
+  var h='';
+
+  // ===== Project Info =====
   h+='<div class="section-card"><h3>'+fieldBlock(isZh?'项目信息':'Project Info','')+'</h3>';
-  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=labelInput2(isZh?'项目参考':'Project Ref',d.projectRef,'projectRef','');
-  h+=labelInputDate2(isZh?'编制日期':'Preparation Date',d.preparationDate,'preparationDate');
-  h+=labelInput(isZh?'编制人':'Prepared By',d.preparedBy,'preparedBy','');
-  h+=labelInput(isZh?'公司名称':'Company Name',d.companyName,'companyName','');
-  h+=labelInput(isZh?'公司地址':'Company Address',d.companyAddress,'companyAddress','');
-  h+=labelInput(isZh?'联系电话':'Contact Phone',d.contactPhone,'contactPhone','');
+  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px,1fr));">';
+  h+=labelInput(isZh?'项目名称':'Project Name',d.projectName,'projectName');
+  h+=labelInput(isZh?'客户':'Client',d.client,'client');
+  h+=labelInputDate(isZh?'编制日期':'Date',d.preparationDate,'preparationDate');
+  h+=labelInput(isZh?'编制人':'Prepared By',d.preparedBy,'preparedBy');
+  h+=labelInput(isZh?'起运地':'Origin',d.origin,'origin');
+  h+=labelInput(isZh?'目的地':'Destination',d.destination,'destination');
+  h+=labelInput(isZh?'贸易条款':'Trade Terms',d.tradeTerms,'tradeTerms');
+  h+=labelInput(isZh?'报价有效期':'Price Validity',d.priceValidity,'priceValidity');
   h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'客户信息':'Client Info','')+'</h3>';
-  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=labelInput(isZh?'客户名称':'Client Name',d.clientName,'clientName','');
-  h+=labelInput(isZh?'客户公司':'Client Company',d.clientCompany,'clientCompany','');
-  h+=labelInput(isZh?'客户地址':'Client Address',d.clientAddress,'clientAddress','');
-  h+=labelInput(isZh?'产品名称':'Product Name',d.productName,'productName','');
-  h+=labelInput(isZh?'产品规格':'Product Spec',d.productSpec,'productSpec','');
-  h+=labelSelect2(isZh?'币种':'Currency',d.currency,'currency',CURRENCIES.map(function(c){return[c,c+' - '+CURRENCY_NAMES[c]];}));
-  h+=labelInputDate2(isZh?'有效期至':'Validity Period',d.validityPeriod,'validityPeriod');
+
+  // ===== Cargo Data =====
+  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'货物数据':'Cargo Data','')+'</h3>';
+  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(160px,1fr));">';
+  h+=labelInput(isZh?'箱型&箱量':'Container Spec',d.containerSpec,'containerSpec');
+  h+=labelInput(isZh?'毛重 (kg)':'Gross Wt',d.grossWeight,'grossWeight');
+  h+=labelInput(isZh?'计费重 (kg)':'Chargeable Wt',d.chargeableWeight,'chargeableWeight');
+  h+=labelInput(isZh?'体积 (CBM)':'Volume',d.volume,'volume');
+  h+=labelInput(isZh?'货物类型':'Cargo Type',d.cargoType,'cargoType');
   h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'成本明细':'Cost Items','')+'</h3>';
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
-  h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加成本项目，总成本 = 数量 × 单位成本。':'Add items. Total = quantity × unit cost.')+'</p>';
-  h+='<button class="btn btn-success btn-sm" onclick="window._ceAddItem()">'+tr.addItem+'</button></div>';
+
+  // ===== Exchange Rates =====
+  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'汇率':'Exchange Rates','')+'</h3>';
   h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
-  ['#','ITEM NAME'+(isZh?'<span class="col-label-cn">项目名称</span>':''),
-   'SPEC'+(isZh?'<span class="col-label-cn">规格</span>':''),
-   'QTY'+(isZh?'<span class="col-label-cn">数量</span>':''),
-   'UNIT COST'+(isZh?'<span class="col-label-cn">单位成本</span>':''),
-   'TOTAL'+(isZh?'<span class="col-label-cn">总价</span>':''),
-   'NOTES'+(isZh?'<span class="col-label-cn">备注</span>':''),
-   isZh?'操作':'Action'].forEach(function(th){h+='<th>'+th+'</th>';});
-  h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
-    h+='<tr><td class="row-number">'+(idx+1)+'</td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc2(it.itemName)+'" onchange="window._ceItem('+idx+',\'itemName\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc2(it.specification)+'" onchange="window._ceItem('+idx+',\'specification\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" type="number" min="0" value="'+esc2(it.quantity)+'" onchange="window._ceItem('+idx+',\'quantity\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" type="number" min="0" step="0.01" value="'+esc2(it.unitCost)+'" onchange="window._ceItem('+idx+',\'unitCost\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right font-medium" type="number" min="0" step="0.01" value="'+esc2(it.totalCost)+'" onchange="window._ceItem('+idx+',\'totalCost\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc2(it.notes)+'" onchange="window._ceItem('+idx+',\'notes\',this.value)"></td>';
-    h+='<td class="actions"><button class="btn btn-danger" onclick="window._ceRemoveItem('+idx+')" '+(d.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
+  h+='<th>'+(isZh?'币种':'Currency')+'</th><th>'+(isZh?'兑人民币汇率':'Rate to CNY')+'</th><th>'+(isZh?'操作':'Action')+'</th></tr></thead><tbody>';
+  (d.exchangeRates||[]).forEach(function(r,idx){
+    h+='<tr><td><select class="input-field input-field-xs" onchange="window._ceExRate('+idx+',\'currency\',this.value)">';
+    CURRENCIES.forEach(function(c){h+='<option value="'+c+'"'+(r.currency===c?' selected':'')+'>'+c+'</option>';});
+    h+='</select></td><td><input class="input-field input-field-xs text-right" type="number" step="0.0001" value="'+esc2(r.rate)+'" onchange="window._ceExRate('+idx+',\'rate\',this.value)"></td>';
+    h+='<td><button class="btn btn-danger btn-sm" onclick="window._ceRemoveExRate('+idx+')" '+(d.exchangeRates.length<=1?'disabled':'')+'>&times;</button></td></tr>';
   });
   h+='</tbody></table></div>';
-  h+='<div class="totals-summary"><div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;">';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'成本小计':'Subtotal Cost')+' ('+d.currency+')</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(sub>0?sub.toFixed(2):'—')+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'利润':'Profit')+' ('+pm+'%)</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+profit.toFixed(2)+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'税金':'Tax')+' ('+tr_+'%)</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+tax.toFixed(2)+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'折扣':'Discount')+' ('+dr+'%)</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+discount.toFixed(2)+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总计':'Grand Total')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+grand.toFixed(2)+'</span></div>';
-  h+='</div></div>';
-  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(120px, 1fr));margin-top:16px;">';
-  h+=labelInput(isZh?'利润率(%)':'Profit Margin (%)',d.profitMargin,'profitMargin','10');
-  h+=labelInput(isZh?'税率(%)':'Tax Rate (%)',d.taxRate,'taxRate','13');
-  h+=labelInput(isZh?'折扣率(%)':'Discount Rate (%)',d.discountRate,'discountRate','0');
-  h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'条款与签名':'Terms & Signature','')+'</h3>';
-  h+='<div class="form-label">'+(isZh?'条款':'Terms & Conditions')+'</div>';
-  h+='<textarea class="input-field" rows="2" onchange="window._ceSet(\'termsAndConditions\',this.value)">'+esc2(d.termsAndConditions)+'</textarea>';
-  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));margin-top:12px;">';
-  h+=labelInput(isZh?'签名姓名':'Signature Name',d.signatureName,'signatureName','');
-  h+=labelInput(isZh?'职务':'Title',d.signatureTitle,'signatureTitle','');
-  h+=labelInputDate2(isZh?'日期':'Date',d.signatureDate,'signatureDate');
-  h+='</div></div>';
+  h+='<button class="btn btn-success btn-sm" onclick="window._ceAddExRate()" style="margin-top:4px;">+ '+(isZh?'添加汇率':'Add Rate')+'</button>';
+  h+='</div>';
+
+  // ===== Transport Mode Tabs =====
+  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'运输模式与成本明细':'Transport Mode & Cost Items','')+'</h3>';
+  h+='<div class="ce-tabs" style="display:flex;border-bottom:1px solid #e4e9f0;background:#f8faff;border-radius:8px 8px 0 0;">';
+  TAB_KEYS.forEach(function(key){
+    var act=(d.activeTab===key);
+    h+='<button class="ce-tab-btn'+(act?' active':'')+'" onclick="window._ceSwitchTab(\''+key+'\')" style="padding:10px 20px;font-size:14px;cursor:pointer;border:none;background:'+(act?'#fff':'transparent')+';border-bottom:2px solid '+(act?'#0066cc':'transparent')+';color:'+(act?'#002b5e':'#445566')+';font-weight:'+(act?'600':'400')+';margin-bottom:-1px;">'+TAB_ICONS[key]+' '+(isZh?TAB_NAMES[key].zh:TAB_NAMES[key].en)+'</button>';
+  });
+  h+='</div>';
+
+  // ===== Active Tab Sections =====
+  var activeTabKey=d.activeTab||'sea',tabData=d[activeTabKey]||{sections:[]};
+  tabData.sections.forEach(function(sec,secIdx){
+    h+='<div style="margin-top:14px;border:1px solid #e4e9f0;border-radius:8px;overflow:hidden;">';
+    h+='<div style="background:#eef3fc;padding:8px 14px;font-weight:600;font-size:13px;color:#003366;">'+esc(sec.name)+'</div>';
+    h+='<div class="items-table-container" style="overflow-x:auto;"><table class="items-table"><thead><tr>';
+    h+='<th>'+(isZh?'成本科目':'Item')+'</th>';
+    h+='<th>'+(isZh?'供应商/来源':'Supplier')+'</th>';
+    h+='<th>'+(isZh?'底价':'Base')+'</th>';
+    h+='<th>'+(isZh?'币种':'Curr')+'</th>';
+    h+='<th>'+(isZh?'数量':'Qty')+'</th>';
+    h+='<th>'+(isZh?'我司成本':'Cost')+'</th>';
+    h+='<th>'+(isZh?'成本合计':'Total Cost')+'</th>';
+    h+='<th>'+(isZh?'卖价':'Sell')+'</th>';
+    h+='<th>'+(isZh?'卖价合计':'Total Sell')+'</th>';
+    h+='<th>'+(isZh?'毛利':'Profit')+'</th>';
+    h+='<th>'+(isZh?'备注':'Note')+'</th>';
+    h+='<th></th></tr></thead><tbody>';
+    (sec.items||[]).forEach(function(it,itemIdx){
+      var profit=(parseFloat(it.sellPrice)||0)-(parseFloat(it.ourCost)||0);
+      h+='<tr>';
+      h+='<td><input class="input-field input-field-xs" value="'+esc2(it.costItem)+'" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'costItem\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs" value="'+esc2(it.supplier)+'" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'supplier\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-right" type="number" step="0.01" value="'+esc2(it.basePrice)+'" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'basePrice\',this.value)"></td>';
+      h+='<td><select class="input-field input-field-xs" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'currency\',this.value)">';
+      CURRENCIES.forEach(function(c){h+='<option value="'+c+'"'+(it.currency===c?' selected':'')+'>'+c+'</option>';});
+      h+='</select></td>';
+      h+='<td><input class="input-field input-field-xs text-right" type="number" step="1" min="0" value="'+esc2(it.qty||'1')+'" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'qty\',this.value);autoCalcItem(DT,data[\''+activeTabKey+'\'].sections['+secIdx+'].items['+itemIdx+']);renderForm();renderPreview();"></td>';
+      h+='<td><input class="input-field input-field-xs text-right" type="number" step="0.01" value="'+esc2(it.ourCost)+'" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'ourCost\',this.value);autoCalcItem(DT,data[\''+activeTabKey+'\'].sections['+secIdx+'].items['+itemIdx+']);renderForm();renderPreview();"></td>';
+      h+='<td class="text-right" style="font-weight:500;">'+esc2(it.totalCost||((parseFloat(it.ourCost)||0)*(parseFloat(it.qty)||1)).toFixed(2))+'</td>';
+      h+='<td><input class="input-field input-field-xs text-right" type="number" step="0.01" value="'+esc2(it.sellPrice)+'" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'sellPrice\',this.value);autoCalcItem(DT,data[\''+activeTabKey+'\'].sections['+secIdx+'].items['+itemIdx+']);renderForm();renderPreview();"></td>';
+      h+='<td class="text-right" style="font-weight:500;">'+esc2(it.totalSell||((parseFloat(it.sellPrice)||0)*(parseFloat(it.qty)||1)).toFixed(2))+'</td>';
+      h+='<td class="text-right" style="font-weight:500;color:'+(profit>=0?'#157f4b':'#bb3030')+';">'+profit.toFixed(2)+'</td>';
+      h+='<td><input class="input-field input-field-xs" value="'+esc2(it.note)+'" onchange="window._ceItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+',\'note\',this.value)"></td>';
+      h+='<td><button class="btn btn-danger btn-sm" onclick="window._ceRemoveItem(\''+activeTabKey+'\','+secIdx+','+itemIdx+')">&times;</button></td>';
+      h+='</tr>';
+    });
+    // Section subtotal
+    var secCost=sec.items.reduce(function(s,it){return s+(parseFloat(it.totalCost)||0);},0);
+    var secSell=sec.items.reduce(function(s,it){return s+(parseFloat(it.totalSell)||0);},0);
+    h+='<tr style="background:#fafbfd;border-top:1px dashed #c8d2de;">';
+    h+='<td colspan="4" style="text-align:right;padding-right:20px;font-weight:500;">'+(isZh?'本段小计：':'Subtotal:')+'</td>';
+    h+='<td></td>';
+    h+='<td></td>';
+    h+='<td class="text-right font-medium">'+secCost.toFixed(2)+'</td>';
+    h+='<td></td>';
+    h+='<td class="text-right font-medium">'+secSell.toFixed(2)+'</td>';
+    h+='<td class="text-right font-medium" style="color:'+((secSell-secCost)>=0?'#157f4b':'#bb3030')+';">'+(secSell-secCost).toFixed(2)+'</td>';
+    h+='<td colspan="2"></td></tr>';
+    h+='</tbody></table></div>';
+    h+='<button class="btn btn-success btn-sm" onclick="window._ceAddItem(\''+activeTabKey+'\','+secIdx+')" style="margin:6px 8px;">+ '+(isZh?'添加行':'Add Row')+'</button>';
+    h+='</div>';
+  });
+  h+='</div>';
+
+  // ===== Grand Total =====
+  var rates={};(d.exchangeRates||[]).forEach(function(r){rates[r.currency]=parseFloat(r.rate)||1;});rates['CNY']=1;
+  var grandCost=0,grandSell=0;
+  TAB_KEYS.forEach(function(key){
+    var td=d[key];if(!td||!td.sections)return;
+    td.sections.forEach(function(sec){(sec.items||[]).forEach(function(it){
+      var rate=rates[it.currency]||1;
+      grandCost+=(parseFloat(it.totalCost||((parseFloat(it.ourCost)||0)*(parseFloat(it.qty)||1)))||0)*rate;
+      grandSell+=(parseFloat(it.totalSell||((parseFloat(it.sellPrice)||0)*(parseFloat(it.qty)||1)))||0)*rate;
+    });});
+  });
+  var grandProfit=grandSell-grandCost,grandMargin=grandSell>0?grandProfit/grandSell*100:0;
+  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'合计（折合人民币）':'Grand Total (CNY)','')+'</h3>';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;padding:16px;background:#eaf1fb;border-radius:8px;">';
+  h+='<div><span style="font-size:12px;color:#516272;">'+(isZh?'总成本 (CNY)':'Total Cost (CNY)')+'</span><br><span style="font-size:22px;font-weight:700;color:#003366;">¥'+grandCost.toFixed(2)+'</span></div>';
+  h+='<div><span style="font-size:12px;color:#516272;">'+(isZh?'总卖价 (CNY)':'Total Sell (CNY)')+'</span><br><span style="font-size:22px;font-weight:700;color:#003366;">¥'+grandSell.toFixed(2)+'</span></div>';
+  h+='<div><span style="font-size:12px;color:#516272;">'+(isZh?'毛利 (CNY)':'Gross Profit (CNY)')+'</span><br><span style="font-size:22px;font-weight:700;color:'+(grandProfit>=0?'#157f4b':'#bb3030')+';">'+(grandProfit>=0?'+':'')+'¥'+grandProfit.toFixed(2)+'</span></div>';
+  h+='<div><span style="font-size:12px;color:#516272;">'+(isZh?'毛利率':'Gross Margin')+'</span><br><span style="font-size:22px;font-weight:700;color:#003366;">'+grandMargin.toFixed(1)+'%</span></div></div>';
+  h+='</div>';
+
+  // ===== Notes =====
+  h+='<div class="section-card"><h3>'+fieldBlock(isZh?'备注':'Notes','')+'</h3>';
+  h+='<textarea class="input-field" rows="3" onchange="window._ceSetField(\'notes\',this.value)">'+esc2(d.notes)+'</textarea></div>';
+
   document.getElementById('form-container').innerHTML=h;
 }
+
 function renderPreview(){
-  var d=data,isZh2=previewLang==='zh',sub=d.items.reduce(function(s,it){return s+(parseFloat(it.totalCost)||0);},0);
-  var pm=parseFloat(d.profitMargin)||0,tr_=parseFloat(d.taxRate)||0,dr=parseFloat(d.discountRate)||0;
-  var profit=(sub*pm/100),tax=(sub+profit)*tr_/100,discount=(sub+profit+tax)*dr/100,grand=sub+profit+tax-discount;
+  var isZh2=previewLang==='zh',d=data,esc2=esc;
   function tr2(en,zh){return isZh2?zh:en;}
+  var rates={};(d.exchangeRates||[]).forEach(function(r){rates[r.currency]=parseFloat(r.rate)||1;});rates['CNY']=1;
+
+  // Calculate grand totals
+  var grandCost=0,grandSell=0;
+  TAB_KEYS.forEach(function(key){
+    var td=d[key];if(!td||!td.sections)return;
+    td.sections.forEach(function(sec){(sec.items||[]).forEach(function(it){
+      var rate=rates[it.currency]||1;
+      grandCost+=(parseFloat(it.totalCost||((parseFloat(it.ourCost)||0)*(parseFloat(it.qty)||1)))||0)*rate;
+      grandSell+=(parseFloat(it.totalSell||((parseFloat(it.sellPrice)||0)*(parseFloat(it.qty)||1)))||0)*rate;
+    });});
+  });
+  var grandProfit=grandSell-grandCost,grandMargin=grandSell>0?grandProfit/grandSell*100:0;
+
   var h='<div class="invoice-preview" id="preview-content">';
-  h+='<div class="header-title">'+tr2('COST ESTIMATION','成本估算单')+'</div>';
-  h+='<table><tbody>';
-  h+='<tr><td style="width:50%;"><div class="section-label2">'+tr2('PROJECT','项目信息')+'</div>';
-  h+='<div class="section-value">'+tr2('Ref','参考')+': '+esc(d.projectRef||'—')+'</div>';
+
+  // Header
+  h+='<div class="title">'+tr2('COST ESTIMATION','成本估算单')+'</div>';
+
+  // Info block
+  h+='<div style="margin-bottom:12px;">';
+  h+='<table style="width:100%;"><tr>';
+  h+='<td style="width:50%;vertical-align:top;"><div style="font-size:14px;font-weight:700;color:#1d3557;margin-bottom:5px;">'+tr2('PROJECT','项目信息')+'</div>';
+  h+='<div class="section-value">'+tr2('Name','项目名称')+': '+esc(d.projectName||'—')+'</div>';
+  h+='<div class="section-value">'+tr2('Client','客户')+': '+esc(d.client||'—')+'</div>';
   h+='<div class="section-value">'+tr2('Date','日期')+': '+esc(d.preparationDate||'—')+'</div>';
   h+='<div class="section-value">'+tr2('Prepared By','编制人')+': '+esc(d.preparedBy||'—')+'</div></td>';
-  h+='<td style="width:50%;"><div class="section-label2">'+tr2('CLIENT','客户信息')+'</div>';
-  h+='<div class="section-value">'+esc(d.clientName||'—')+'</div>';
-  if(d.clientCompany)h+='<div class="section-value">'+esc(d.clientCompany)+'</div>';
-  h+='<div class="section-value">'+esc(d.clientAddress||'—')+'</div></td></tr>';
-  h+='<tr><td colspan="2"><div class="section-label2">'+tr2('PRODUCT','产品信息')+'</div>';
-  h+='<div class="section-value">'+esc(d.productName||'—')+' — '+esc(d.productSpec||'—')+'</div></td></tr>';
-  h+='</tbody></table>';
-  h+='<table class="mt-2"><thead><tr>';
-  ['#',tr2('ITEM','项目'),tr2('SPEC','规格'),tr2('QTY','数量'),tr2('UNIT COST','单位成本'),tr2('TOTAL','总价'),tr2('NOTES','备注')].forEach(function(t){h+='<th>'+t+'</th>';});
-  h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
-    h+='<tr><td class="text-center">'+(idx+1)+'</td><td>'+esc(it.itemName||'—')+'</td><td>'+esc(it.specification||'—')+'</td>';
-    h+='<td class="text-center">'+esc(it.quantity||'—')+'</td><td class="text-right">'+(it.unitCost?parseFloat(it.unitCost).toFixed(2):'—')+'</td>';
-    h+='<td class="text-right font-medium">'+(it.totalCost?parseFloat(it.totalCost).toFixed(2):'—')+'</td><td>'+esc(it.notes||'—')+'</td></tr>';
+  h+='<td style="width:50%;vertical-align:top;">';
+  h+='<div class="section-value">'+tr2('Origin','起运地')+': '+esc(d.origin||'—')+'</div>';
+  h+='<div class="section-value">'+tr2('Destination','目的地')+': '+esc(d.destination||'—')+'</div>';
+  h+='<div class="section-value">'+tr2('Trade Terms','贸易条款')+': '+esc(d.tradeTerms||'—')+'</div>';
+  h+='<div class="section-value">'+tr2('Validity','有效期')+': '+esc(d.priceValidity||'—')+'</div></td>';
+  h+='</tr></table></div>';
+
+  // Exchange rates line
+  h+='<div style="margin:8px 0;font-size:12px;color:#516272;">';
+  h+=tr2('Exchange Rates:','汇率：')+' ';
+  (d.exchangeRates||[]).forEach(function(r,idx){
+    if(idx>0)h+=' | ';
+    h+='1 '+r.currency+' = '+r.rate+' CNY';
   });
+  h+='</div>';
+
+  // Preview tabs (like cb.html)
+  h+='<div class="ce-preview-tabs" style="display:flex;border-bottom:1px solid #e4e9f0;background:#f8faff;margin-top:12px;">';
+  TAB_KEYS.forEach(function(key){
+    var act=(activePreviewTab===key);
+    h+='<button class="ce-preview-tab'+(act?' active':'')+'" onclick="window._ceSwitchPreviewTab(\''+key+'\')" style="padding:10px 20px;font-size:13px;cursor:pointer;border:none;background:transparent;border-bottom:2px solid '+(act?'#0066cc':'transparent')+';color:'+(act?'#002b5e':'#445566')+';font-weight:'+(act?'600':'400')+';">'+TAB_ICONS[key]+' '+(isZh2?TAB_NAMES[key].zh:TAB_NAMES[key].en)+'</button>';
+  });
+  h+='</div>';
+
+  // Active preview tab content
+  var pTab=activePreviewTab||'sea',ptabData=d[pTab]||{sections:[]};
+  if(ptabData.sections&&ptabData.sections.length>0){
+    // Route badge - per transport mode
+    var origin2=esc(d.origin||'—'),dest2=esc(d.destination||'—'),routeParts=[origin2+'→'+dest2];
+    if(pTab==='sea'){
+      if(d.containerSpec)routeParts.push(esc(d.containerSpec));
+      if(d.tradeTerms)routeParts.push(esc(d.tradeTerms));
+    } else if(pTab==='lcl'){
+      routeParts.push('LCL');
+      if(d.tradeTerms)routeParts.push(esc(d.tradeTerms));
+    } else if(pTab==='air'){
+      if(d.chargeableWeight)routeParts.push(esc(d.chargeableWeight)+(isZh2?'kg':'kg'));
+    } else if(pTab==='courier'||pTab==='parcel'){
+      if(d.cargoType)routeParts.push(esc(d.cargoType));
+      if(d.chargeableWeight)routeParts.push(esc(d.chargeableWeight)+(isZh2?'kg':'kg'));
+    }
+    var routeStr=routeParts.join(' · ');
+    h+='<div style="margin:10px 0;"><span style="background:#dceaff;color:#004c99;padding:3px 14px;border-radius:999px;font-size:12px;">🔹 '+routeStr+'</span></div>';
+
+    // Table
+    h+='<div class="table-responsive"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Cost Item','成本科目')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Supplier','供应商')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Base Price','底价')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Qty','数量')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Our Cost','我司成本')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Total Cost','成本合计')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Sell Price','卖价')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Total Sell','卖价合计')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Profit','毛利')+'</th>';
+    h+='<th style="background:#1d3557;color:#fff;padding:8px 12px;text-align:center;">'+tr2('Note','备注')+'</th></tr></thead><tbody>';
+
+    ptabData.sections.forEach(function(sec){
+      h+='<tr><td colspan="10" style="background:#eef3fc;font-weight:600;color:#003366;padding:8px 12px;border-top:1px solid #cad3e0;">'+esc(sec.name)+'</td></tr>';
+      (sec.items||[]).forEach(function(it){
+        var profit=(parseFloat(it.sellPrice)||0)-(parseFloat(it.ourCost)||0);
+        h+='<tr>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;">'+esc(it.costItem||'')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;">'+esc(it.supplier||'')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;">'+(it.basePrice?it.basePrice+' '+(it.currency||''):'—')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:center;">'+esc(it.qty||'1')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;">'+(it.ourCost?it.ourCost+' '+(it.currency||''):'—')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;">'+(it.totalCost?it.totalCost:'—')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;">'+(it.sellPrice?it.sellPrice+' '+(it.currency||''):'—')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;">'+(it.totalSell?it.totalSell:'—')+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;color:'+(profit>=0?'#157f4b':'#bb3030')+';">'+profit.toFixed(2)+'</td>';
+        h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;color:#5f7080;">'+esc(it.note||'')+'</td>';
+        h+='</tr>';
+      });
+      // Section subtotal
+      var secCost=sec.items.reduce(function(s,it){return s+(parseFloat(it.totalCost)||0);},0);
+      var secSell=sec.items.reduce(function(s,it){return s+(parseFloat(it.totalSell)||0);},0);
+      h+='<tr style="background:#fafbfd;"><td colspan="5" style="text-align:right;padding:6px 12px;border-bottom:1px solid #e7ebf0;font-weight:500;">'+tr2('Subtotal','小计')+'</td>';
+      h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;">'+secCost.toFixed(2)+'</td>';
+      h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;"></td>';
+      h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;">'+secSell.toFixed(2)+'</td>';
+      h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;text-align:right;color:'+((secSell-secCost)>=0?'#157f4b':'#bb3030')+';">'+(secSell-secCost).toFixed(2)+'</td>';
+      h+='<td style="padding:6px 12px;border-bottom:1px solid #e7ebf0;"></td></tr>';
+    });
+    h+='</tbody></table></div>';
+
+    // Prepared by
+    h+='<div style="margin-top:16px;padding:14px 0 6px 0;border-top:1px solid #e2e7ee;font-size:12.5px;color:#516272;display:flex;flex-wrap:wrap;justify-content:flex-end;">';
+    h+='<div>'+tr2('Prepared by','编制')+': '+esc(d.preparedBy||'—')+' &middot; '+esc(d.preparationDate||'')+'</div>';
+    h+='</div>';
+  }
+
+  // Grand total row (across all modes)
+  h+='<table style="width:100%;margin-top:16px;"><tbody>';
+  h+='<tr style="background:#eaf1fb;">';
+  h+='<td colspan="7" style="text-align:right;padding:10px 20px;font-size:14px;font-weight:700;border-top:2px solid #b5c4d6;">'+tr2('GRAND TOTAL (CNY)','总合计（人民币）')+'</td>';
+  h+='<td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:700;border-top:2px solid #b5c4d6;">¥'+grandCost.toFixed(2)+'</td>';
+  h+='<td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:700;border-top:2px solid #b5c4d6;">¥'+grandSell.toFixed(2)+'</td>';
+  h+='<td style="padding:10px 12px;text-align:right;font-size:16px;font-weight:700;border-top:2px solid #b5c4d6;color:'+(grandProfit>=0?'#157f4b':'#bb3030')+';">'+(grandProfit>=0?'+':'')+'¥'+grandProfit.toFixed(2)+'</td></tr>';
+  h+='<tr><td colspan="10" style="text-align:right;padding:4px 12px;font-size:13px;color:#516272;">'+tr2('Gross Margin','毛利率')+': <strong>'+grandMargin.toFixed(1)+'%</strong></td></tr>';
   h+='</tbody></table>';
-  h+='<table class="mt-2"><tbody>';
-  h+='<tr><th style="width:25%;">'+tr2('SUBTOTAL','成本小计')+'</th><td class="text-right">'+sub.toFixed(2)+' '+d.currency+'</td></tr>';
-  h+='<tr><th>'+tr2('PROFIT','利润')+' ('+pm+'%)</th><td class="text-right">'+profit.toFixed(2)+'</td></tr>';
-  h+='<tr><th>'+tr2('TAX','税金')+' ('+tr_+'%)</th><td class="text-right">'+tax.toFixed(2)+'</td></tr>';
-  h+='<tr><th>'+tr2('DISCOUNT','折扣')+' ('+dr+'%)</th><td class="text-right">-'+discount.toFixed(2)+'</td></tr>';
-  h+='<tr style="background:#f0f0f0;"><th class="font-bold">'+tr2('GRAND TOTAL','总计')+'</th><td class="text-right font-bold" style="font-size:14px;">'+grand.toFixed(2)+' '+d.currency+'</td></tr>';
-  h+='</tbody></table>';
-  if(d.termsAndConditions){h+='<div style="margin-top:12px;"><div class="section-label2">'+tr2('TERMS & CONDITIONS','条款')+'</div><div class="section-value whitespace-pre-wrap">'+esc(d.termsAndConditions)+'</div></div>';}
-  h+='<div style="margin-top:20px;border-top:1px solid #9ca3af;padding-top:12px;"><table><tbody><tr>';
-  h+='<td style="width:33%;"><div class="section-label">'+tr2('SIGNATURE','签名')+'</div><div style="margin-top:24px;border-bottom:1px solid #000;width:192px;"></div>';
-  h+='<div class="text-xs mt-1">'+esc(d.signatureName||'—')+' / '+esc(d.signatureTitle||'—')+' / '+esc(d.signatureDate||'—')+'</div></td></tr></tbody></table></div>';
+
+  // Notes
+  if(d.notes){
+    h+='<div style="margin-top:16px;border-top:1px solid #e2e7ee;padding-top:12px;">';
+    h+='<div style="font-weight:500;font-size:13px;color:#003366;">'+tr2('NOTES','备注')+'</div>';
+    h+='<div style="font-size:12.5px;color:#516272;margin-top:4px;">'+esc(d.notes)+'</div></div>';
+  }
+
   h+='</div>';
   document.getElementById('preview-container').innerHTML=h;
 }
+
 function renderHistory(){
   var tr=I18N[lang],snaps=loadSnapshots(DT),search=(document.getElementById('history-search').value||'').toLowerCase();
   if(search)snaps=snaps.filter(function(s){return(s.label||'').toLowerCase().indexOf(search)!==-1||(s.ref||'').toLowerCase().indexOf(search)!==-1;});
@@ -258,35 +428,126 @@ function renderHistory(){
   h+='</div><div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="window._ceClearAllHistory()">'+tr.clearAll+'</button></div>';}
   document.getElementById('history-container').innerHTML=h;document.getElementById('history-search').oninput=function(){renderHistory();};
 }
-function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
-document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
-document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
+
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
+document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
+document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
+
+// ===== Data manipulation functions =====
+window._ceSetField=function(f,v){data[f]=v;saveDocData(DT,data);renderForm();renderPreview();};
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
-document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
-document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
-window._ceSet=function(f,v){data[f]=v;saveDocData(DT,data);};
-window._ceItem=function(idx,f,v){data.items[idx][f]=v;autoCalcItem(DT,data.items[idx]);saveDocData(DT,data);renderForm();};
-window._ceAddItem=function(){data.items.push(getEmptyItem(DT));saveDocData(DT,data);renderForm();};
-window._ceRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);saveDocData(DT,data);renderForm();}};
+window._ceItem=function(tabKey,secIdx,itemIdx,f,v){
+  if(!data[tabKey]||!data[tabKey].sections||!data[tabKey].sections[secIdx])return;
+  if(!data[tabKey].sections[secIdx].items[itemIdx])return;
+  data[tabKey].sections[secIdx].items[itemIdx][f]=v;
+  saveDocData(DT,data);renderForm();renderPreview();
+};
+window._ceAddItem=function(tabKey,secIdx){
+  if(!data[tabKey]||!data[tabKey].sections||!data[tabKey].sections[secIdx])return;
+  data[tabKey].sections[secIdx].items.push(getEmptyItem(DT));
+  saveDocData(DT,data);renderForm();renderPreview();
+};
+window._ceRemoveItem=function(tabKey,secIdx,itemIdx){
+  if(!data[tabKey]||!data[tabKey].sections||!data[tabKey].sections[secIdx])return;
+  var items=data[tabKey].sections[secIdx].items;
+  if(items&&items.length>1){items.splice(itemIdx,1);saveDocData(DT,data);renderForm();renderPreview();}
+};
+window._ceAddExRate=function(){
+  data.exchangeRates.push({currency:'USD',rate:'7.25'});
+  saveDocData(DT,data);renderForm();
+};
+window._ceRemoveExRate=function(idx){
+  if(data.exchangeRates.length>1){data.exchangeRates.splice(idx,1);saveDocData(DT,data);renderForm();}
+};
+window._ceExRate=function(idx,f,v){
+  data.exchangeRates[idx][f]=v;
+  saveDocData(DT,data);renderForm();
+};
+window._ceSwitchTab=function(key){
+  data.activeTab=key;
+  saveDocData(DT,data);renderForm();
+};
+window._ceSwitchPreviewTab=function(key){
+  activePreviewTab=key;
+  renderPreview();
+};
 window._ceRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function(x){return x.id===id;});if(s&&s.data){data=JSON.parse(JSON.stringify(s.data));saveDocData(DT,data);renderAll();}};
 window._ceDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._ceClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
-function esc(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fieldBlock(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');};
-function labelInput(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._ceSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
-function labelInputDate(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._ceSet(\''+f+'\',this.value)"></div>';}
-function labelSelect2(l,v,f,opts){var o=opts.map(function(x){return '<option value="'+x[0]+'"'+(v===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');return '<div><div class="form-label">'+l+'</div><select class="input-field" onchange="window._ceSet(\''+f+'\',this.value)">'+o+'</select></div>';}
-function loadSample(){var s=getDefaultDoc(DT);s.projectRef='CE-2026-001';s.preparationDate='2026-05-15';s.preparedBy=lang==='zh'?'张经理':'Mgr. Zhang';
-s.companyName='Shanghai Export Co.';s.clientName=lang==='zh'?'约翰':'John';s.clientCompany='ABC Trading';
-s.productName='Stainless Steel Water Bottle';s.productSpec='500ml, 304 grade';s.currency='USD';
-s.items=[{itemName:'Raw Material (304 SS)',specification:'Sheet 1mm',quantity:'500',unitCost:'1.20',totalCost:'600.00',notes:''},
-{itemName:'Processing',specification:'Forming + Welding',quantity:'500',unitCost:'0.80',totalCost:'400.00',notes:''},
-{itemName:'Surface Treatment',specification:'Polishing + Coating',quantity:'500',unitCost:'0.50',totalCost:'250.00',notes:''},
-{itemName:'Packaging',specification:'Gift box + carton',quantity:'500',unitCost:'0.30',totalCost:'150.00',notes:''}];
-s.profitMargin='15';s.taxRate='13';s.discountRate='5';data=s;saveDocData(DT,data);renderAll();}
+
+// ===== Helpers =====
+function fieldBlock(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
+function labelInput(l,v,f,p){
+  return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._ceSetField(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';
+}
+function labelInputDate(l,v,f){
+  return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._ceSetField(\''+f+'\',this.value)"></div>';
+}
+function labelSelect(l,v,f,opts){
+  var o=opts.map(function(x){return '<option value="'+x[0]+'"'+(v===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('');
+  return '<div><div class="form-label">'+l+'</div><select class="input-field" onchange="window._ceSetField(\''+f+'\',this.value)">'+o+'</select></div>';
+}
+
+function loadSample(){
+  var s=getDefaultDoc(DT);
+  s.projectName=lang==='zh'?'项目 #2026-001':'Project #2026-001';
+  s.client='ABC Trading Co.';
+  s.preparationDate='2026-06-26';
+  s.preparedBy=lang==='zh'?'张经理':'Mgr. Zhang';
+  s.origin='深圳、上海';
+  s.destination='汉堡、法兰克福';
+  s.tradeTerms='CIF';
+  s.priceValidity='2026-07-10';
+  s.containerSpec='2×20GP';s.grossWeight='28000';s.chargeableWeight='28500';s.volume='56';s.cargoType=lang==='zh'?'电子产品':'Electronics';
+
+  // Sea FCL
+  s.sea.sections[0].items.push({costItem:'内陆拖车',supplier:'顺丰陆运',basePrice:'1580',currency:'CNY',ourCost:'1620',sellPrice:'1880',qty:'1',note:'工厂→蛇口'});
+  s.sea.sections[0].items.push({costItem:'出口报关费',supplier:'永通报关行',basePrice:'260',currency:'CNY',ourCost:'280',sellPrice:'350',qty:'1',note:''});
+  s.sea.sections[0].items.push({costItem:'THC / 码头操作',supplier:'蛇口集装箱码头',basePrice:'920',currency:'CNY',ourCost:'950',sellPrice:'1100',qty:'2',note:'20GP 标准'});
+  s.sea.sections[0].items.push({costItem:'DOC / SEAL / ENS',supplier:'船代 ONE',basePrice:'380',currency:'CNY',ourCost:'400',sellPrice:'500',qty:'1',note:''});
+  s.sea.sections[1].items.push({costItem:'海运费 20GP',supplier:'ONE 合约价 Q3',basePrice:'1340',currency:'USD',ourCost:'1360',sellPrice:'1580',qty:'2',note:''});
+  s.sea.sections[1].items.push({costItem:'BAF / LSS 附加费',supplier:'ONE 浮动',basePrice:'170',currency:'USD',ourCost:'175',sellPrice:'210',qty:'2',note:''});
+  s.sea.sections[2].items.push({costItem:'DTHC / 码头卸货',supplier:'汉堡 Eurogate',basePrice:'210',currency:'EUR',ourCost:'218',sellPrice:'275',qty:'1',note:''});
+  s.sea.sections[2].items.push({costItem:'清关费',supplier:'当地 Broker',basePrice:'80',currency:'EUR',ourCost:'85',sellPrice:'125',qty:'1',note:''});
+  s.sea.sections[2].items.push({costItem:'派送（卡车）',supplier:'汉堡车队',basePrice:'310',currency:'EUR',ourCost:'325',sellPrice:'410',qty:'1',note:'仓→收货人'});
+
+  // Sea LCL (copy from FCL with LCL pricing)
+  s.lcl.sections[0].items.push({costItem:'拖车/集货',supplier:'顺丰陆运',basePrice:'680',currency:'CNY',ourCost:'700',sellPrice:'880',qty:'1',note:'工厂→CFS'});
+  s.lcl.sections[0].items.push({costItem:'出口报关费',supplier:'永通报关行',basePrice:'260',currency:'CNY',ourCost:'280',sellPrice:'350',qty:'1',note:''});
+  s.lcl.sections[0].items.push({costItem:'CFS 拼柜费',supplier:'蛇口 CFS',basePrice:'400',currency:'CNY',ourCost:'420',sellPrice:'530',qty:'1',note:'5CBM'});
+  s.lcl.sections[1].items.push({costItem:'海运费 LCL',supplier:'ONE 合约价',basePrice:'78',currency:'USD',ourCost:'78',sellPrice:'105',qty:'5',note:'USD/CBM'});
+  s.lcl.sections[1].items.push({costItem:'BAF / LSS',supplier:'ONE 浮动',basePrice:'15',currency:'USD',ourCost:'15',sellPrice:'25',qty:'5',note:'USD/CBM'});
+  s.lcl.sections[2].items.push({costItem:'DTHC / 拆柜费',supplier:'汉堡 Eurogate',basePrice:'165',currency:'EUR',ourCost:'168',sellPrice:'210',qty:'1',note:''});
+  s.lcl.sections[2].items.push({costItem:'清关费',supplier:'当地 Broker',basePrice:'80',currency:'EUR',ourCost:'85',sellPrice:'125',qty:'1',note:''});
+  s.lcl.sections[2].items.push({costItem:'派送（卡车）',supplier:'汉堡车队',basePrice:'290',currency:'EUR',ourCost:'300',sellPrice:'380',qty:'1',note:'仓→收货人'});
+
+  // Air freight
+  s.air.sections[0].items.push({costItem:'提货/市内派送',supplier:'顺丰陆运',basePrice:'350',currency:'CNY',ourCost:'370',sellPrice:'480',qty:'1',note:''});
+  s.air.sections[0].items.push({costItem:'出口报关',supplier:'欣海报关',basePrice:'220',currency:'CNY',ourCost:'240',sellPrice:'320',qty:'1',note:''});
+  s.air.sections[0].items.push({costItem:'地面处理费',supplier:'浦东机场货站',basePrice:'240',currency:'CNY',ourCost:'240',sellPrice:'390',qty:'1',note:'300kg'});
+  s.air.sections[1].items.push({costItem:'空运费',supplier:'CA 合约价',basePrice:'960',currency:'USD',ourCost:'960',sellPrice:'1290',qty:'1',note:''});
+  s.air.sections[1].items.push({costItem:'燃油附加费',supplier:'CA 浮动',basePrice:'225',currency:'USD',ourCost:'225',sellPrice:'315',qty:'1',note:''});
+  s.air.sections[2].items.push({costItem:'DTHC',supplier:'FRA 货站',basePrice:'27',currency:'EUR',ourCost:'27',sellPrice:'48',qty:'1',note:'300kg'});
+  s.air.sections[2].items.push({costItem:'清关费',supplier:'当地 Broker',basePrice:'72',currency:'EUR',ourCost:'72',sellPrice:'115',qty:'1',note:''});
+
+  // Courier
+  s.courier.sections[0].items.push({costItem:'上门取件',supplier:'DHL 本地',basePrice:'20',currency:'CNY',ourCost:'20',sellPrice:'35',qty:'1',note:''});
+  s.courier.sections[0].items.push({costItem:'包装/面单',supplier:'耗材',basePrice:'6',currency:'CNY',ourCost:'6',sellPrice:'15',qty:'1',note:''});
+  s.courier.sections[1].items.push({costItem:'基础运费 0.5kg',supplier:'DHL 合约价',basePrice:'29',currency:'USD',ourCost:'29',sellPrice:'39',qty:'1',note:''});
+  s.courier.sections[1].items.push({costItem:'续重 4.5kg',supplier:'DHL 续重单价',basePrice:'189',currency:'USD',ourCost:'189',sellPrice:'256.50',qty:'1',note:'5kg'});
+
+  // Parcel
+  s.parcel.sections[0].items.push({costItem:'集货/揽收',supplier:'菜鸟裹裹',basePrice:'1.30',currency:'CNY',ourCost:'1.30',sellPrice:'2.50',qty:'1',note:''});
+  s.parcel.sections[0].items.push({costItem:'分拣/贴单',supplier:'操作中心',basePrice:'0.90',currency:'CNY',ourCost:'0.90',sellPrice:'1.80',qty:'1',note:''});
+  s.parcel.sections[1].items.push({costItem:'空运干线',supplier:'香港→伦敦',basePrice:'12.50',currency:'CNY',ourCost:'12.50',sellPrice:'18.00',qty:'1',note:''});
+  s.parcel.sections[1].items.push({costItem:'英国尾程派送',supplier:'Royal Mail',basePrice:'0.98',currency:'GBP',ourCost:'0.98',sellPrice:'1.49',qty:'1',note:'200g'});
+
+  s.exchangeRates=[{currency:'USD',rate:'7.25'},{currency:'EUR',rate:'7.82'},{currency:'GBP',rate:'9.15'}];
+  data=s;saveDocData(DT,data);renderAll();
+}
+
 init();
 </script>
 <!-- GoatCounter -->

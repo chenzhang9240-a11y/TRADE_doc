@@ -86,23 +86,164 @@
 <main class="doc-page"><div class="doc-page-content">
   <div class="doc-header"><h1 id="page-title">Commercial Quotation Generator</h1><p id="page-subtitle">商业报价单</p></div>
   <div class="tab-bar"><button class="tab-btn active" data-tab="edit" id="tab-edit"></button><button class="tab-btn" data-tab="preview" id="tab-preview"></button><button class="tab-btn" data-tab="history" id="tab-history"></button></div>
-  <div class="tab-panel active" id="panel-edit"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-load-sample"></button><button class="btn btn-secondary btn-sm" id="btn-clear"></button></div><div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button></div></div><div id="form-container"></div></div>
+  <div class="tab-panel active" id="panel-edit"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-load-sample"></button><button class="btn btn-secondary btn-sm" id="btn-clear"></button></div><div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button></div></div>
+    <!-- Template Toolbar -->
+    <div class="tmpl-bar">
+      <button class="btn btn-secondary btn-sm" id="btn-tmpl-config">&#9881; <span id="tmpl-config-text"></span></button>
+      <span class="tmpl-label"><span id="tmpl-label-text"></span>:</span>
+      <select class="input-field tmpl-select" id="tmpl-selector"></select>
+      <button class="btn btn-secondary btn-sm" id="btn-tmpl-save">&#128190; <span id="tmpl-save-text"></span></button>
+      <button class="btn btn-secondary btn-sm" id="btn-tmpl-new">+ <span id="tmpl-new-text"></span></button>
+      <button class="btn btn-danger btn-sm hidden" id="btn-tmpl-delete">&#128465; <span id="tmpl-delete-text"></span></button>
+    </div>
+    <div id="form-container"></div></div>
   <div class="tab-panel" id="panel-preview"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-back-edit"></button><button class="btn btn-secondary btn-sm" id="btn-preview-lang"></button></div><div class="action-bar-right"><button class="btn btn-primary" id="btn-pdf-preview" data-pdf-btn></button><button class="btn btn-secondary btn-sm" id="btn-print"></button></div></div><div id="preview-container"></div></div>
   <div class="tab-panel" id="panel-history"><div class="history-search"><input class="input-field" id="history-search" type="text" placeholder=""></div><div id="history-container"></div></div>
 </div></main>
 <div class="clear-modal hidden" id="clear-modal"><div class="clear-modal-content"><div class="clear-modal-title" id="clear-title"></div><div class="clear-modal-msg" id="clear-msg"></div><div class="clear-modal-actions"><button class="btn btn-secondary btn-sm" id="btn-cancel-clear"></button><button class="btn btn-danger" id="btn-confirm-clear"></button></div></div></div>
+<div class="clear-modal hidden" id="tmpl-modal">
+  <div class="clear-modal-content" style="max-width:640px;max-height:80vh;overflow-y:auto;">
+    <div class="clear-modal-content">
+      <div class="clear-modal-title" id="tmpl-modal-title"></div>
+      <div id="tmpl-modal-body" style="margin-bottom:16px;"></div>
+      <div class="clear-modal-actions">
+        <button class="btn btn-secondary btn-sm" id="btn-tmpl-modal-cancel"></button>
+        <button class="btn btn-primary" id="btn-tmpl-modal-save"></button>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="common.js"></script>
 <script>
 var DT='commercial_quotation',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
-function init(){applyTheme();var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);renderAll();}
-  injectSpaButton();
-  injectBottomCta();
-  injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderForm();renderPreview();renderHistory();renderClearModal();}
-function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
-function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
-function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
-function switchTab(t){['edit','preview','history'].forEach(function(p){document.getElementById('tab-'+p).classList.toggle('active',p===t);document.getElementById('panel-'+p).classList.toggle('active',p===t);});}
+
+// ===== Field Template Config =====
+var CQ_DEFAULT_FIELDS = {
+  'quotation.quotationNo': 'required',
+  'quotation.quotationDate': 'required',
+  'quotation.validityPeriod': 'required',
+  'quotation.currency': 'required',
+  'quotation.paymentTerms': true,
+  'quotation.deliveryTerms': true,
+  'quotation.leadTime': true,
+  'quotation.minOrderQty': true,
+  'seller.sellerCompany': 'required',
+  'seller.sellerAddress': 'required',
+  'seller.sellerName': true,
+  'seller.sellerPhone': true,
+  'seller.sellerEmail': true,
+  'seller.sellerTaxId': true,
+  'buyer.buyerCompany': 'required',
+  'buyer.buyerAddress': 'required',
+  'buyer.buyerName': true,
+  'buyer.buyerPhone': true,
+  'buyer.buyerEmail': true,
+  'buyer.buyerTaxId': true,
+  'items.itemNo': 'required',
+  'items.description': 'required',
+  'items.specification': 'required',
+  'items.quantity': 'required',
+  'items.unitOfMeasure': 'required',
+  'items.unitPrice': 'required',
+  'items.lineTotal': 'required',
+  'items.discount': true,
+  'items.taxRate': true,
+  'items.taxAmount': true,
+  'totals.subtotal': true,
+  'totals.totalDiscount': true,
+  'totals.totalTax': true,
+  'totals.grandTotal': 'required',
+  'terms.text': true,
+  'remarks.text': 'required',
+  'signature.name': true,
+  'signature.title': true,
+  'signature.date': true,
+  'logo.enabled': true
+};
+var CQ_FIELD_META = {
+  'quotation.quotationNo':     { label: 'Quotation No.', labelCn: '报价单号', section: 'quotation' },
+  'quotation.quotationDate':   { label: 'Date', labelCn: '报价日期', section: 'quotation' },
+  'quotation.validityPeriod':  { label: 'Validity', labelCn: '有效期', section: 'quotation' },
+  'quotation.currency':        { label: 'Currency', labelCn: '货币', section: 'quotation' },
+  'quotation.paymentTerms':    { label: 'Payment Terms', labelCn: '付款条款', section: 'quotation' },
+  'quotation.deliveryTerms':   { label: 'Delivery Terms', labelCn: '交货条款', section: 'quotation' },
+  'quotation.leadTime':        { label: 'Lead Time', labelCn: '交货周期', section: 'quotation' },
+  'quotation.minOrderQty':     { label: 'Min Order Qty', labelCn: '最小起订量', section: 'quotation' },
+  'seller.sellerName':         { label: 'Name', labelCn: '名称', section: 'seller' },
+  'seller.sellerCompany':      { label: 'Company', labelCn: '公司', section: 'seller' },
+  'seller.sellerAddress':      { label: 'Address', labelCn: '地址', section: 'seller' },
+  'seller.sellerPhone':        { label: 'Phone', labelCn: '电话', section: 'seller' },
+  'seller.sellerEmail':        { label: 'Email', labelCn: '邮箱', section: 'seller' },
+  'seller.sellerTaxId':        { label: 'Tax ID', labelCn: '税号', section: 'seller' },
+  'buyer.buyerName':           { label: 'Name', labelCn: '名称', section: 'buyer' },
+  'buyer.buyerCompany':        { label: 'Company', labelCn: '公司', section: 'buyer' },
+  'buyer.buyerAddress':        { label: 'Address', labelCn: '地址', section: 'buyer' },
+  'buyer.buyerPhone':          { label: 'Phone', labelCn: '电话', section: 'buyer' },
+  'buyer.buyerEmail':          { label: 'Email', labelCn: '邮箱', section: 'buyer' },
+  'buyer.buyerTaxId':          { label: 'Tax ID', labelCn: '税号', section: 'buyer' },
+  'items.itemNo':              { label: 'Item No.', labelCn: '编号', section: 'items' },
+  'items.description':         { label: 'DESCRIPTION', labelCn: '描述', section: 'items' },
+  'items.specification':       { label: 'SPECIFICATION', labelCn: '规格', section: 'items' },
+  'items.quantity':            { label: 'QTY', labelCn: '数量', section: 'items' },
+  'items.unitOfMeasure':       { label: 'UNIT', labelCn: '单位', section: 'items' },
+  'items.unitPrice':           { label: 'UNIT PRICE', labelCn: '单价', section: 'items' },
+  'items.discount':            { label: 'DISCOUNT', labelCn: '折扣', section: 'items' },
+  'items.taxRate':             { label: 'TAX RATE(%)', labelCn: '税率(%)', section: 'items' },
+  'items.taxAmount':           { label: 'TAX AMT', labelCn: '税款', section: 'items' },
+  'items.lineTotal':           { label: 'LINE TOTAL', labelCn: '行合计', section: 'items' },
+  'totals.subtotal':           { label: 'Subtotal', labelCn: '小计', section: 'totals' },
+  'totals.totalDiscount':      { label: 'Total Discount', labelCn: '总折扣', section: 'totals' },
+  'totals.totalTax':           { label: 'Tax', labelCn: '税费', section: 'totals' },
+  'totals.grandTotal':         { label: 'Grand Total', labelCn: '总计', section: 'totals' },
+  'terms.text':                { label: 'Terms & Conditions', labelCn: '条款条件', section: 'terms' },
+  'remarks.text':              { label: 'Remarks', labelCn: '备注', section: 'remarks' },
+  'signature.name':            { label: 'Signatory', labelCn: '签名人', section: 'signature' },
+  'signature.title':           { label: 'Title', labelCn: '职务', section: 'signature' },
+  'signature.date':            { label: 'Date', labelCn: '日期', section: 'signature' },
+  'logo.enabled':              { label: 'Company Logo', labelCn: '企业 Logo', section: 'logo' }
+};
+var CQ_TMPL_SECTIONS = ['logo','quotation','seller','buyer','items','totals','terms','remarks','signature'];
+var CQ_TMPL_SECTION_LABELS = {
+  logo: { zh:'Logo', en:'Logo' },
+  quotation: { zh:'报价信息', en:'Quotation Info' },
+  seller: { zh:'卖方信息', en:'Seller Info' },
+  buyer: { zh:'买方信息', en:'Buyer Info' },
+  items: { zh:'报价明细', en:'Quotation Items' },
+  totals: { zh:'金额汇总', en:'Totals' },
+  terms: { zh:'条款条件', en:'Terms & Conditions' },
+  remarks: { zh:'备注', en:'Remarks' },
+  signature: { zh:'签名', en:'Signature' }
+};
+function isFld(key){return isFieldVisible(DT,key,CQ_DEFAULT_FIELDS);}
+function isFldR(key){return isFieldRequired(DT,key,CQ_DEFAULT_FIELDS);}
+
+function init(){
+  try{
+    applyTheme();
+    ensureTmplData(DT,CQ_DEFAULT_FIELDS);
+    migrateTmplData(DT,CQ_DEFAULT_FIELDS);
+    var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);renderAll();
+  }catch(e){document.body.innerHTML='<div style="padding:40px;text-align:center;color:red;">Error: '+e.message+'</div>';}
+}
+injectSpaButton();injectBottomCta();injectPageFaq();
+
+
+// ===== Auto Calculation =====
+function autoCalcCQ(){
+  var d=data,sub=0,tdisc=0,ttax=0;
+  d.items.forEach(function(it){
+    sub+=parseFloat(it.lineTotal)||0;
+    tdisc+=parseFloat(it.discount)||0;
+    ttax+=parseFloat(it.taxAmount)||0;
+  });
+  d.subtotal=sub.toFixed(2);
+  d.totalDiscount=tdisc.toFixed(2);
+  d.totalTax=ttax.toFixed(2);
+  var net=sub-(parseFloat(d.totalDiscount)||0)+(parseFloat(d.totalTax)||0);
+  d.grandTotal=net.toFixed(2)+' '+(d.currency||'USD');
+}
+
+// ===== Form Rendering =====
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data;
   document.getElementById('btn-load-sample').textContent=tr.loadSample;document.getElementById('btn-clear').textContent=tr.clear;
@@ -116,105 +257,233 @@ function renderForm(){
   document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
   var h='';
   // Logo
-  h+='<div class="section-card"><h3>'+fB(tr.logoLabel,'')+'</h3>';
+  if(isFld('logo.enabled')){
+  h+='<div class="section-card"><h3>'+fB2(tr.logoLabel,'')+'</h3>';
   h+='<div style="display:flex;align-items:center;gap:16px;">';
   h+='<label class="logo-upload-btn" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:var(--primary);color:#fff;border-radius:6px;cursor:pointer;font-size:13px;">'+svg('Upload',14)+' '+tr.uploadLogo+'<input type="file" accept="image/*" style="display:none;" onchange="window._cqLogoUpload(event)"></label>';
   h+='<span style="font-size:12px;color:var(--text-muted);">'+tr.logoHint+'</span></div>';
   if(d.logo){h+='<div style="margin-top:10px;position:relative;display:inline-block;"><img src="'+d.logo+'" style="max-height:60px;border:1px solid var(--border-color);border-radius:4px;padding:4px;background:var(--card-bg);">';
   h+='<button onclick="window._cqRemoveLogo()" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#ef4444;color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;">&times;</button></div>';}
-  h+='</div>';
+  h+='</div>';}
   // Quotation Info
-  h+='<div class="section-card"><h3>'+fB(isZh?'报价信息':'Quotation Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
-  h+=lI(isZh?'报价单号':'Quotation No.',d.quotationNo,'quotationNo','');h+=lID(isZh?'报价日期':'Date',d.quotationDate,'quotationDate');
-  h+=lI(isZh?'有效期':'Validity Period',d.validityPeriod,'validityPeriod','');h+=lI(isZh?'货币':'Currency',d.currency,'currency','');
-  h+=lI(isZh?'付款条款':'Payment Terms',d.paymentTerms,'paymentTerms','');h+=lI(isZh?'交货条款':'Delivery Terms',d.deliveryTerms,'deliveryTerms','');
-  h+=lI(isZh?'交货周期':'Lead Time',d.leadTime,'leadTime','');h+=lI(isZh?'最小起订量':'Min Order Qty',d.minOrderQty,'minOrderQty','');h+='</div></div>';
+  h+='<div class="section-card"><h3>'+fB2(isZh?'报价信息':'Quotation Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+  if(isFld('quotation.quotationNo'))h+=lI2(isZh?'报价单号':'Quotation No.',d.quotationNo,'quotationNo','');
+  if(isFld('quotation.quotationDate'))h+=lID2(isZh?'报价日期':'Date',d.quotationDate,'quotationDate');
+  if(isFld('quotation.validityPeriod'))h+=lI2(isZh?'有效期':'Validity Period',d.validityPeriod,'validityPeriod','');
+  if(isFld('quotation.currency'))h+=lI2(isZh?'货币':'Currency',d.currency,'currency','');
+  if(isFld('quotation.paymentTerms'))h+=lI2(isZh?'付款条款':'Payment Terms',d.paymentTerms,'paymentTerms','');
+  if(isFld('quotation.deliveryTerms'))h+=lI2(isZh?'交货条款':'Delivery Terms',d.deliveryTerms,'deliveryTerms','');
+  if(isFld('quotation.leadTime'))h+=lI2(isZh?'交货周期':'Lead Time',d.leadTime,'leadTime','');
+  if(isFld('quotation.minOrderQty'))h+=lI2(isZh?'最小起订量':'Min Order Qty',d.minOrderQty,'minOrderQty','');
+  h+='</div></div>';
   // Seller/Buyer
-  h+='<div class="section-card"><h3>'+fB(isZh?'卖方信息':'Seller Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'姓名':'Name',d.sellerName,'sellerName','');h+=lI(isZh?'公司':'Company',d.sellerCompany,'sellerCompany','');
-  h+=lI(isZh?'地址':'Address',d.sellerAddress,'sellerAddress','');h+=lI(isZh?'电话':'Phone',d.sellerPhone,'sellerPhone','');
-  h+=lI(isZh?'邮箱':'Email',d.sellerEmail,'sellerEmail','');h+=lI(isZh?'税号':'Tax ID',d.sellerTaxId,'sellerTaxId','');h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'买方信息':'Buyer Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'姓名':'Name',d.buyerName,'buyerName','');h+=lI(isZh?'公司':'Company',d.buyerCompany,'buyerCompany','');
-  h+=lI(isZh?'地址':'Address',d.buyerAddress,'buyerAddress','');h+=lI(isZh?'电话':'Phone',d.buyerPhone,'buyerPhone','');
-  h+=lI(isZh?'邮箱':'Email',d.buyerEmail,'buyerEmail','');h+=lI(isZh?'税号':'Tax ID',d.buyerTaxId,'buyerTaxId','');h+='</div></div>';
+  if(isFld('seller.sellerCompany')||isFld('seller.sellerAddress')||isFld('seller.sellerName')||isFld('seller.sellerPhone')||isFld('seller.sellerEmail')||isFld('seller.sellerTaxId')){
+  h+='<div class="section-card"><h3>'+fB2(isZh?'卖方信息':'Seller Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
+  if(isFld('seller.sellerCompany'))h+=lI2(isZh?'公司':'Company',d.sellerCompany,'sellerCompany','');
+  if(isFld('seller.sellerAddress'))h+=lI2(isZh?'地址':'Address',d.sellerAddress,'sellerAddress','');
+  if(isFld('seller.sellerName'))h+=lI2(isZh?'姓名':'Name',d.sellerName,'sellerName','');
+  if(isFld('seller.sellerPhone'))h+=lI2(isZh?'电话':'Phone',d.sellerPhone,'sellerPhone','');
+  if(isFld('seller.sellerEmail'))h+=lI2(isZh?'邮箱':'Email',d.sellerEmail,'sellerEmail','');
+  if(isFld('seller.sellerTaxId'))h+=lI2(isZh?'税号':'Tax ID',d.sellerTaxId,'sellerTaxId','');
+  h+='</div></div>';}
+  if(isFld('buyer.buyerCompany')||isFld('buyer.buyerAddress')||isFld('buyer.buyerName')||isFld('buyer.buyerPhone')||isFld('buyer.buyerEmail')||isFld('buyer.buyerTaxId')){
+  h+='<div class="section-card"><h3>'+fB2(isZh?'买方信息':'Buyer Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
+  if(isFld('buyer.buyerCompany'))h+=lI2(isZh?'公司':'Company',d.buyerCompany,'buyerCompany','');
+  if(isFld('buyer.buyerAddress'))h+=lI2(isZh?'地址':'Address',d.buyerAddress,'buyerAddress','');
+  if(isFld('buyer.buyerName'))h+=lI2(isZh?'姓名':'Name',d.buyerName,'buyerName','');
+  if(isFld('buyer.buyerPhone'))h+=lI2(isZh?'电话':'Phone',d.buyerPhone,'buyerPhone','');
+  if(isFld('buyer.buyerEmail'))h+=lI2(isZh?'邮箱':'Email',d.buyerEmail,'buyerEmail','');
+  if(isFld('buyer.buyerTaxId'))h+=lI2(isZh?'税号':'Tax ID',d.buyerTaxId,'buyerTaxId','');
+  h+='</div></div>';}
   // Items
-  h+='<div class="section-card"><h3>'+fB(isZh?'报价明细':'Quotation Items','')+'</h3>';
+  var itemCols=[
+    {key:'items.itemNo',field:'itemNo',label:isZh?'编号':'No.',width:'6%'},
+    {key:'items.description',field:'description',label:isZh?'描述':'DESCRIPTION',width:'22%'},
+    {key:'items.specification',field:'specification',label:isZh?'规格':'SPEC',width:'10%'},
+    {key:'items.quantity',field:'quantity',label:isZh?'数量':'QTY',width:'7%'},
+    {key:'items.unitOfMeasure',field:'unitOfMeasure',label:isZh?'单位':'UNIT',width:'7%'},
+    {key:'items.unitPrice',field:'unitPrice',label:isZh?'单价':'UNIT PRICE',width:'9%'},
+    {key:'items.discount',field:'discount',label:isZh?'折扣':'DISCOUNT',width:'7%'},
+    {key:'items.taxRate',field:'taxRate',label:isZh?'税率(%)':'TAX RATE(%)',width:'7%'},
+    {key:'items.taxAmount',field:'taxAmount',label:isZh?'税款':'TAX AMT',width:'7%'},
+    {key:'items.lineTotal',field:'lineTotal',label:isZh?'行合计':'LINE TOTAL',width:'8%'}
+  ];
+  var visCols=itemCols.filter(function(c){return isFld(c.key);});
+  h+='<div class="section-card"><h3>'+fB2(isZh?'报价明细':'Quotation Items','')+'</h3>';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
   h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加报价项目。':'Add items.')+'</p>';
   h+='<button class="btn btn-success btn-sm" onclick="window._cqAddItem()">'+tr.addItem+'</button></div>';
-  h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
-  ['#',isZh?'编号':'No.',isZh?'描述':'DESCRIPTION',isZh?'规格':'Specification',
-   isZh?'数量':'QTY',isZh?'单位':'UNIT',isZh?'单价':'Unit Price',isZh?'折扣':'Discount',isZh?'行合计':'Line Total',
-   isZh?'操作':'Action'].forEach(function(th){h+='<th>'+th+'</th>';});
-  h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
+  h+='<div class="items-table-container"><table class="items-table"><thead><tr><th style="width:36px;">#</th>';
+  visCols.forEach(function(c){h+='<th style="width:'+c.width+';">'+c.label+'</th>';});
+  h+='<th style="width:36px;">'+(isZh?'操作':'')+'</th></tr></thead><tbody>';
+  var items=d.items||[];
+  items.forEach(function(it,idx){
     h+='<tr><td class="row-number">'+(idx+1)+'</td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc(it.itemNo)+'" onchange="window._cqItem('+idx+',\'itemNo\',this.value)"></td>';
-    h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._cqItem('+idx+',\'description\',this.value)">'+esc(it.description)+'</textarea></td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc(it.specification)+'" onchange="window._cqItem('+idx+',\'specification\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" type="number" min="0" value="'+esc(it.quantity)+'" onchange="window._cqItem('+idx+',\'quantity\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.unitOfMeasure)+'" onchange="window._cqItem('+idx+',\'unitOfMeasure\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" type="number" min="0" step="0.01" value="'+esc(it.unitPrice)+'" onchange="window._cqItem('+idx+',\'unitPrice\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" type="number" min="0" step="0.01" value="'+esc(it.discount)+'" onchange="window._cqItem('+idx+',\'discount\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" type="number" min="0" step="0.01" value="'+esc(it.lineTotal)+'" readonly style="background:var(--bg);"></td>';
-    h+='<td class="actions"><button class="btn btn-danger" onclick="window._cqRemoveItem('+idx+')" '+(d.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
+    visCols.forEach(function(c){
+      var v=it[c.field]||'';
+      if(c.field==='description'){
+        h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._cqItem('+idx+',\''+c.field+'\',this.value)">'+esc(v)+'</textarea></td>';
+      }else if(c.field==='quantity'||c.field==='unitPrice'||c.field==='discount'||c.field==='taxRate'||c.field==='taxAmount'||c.field==='lineTotal'){
+        var readonly=(c.field==='lineTotal'||c.field==='taxAmount')?'readonly':'';
+        var cls=(c.field==='lineTotal'||c.field==='taxAmount')?'text-right input-readonly':'text-right';
+        h+='<td><input class="input-field input-field-xs '+cls+'" type="number" min="0" step="0.01" value="'+esc(v)+'" '+readonly+' onchange="window._cqItem('+idx+',\''+c.field+'\',this.value)"></td>';
+      }else{
+        h+='<td><input class="input-field input-field-xs" value="'+esc(v)+'" onchange="window._cqItem('+idx+',\''+c.field+'\',this.value)"></td>';
+      }
+    });
+    h+='<td class="actions"><button class="btn btn-danger" onclick="window._cqRemoveItem('+idx+')" '+(items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
   });
   h+='</tbody></table></div>';
+  // Totals Summary
   h+='<div class="totals-summary"><div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;">';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'小计':'Subtotal')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.subtotal||'—')+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总折扣':'Total Discount')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalDiscount||'—')+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'税费':'Tax')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalTax||'—')+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总计':'Grand Total')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.grandTotal||'—')+'</span></div>';
+  if(isFld('totals.subtotal'))h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'小计':'Subtotal')+'</span><br><span style="font-size:18px;font-weight:700;color:var(--primary);">'+(d.subtotal||'—')+'</span></div>';
+  if(isFld('totals.totalDiscount'))h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总折扣':'Total Discount')+'</span><br><span style="font-size:18px;font-weight:700;color:#dc2626;">'+(d.totalDiscount||'—')+'</span></div>';
+  if(isFld('totals.totalTax'))h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'税费':'Tax')+'</span><br><span style="font-size:18px;font-weight:700;color:var(--primary);">'+(d.totalTax||'—')+'</span></div>';
+  if(isFld('totals.grandTotal'))h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总计':'Grand Total')+'</span><br><span style="font-size:18px;font-weight:700;color:var(--primary);">'+(d.grandTotal||'—')+'</span></div>';
   h+='</div></div></div>';
-  // Terms & Signature
-  h+='<div class="section-card"><h3>'+fB(isZh?'条款与签名':'Terms & Signature','')+'</h3>';
-  h+='<div><div class="form-label">'+(isZh?'条款条件':'Terms & Conditions')+'</div><textarea class="input-field" rows="2" onchange="window._cqSet(\'termsAndConditions\',this.value)">'+esc(d.termsAndConditions)+'</textarea></div>';
-  h+='<div style="margin-top:8px;"><div class="form-label">'+(isZh?'备注':'Remarks')+'</div><textarea class="input-field" rows="2" onchange="window._cqSet(\'remarks\',this.value)">'+esc(d.remarks)+'</textarea></div>';
-  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));margin-top:12px;">';
-  h+=lI(isZh?'签名人':'Signatory',d.signatureName,'signatureName','');h+=lI(isZh?'职务':'Title',d.signatureTitle,'signatureTitle','');
-  h+=lID(isZh?'日期':'Date',d.signatureDate,'signatureDate');h+='</div></div>';
+  // Terms & Remarks
+  var hasTerms=isFld('terms.text');
+  var hasRemark=isFld('remarks.text');
+  var hasSig=isFld('signature.name')||isFld('signature.title')||isFld('signature.date');
+  if(hasTerms||hasRemark||hasSig){
+  h+='<div class="section-card"><h3>'+fB2(isZh?'条款与签名':'Terms & Signature','')+'</h3>';
+  if(hasTerms){h+='<div class="mb-2"><div class="form-label">'+(isZh?'条款条件':'Terms & Conditions')+'</div><textarea class="input-field" rows="3" onchange="window._cqSet(\'termsAndConditions\',this.value)">'+esc(d.termsAndConditions)+'</textarea></div>';}
+  if(hasRemark){h+='<div class="mb-2"><div class="form-label">'+(isZh?'备注':'Remarks')+'</div><textarea class="input-field" rows="2" onchange="window._cqSet(\'remarks\',this.value)">'+esc(d.remarks)+'</textarea></div>';}
+  if(hasSig){h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+  if(isFld('signature.name'))h+=lI2(isZh?'签名人':'Signatory',d.signatureName,'signatureName','');
+  if(isFld('signature.title'))h+=lI2(isZh?'职务':'Title',d.signatureTitle,'signatureTitle','');
+  if(isFld('signature.date'))h+=lID2(isZh?'日期':'Date',d.signatureDate,'signatureDate');
+  h+='</div>';}
+  h+='</div>';}
   document.getElementById('form-container').innerHTML=h;
 }
+
+// ===== Professional Preview =====
 function renderPreview(){
   var d=data,isZh2=previewLang==='zh';
   function tr2(en,zh){return isZh2?zh:en;}
+  function pv(v){return v&&v!==''?esc(v):'&nbsp;';}
+  function show(key){return isFieldVisible(DT,key,CQ_DEFAULT_FIELDS);}
   var h='<div class="invoice-preview" id="preview-content">';
-  if(d.logo)h+='<div style="text-align:center;margin-bottom:16px;"><img src="'+esc(d.logo)+'" style="max-height:50px;"></div>';
+  // Logo
+  if(show('logo.enabled')&&d.logo){h+='<div style="text-align:center;margin-bottom:12px;"><img src="'+esc(d.logo)+'" style="max-height:50px;"></div>';}
+  // Title
   h+='<div class="header-title">'+tr2('COMMERCIAL QUOTATION','商业报价单')+'</div>';
-  h+='<table><tbody><tr><th style="width:25%;">'+tr2('QUOTATION NO.','报价单号')+'</th><th style="width:25%;">'+tr2('DATE','日期')+'</th><th style="width:25%;">'+tr2('VALIDITY','有效期')+'</th><th style="width:25%;">'+tr2('CURRENCY','货币')+'</th></tr>';
-  h+='<tr><td class="text-center">'+esc(d.quotationNo||'—')+'</td><td class="text-center">'+esc(d.quotationDate||'—')+'</td><td class="text-center">'+esc(d.validityPeriod||'—')+'</td><td class="text-center">'+esc(d.currency||'—')+'</td></tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr><td style="width:50%;"><div class="section-label2">'+tr2('SELLER','卖方')+'</div>';
-  h+='<div class="section-value">'+esc(d.sellerName||'—')+'</div>';
-  if(d.sellerCompany)h+='<div class="section-value">'+esc(d.sellerCompany)+'</div>';
-  h+='<div class="section-value">'+esc(d.sellerAddress||'—')+'</div>';
-  h+='</td><td style="width:50%;"><div class="section-label2">'+tr2('BUYER','买方')+'</div>';
-  h+='<div class="section-value">'+esc(d.buyerName||'—')+'</div>';
-  if(d.buyerCompany)h+='<div class="section-value">'+esc(d.buyerCompany)+'</div>';
-  h+='<div class="section-value">'+esc(d.buyerAddress||'—')+'</div>';
-  h+='</td></tr></tbody></table>';
-  h+='<table class="mt-2"><thead><tr>';
-  ['#',tr2('ITEM NO.','编号'),tr2('DESCRIPTION','描述'),tr2('SPEC','规格'),tr2('QTY','数量'),tr2('UNIT','单位'),tr2('UNIT PRICE','单价'),tr2('DISCOUNT','折扣'),tr2('LINE TOTAL','行合计')].forEach(function(t){h+='<th>'+t+'</th>';});
-  h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
-    h+='<tr><td class="text-center">'+(idx+1)+'</td><td class="text-center">'+esc(it.itemNo||'—')+'</td><td>'+esc(it.description||'—')+'</td><td>'+esc(it.specification||'—')+'</td>';
-    h+='<td class="text-center">'+esc(it.quantity||'—')+'</td><td class="text-center">'+esc(it.unitOfMeasure||'—')+'</td>';
-    h+='<td class="text-right">'+esc(it.unitPrice||'—')+'</td><td class="text-right">'+esc(it.discount||'—')+'</td><td class="text-right">'+esc(it.lineTotal||'—')+'</td></tr>';
-  });
-  h+='</tbody></table>';
-  h+='<table class="mt-2"><tbody>';
-  h+='<tr><td style="width:75%;"></td><td class="text-right font-bold">'+tr2('SUBTOTAL','小计')+':</td><td class="text-right">'+esc(d.subtotal||'—')+'</td></tr>';
-  h+='<tr><td></td><td class="text-right font-bold">'+tr2('TOTAL DISCOUNT','总折扣')+':</td><td class="text-right">'+esc(d.totalDiscount||'—')+'</td></tr>';
-  h+='<tr><td></td><td class="text-right font-bold">'+tr2('TAX','税费')+':</td><td class="text-right">'+esc(d.totalTax||'—')+'</td></tr>';
-  h+='<tr class="bg-gray-100"><td></td><td class="text-right font-bold">'+tr2('GRAND TOTAL','总计')+':</td><td class="text-right font-bold">'+esc(d.grandTotal||'—')+'</td></tr>';
-  h+='</tbody></table>';
-  if(d.termsAndConditions)h+='<div class="mt-2"><div class="section-label2">'+tr2('TERMS & CONDITIONS','条款条件')+'</div><div class="section-value">'+esc(d.termsAndConditions)+'</div></div>';
-  if(d.remarks)h+='<div class="mt-2"><div class="section-label2">'+tr2('REMARKS','备注')+'</div><div class="section-value">'+esc(d.remarks)+'</div></div>';
-  h+='<div class="mt-2" style="text-align:right;"><div class="section-label2">'+tr2('SIGNATURE','签名')+'</div>';
-  h+='<div class="section-value">'+esc(d.signatureName||'—')+'</div><div class="section-value">'+esc(d.signatureTitle||'')+'</div>';
-  h+='<div class="section-value">'+esc(d.signatureDate||'')+'</div></div></div>';
+  // Seller / Buyer
+  var showSeller=show('seller.sellerCompany')||show('seller.sellerAddress')||show('seller.sellerName')||show('seller.sellerPhone')||show('seller.sellerEmail')||show('seller.sellerTaxId');
+  var showBuyer=show('buyer.buyerCompany')||show('buyer.buyerAddress')||show('buyer.buyerName')||show('buyer.buyerPhone')||show('buyer.buyerEmail')||show('buyer.buyerTaxId');
+  if(showSeller||showBuyer){
+    h+='<table style="margin-bottom:4px;"><tr>';
+    if(showSeller){
+      h+='<td style="width:50%;vertical-align:top;"><div class="section-label">'+tr2('SELLER','卖方')+'</div>';
+      if(show('seller.sellerCompany'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.sellerCompany)+'</div>';
+      if(show('seller.sellerAddress'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.sellerAddress)+'</div>';
+      if(show('seller.sellerName'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.sellerName)+'</div>';
+      if(show('seller.sellerPhone'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+tr2('Tel:','电话：')+pv(d.sellerPhone)+'</div>';
+      if(show('seller.sellerEmail'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.sellerEmail)+'</div>';
+      if(show('seller.sellerTaxId'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+tr2('Tax ID:','税号：')+pv(d.sellerTaxId)+'</div>';
+      h+='</td>';
+    }
+    if(showBuyer){
+      h+='<td style="width:50%;vertical-align:top;"><div class="section-label">'+tr2('BUYER','买方')+'</div>';
+      if(show('buyer.buyerCompany'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.buyerCompany)+'</div>';
+      if(show('buyer.buyerAddress'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.buyerAddress)+'</div>';
+      if(show('buyer.buyerName'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.buyerName)+'</div>';
+      if(show('buyer.buyerPhone'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+tr2('Tel:','电话：')+pv(d.buyerPhone)+'</div>';
+      if(show('buyer.buyerEmail'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+pv(d.buyerEmail)+'</div>';
+      if(show('buyer.buyerTaxId'))h+='<div class="section-value" style="line-height:1.3;margin-bottom:1px;font-weight:600;">'+tr2('Tax ID:','税号：')+pv(d.buyerTaxId)+'</div>';
+      h+='</td>';
+    }
+    h+='</tr></table>';
+  }
+  // Quotation Info (two-column field-row, all 8 fields, no navy bg)
+  var qLeft=[],qRight=[];
+  if(show('quotation.quotationNo'))qLeft.push({l:tr2('Quotation No.','报价单号'),v:d.quotationNo});
+  if(show('quotation.quotationDate'))qLeft.push({l:tr2('Date','日期'),v:d.quotationDate});
+  if(show('quotation.paymentTerms'))qLeft.push({l:tr2('Payment Terms','付款条款'),v:d.paymentTerms});
+  if(show('quotation.leadTime'))qLeft.push({l:tr2('Lead Time','交货周期'),v:d.leadTime});
+  if(show('quotation.validityPeriod'))qRight.push({l:tr2('Validity','有效期'),v:d.validityPeriod});
+  if(show('quotation.currency'))qRight.push({l:tr2('Currency','货币'),v:d.currency});
+  if(show('quotation.deliveryTerms'))qRight.push({l:tr2('Delivery Terms','交货条款'),v:d.deliveryTerms});
+  if(show('quotation.minOrderQty'))qRight.push({l:tr2('Min Order Qty','最小起订量'),v:d.minOrderQty});
+  if(qLeft.length>0||qRight.length>0){
+    h+='<table style="margin-bottom:6px;"><tr>';
+    h+='<td style="width:50%;vertical-align:top;">';
+    qLeft.forEach(function(f){h+='<div class="field-row" style="margin-bottom:2px;"><span class="field-label" style="min-width:130px;font-weight:600;">'+f.l+':</span><span class="field-value" style="font-weight:600;">'+pv(f.v)+'</span></div>';});
+    h+='</td>';
+    h+='<td style="width:50%;vertical-align:top;">';
+    qRight.forEach(function(f){h+='<div class="field-row" style="margin-bottom:2px;"><span class="field-label" style="min-width:130px;font-weight:600;">'+f.l+':</span><span class="field-value" style="font-weight:600;">'+pv(f.v)+'</span></div>';});
+    h+='</td>';
+    h+='</tr></table>';
+  }
+  // Items Table
+  var itemColsP=[
+    {key:'items.itemNo',field:'itemNo',label:tr2('ITEM NO.','编号'),width:'8%'},
+    {key:'items.description',field:'description',label:tr2('DESCRIPTION','描述'),width:'24%'},
+    {key:'items.specification',field:'specification',label:tr2('SPEC','规格'),width:'12%'},
+    {key:'items.quantity',field:'quantity',label:tr2('QTY','数量'),width:'8%'},
+    {key:'items.unitOfMeasure',field:'unitOfMeasure',label:tr2('UNIT','单位'),width:'8%'},
+    {key:'items.unitPrice',field:'unitPrice',label:tr2('UNIT PRICE','单价'),width:'10%'},
+    {key:'items.discount',field:'discount',label:tr2('DISCOUNT','折扣'),width:'7%'},
+    {key:'items.taxRate',field:'taxRate',label:tr2('TAX RATE(%)','税率(%)'),width:'7%'},
+    {key:'items.taxAmount',field:'taxAmount',label:tr2('TAX AMT','税款'),width:'7%'},
+    {key:'items.lineTotal',field:'lineTotal',label:tr2('LINE TOTAL','行合计'),width:'8%'}
+  ];
+  var visColsP=itemColsP.filter(function(c){return show(c.key);});
+  if(visColsP.length>0){
+    var items=d.items||[];
+    h+='<table class="items" style="border:1px solid #000;"><thead><tr><th style="width:4%;border:1px solid #000;">#</th>';
+    visColsP.forEach(function(c){h+='<th style="width:'+c.width+';border:1px solid #000;">'+c.label+'</th>';});
+    h+='</tr></thead><tbody>';
+    items.forEach(function(it,idx){
+      h+='<tr><td class="text-center" style="border:1px solid #000;padding:5px 6px;">'+(idx+1)+'</td>';
+      visColsP.forEach(function(c){
+        var v=it[c.field]||'';
+        var align=c.field==='description'||c.field==='specification'?'text-left':(c.field==='unitPrice'||c.field==='discount'||c.field==='taxRate'||c.field==='taxAmount'||c.field==='lineTotal'?'text-right':'text-center');
+        h+='<td class="'+align+'" style="border:1px solid #000;padding:5px 6px;">'+pv(v)+'</td>';
+      });
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+  }
+  // Totals
+  var showSub=show('totals.subtotal'),showTd=show('totals.totalDiscount'),showTx=show('totals.totalTax'),showGt=show('totals.grandTotal');
+  if(showSub||showTd||showTx||showGt){
+    h+='<table style="margin-top:10px;"><tbody>';
+    if(showSub)h+='<tr><td style="width:75%;"></td><td class="text-right font-bold">'+tr2('SUBTOTAL','小计')+':</td><td class="text-right">'+pv(d.subtotal)+'</td></tr>';
+    if(showTd)h+='<tr><td></td><td class="text-right font-bold">'+tr2('TOTAL DISCOUNT','总折扣')+':</td><td class="text-right">'+pv(d.totalDiscount)+'</td></tr>';
+    if(showTx)h+='<tr><td></td><td class="text-right font-bold">'+tr2('TAX','税费')+':</td><td class="text-right">'+pv(d.totalTax)+'</td></tr>';
+    if(showGt)h+='<tr style="font-weight:bold;background:#f5f5f5;"><td></td><td class="text-right" style="font-size:13px;padding-top:6px;">'+tr2('GRAND TOTAL','总计')+':</td><td class="text-right" style="font-size:13px;padding-top:6px;">'+pv(d.grandTotal)+'</td></tr>';
+    h+='</tbody></table>';
+  }
+  // Terms & Conditions
+  if(show('terms.text')&&d.termsAndConditions){
+    h+='<div class="mt-2"><div class="section-label">'+tr2('TERMS & CONDITIONS','条款条件')+'</div>';
+    h+='<div class="section-value">'+esc(d.termsAndConditions)+'</div></div>';
+  }
+  // Remarks
+  if(show('remarks.text')&&d.remarks){
+    h+='<div class="mt-2"><div class="section-label">'+tr2('REMARKS','备注')+'</div>';
+    h+='<div class="section-value">'+esc(d.remarks)+'</div></div>';
+  }
+  // Signature
+  if(show('signature.name')||show('signature.title')||show('signature.date')){
+    h+='<div class="signature-block">';
+    if(show('signature.name'))h+='<div style="margin-bottom:4px;">'+tr2('Signature:','签名：')+'_______________________</div>';
+    if(show('signature.title'))h+='<div style="margin-bottom:4px;">'+tr2('Title:','职务：')+'_______________________</div>';
+    if(show('signature.date'))h+='<div style="margin-bottom:4px;">'+tr2('Date:','日期：')+'_______________________</div>';
+    h+='</div>';
+  }
+  h+='</div>';
   document.getElementById('preview-container').innerHTML=h;
 }
+
+// ===== Template rendering (common implementation in common.js) =====
+function renderTmplBar() { tmplRenderBar(DT, CQ_DEFAULT_FIELDS); }
+function renderTmplModal() { tmplRenderModal(DT, CQ_FIELD_META, CQ_TMPL_SECTIONS, CQ_TMPL_SECTION_LABELS, CQ_DEFAULT_FIELDS, function(sk) { return sk !== 'logo' || isFld('logo.enabled'); }); }
+function doSaveTmplFromModal() { tmplSaveFromModal(DT, CQ_DEFAULT_FIELDS); }
+function setupTmplEvents() { tmplSetupEvents(DT, CQ_DEFAULT_FIELDS, { fieldMeta: CQ_FIELD_META, sections: CQ_TMPL_SECTIONS, sectionLabels: CQ_TMPL_SECTION_LABELS, sectionFilter: function(sk) { return sk !== 'logo' || isFld('logo.enabled'); } }); }
+
 function renderHistory(){
   var tr=I18N[lang],snaps=loadSnapshots(DT),search=(document.getElementById('history-search').value||'').toLowerCase();
   if(search)snaps=snaps.filter(function(s){return(s.label||'').toLowerCase().indexOf(search)!==-1||(s.ref||'').toLowerCase().indexOf(search)!==-1;});
@@ -227,38 +496,42 @@ function renderHistory(){
   h+='</div><div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="window._cqClearAllHistory()">'+tr.clearAll+'</button></div>';}
   document.getElementById('history-container').innerHTML=h;document.getElementById('history-search').oninput=function(){renderHistory();};
 }
-function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
-document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
-document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
-  injectSpaButton();
-  injectBottomCta();
-  injectPageFaq();
+injectSpaButton();injectBottomCta();injectPageFaq();setupTmplEvents();
 document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
 document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
 window._cqSet=function(f,v){data[f]=v;saveDocData(DT,data);};
-window._cqItem=function(idx,f,v){data.items[idx][f]=v;autoCalcItem(DT,data.items[idx]);saveDocData(DT,data);};
+window._cqItem=function(idx,f,v){data.items[idx][f]=v;autoCalcItem(DT,data.items[idx]);autoCalcCQ();saveDocData(DT,data);renderForm();};
 window._cqAddItem=function(){data.items.push(getEmptyItem(DT));saveDocData(DT,data);renderForm();};
-window._cqRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);saveDocData(DT,data);renderForm();}};
+window._cqRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);autoCalcCQ();saveDocData(DT,data);renderForm();}};
 window._cqRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function(x){return x.id===id;});if(s&&s.data){data=JSON.parse(JSON.stringify(s.data));saveDocData(DT,data);renderAll();}};
 window._cqDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._cqClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
 window._cqLogoUpload=function(e){var f=e.target.files[0];if(!f)return;var r=new FileReader();r.onload=function(ev){data.logo=ev.target.result;saveDocData(DT,data);renderForm();};r.readAsDataURL(f);};
 window._cqRemoveLogo=function(){data.logo='';saveDocData(DT,data);renderForm();};
-function esc(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
-function lI(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._cqSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
-function lID(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._cqSet(\''+f+'\',this.value)"></div>';}
-function loadSample(){var s=getDefaultDoc(DT);s.quotationNo='QT-2026-001';s.quotationDate='2026-05-01';s.validityPeriod='30 days';s.currency='USD';
-s.sellerName='John Wang';s.sellerCompany='Shanghai Export Co.';s.sellerAddress='No.123 Zhangjiang Rd, Shanghai';s.sellerPhone='+86 138 0000 1234';s.sellerEmail='john@shexport.com';
-s.buyerName='Jane Smith';s.buyerCompany='ABC Trading LLC';s.buyerAddress='456 Fifth Ave, New York';s.buyerPhone='+1 212 555 0123';s.buyerEmail='jane@abctrading.com';
-s.paymentTerms='T/T 30% advance';s.deliveryTerms='FOB Shanghai';s.leadTime='25 days after deposit';s.minOrderQty='100 pcs';
-s.items=[{itemNo:'1',description:'Stainless Steel Water Bottle',specification:'500ml, 304 SS',quantity:'500',unitOfMeasure:'pcs',unitPrice:'4.20',discount:'0',lineTotal:'2100.00'},
-{itemNo:'2',description:'Thermal Flask',specification:'750ml',quantity:'200',unitOfMeasure:'pcs',unitPrice:'6.50',discount:'50.00',lineTotal:'1250.00'}];
-s.subtotal='3350.00';s.totalDiscount='50.00';s.totalTax='0.00';s.grandTotal='3300.00 USD';
-s.termsAndConditions='This quotation is valid for 30 days from the date of issue. Prices are subject to change without notice.';
-s.signatureName='John Wang';s.signatureTitle='Sales Manager';s.signatureDate='2026-05-01';
-data=s;saveDocData(DT,data);renderAll();}
+
+// ===== Safe esc() =====
+function fB2(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
+function lI2(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._cqSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
+function lID2(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._cqSet(\''+f+'\',this.value)"></div>';}
+function loadSample(){
+  var s=getDefaultDoc(DT);
+  s.quotationNo='QT-2026-001';s.quotationDate='2026-06-24';s.validityPeriod='30 days';s.currency='USD';
+  s.sellerName='Shanghai Export Co., Ltd.';s.sellerCompany='Shanghai Export Co., Ltd.';s.sellerAddress='No.123 Zhangjiang Rd, Pudong, Shanghai';s.sellerPhone='+86 21 5888 1234';s.sellerEmail='export@shexport.com';s.sellerTaxId='CN91310115MA1H8XXX';
+  s.buyerName='ABC Trading LLC';s.buyerCompany='ABC Trading LLC';s.buyerAddress='456 Fifth Avenue, Suite 1200, New York, NY 10001';s.buyerPhone='+1 212 555 0199';s.buyerEmail='purchase@abctrading.com';s.buyerTaxId='US-XX-XXXXXXX';
+  s.paymentTerms='T/T 30% deposit, 70% before shipment';s.deliveryTerms='FOB Shanghai';s.leadTime='25-30 days after deposit';s.minOrderQty='500 pcs';
+  s.items=[
+    {itemNo:'C001',description:'Stainless Steel Vacuum Flask 500ml',specification:'304 SS, Double-wall',quantity:'1000',unitOfMeasure:'pcs',unitPrice:'5.80',discount:'0.00',taxRate:'10',taxAmount:'580.00',lineTotal:'5800.00'},
+    {itemNo:'C002',description:'Insulated Lunch Box 1.2L',specification:'Food-grade PP+304',quantity:'500',unitOfMeasure:'pcs',unitPrice:'12.50',discount:'100.00',taxRate:'10',taxAmount:'615.00',lineTotal:'6150.00'},
+    {itemNo:'C003',description:'Reusable Glass Water Bottle 750ml',specification:'Borosilicate Glass+Silicone Sleeve',quantity:'800',unitOfMeasure:'pcs',unitPrice:'6.20',discount:'0.00',taxRate:'0',taxAmount:'0.00',lineTotal:'4960.00'},
+    {itemNo:'C004',description:'Collapsible Silicone Cup 300ml',specification:'Food-grade Silicone, BPA-free',quantity:'2000',unitOfMeasure:'pcs',unitPrice:'3.00',discount:'200.00',taxRate:'10',taxAmount:'560.00',lineTotal:'5800.00'}
+  ];
+  s.subtotal='22710.00';s.totalDiscount='300.00';s.totalTax='1775.00';s.grandTotal='24185.00 USD';
+  s.termsAndConditions='1. Validity: This quotation is valid for 30 days from the date issued. 2. Payment: T/T 30% deposit, balance before shipment. 3. Delivery: FOB Shanghai, 25-30 days after deposit confirmed. 4. Inspection: Final inspection report provided before shipment.';
+  s.remarks='All prices are in USD. Insurance and freight not included.';
+  s.signatureName='John Wang';s.signatureTitle='Export Sales Manager';s.signatureDate='2026-06-24';
+  data=s;saveDocData(DT,data);renderAll();
+}
 init();
 </script>
 <!-- GoatCounter -->

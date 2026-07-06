@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Classic Bill of Lading - Layout Design v2</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #e8e8e8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .page {
+    background: #fff;
+    width: 850px;
+    min-height: 1050px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.15);
+    margin-bottom: 30px;
+    position: relative;
+  }
+  .section-tag {
+    position: absolute;
+    left: -2px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #e74c3c;
+    background: #fff3f3;
+    padding: 1px 8px;
+    border: 1px dashed #e74c3c;
+    border-left: none;
+    pointer-events: none;
+  }
+
+  /* ========== Revised Classic BL Layout ========== */
+
+  /* Title */
+  .bl-title {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 30px;
+    font-weight: bold;
+    letter-spacing: 6px;
+    color: #111;
+    text-align: center;
+    padding-bottom: 4px;
+    margin-bottom: 0;
+  }
+  .bl-divider {
+    border: none;
+    border-top: 3px double #111;
+    margin-bottom: 14px;
+  }
+
+  /* === Upper Section: Party boxes (left) + B/L No / Carrier (right) === */
+  .bl-upper {
+    display: flex;
+    gap: 0;
+    margin-bottom: 10px;
+    border: 1.5px solid #111;
+  }
+  .bl-upper-left {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1.5px solid #111;
+  }
+  .bl-upper-right {
+    width: 280px;
+    padding: 8px 12px;
+    position: relative;
+  }
+
+  /* Party boxes */
+  .bl-party-box {
+    padding: 8px 12px;
+    border-bottom: 1.5px solid #111;
+  }
+  .bl-party-box:last-child { border-bottom: none; }
+  .bl-party-box .party-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #111;
+    border-bottom: 1px solid #666;
+    padding-bottom: 3px;
+    margin-bottom: 6px;
+  }
+  .bl-party-box .party-content {
+    font-size: 11px;
+    line-height: 1.6;
+    color: #333;
+    min-height: 44px;
+  }
+
+  /* Right side: B/L No. + Carrier */
+  .bl-upper-right .bl-no-field {
+    text-align: right;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #ccc;
+  }
+  .bl-upper-right .bl-no-field .lbl {
+    font-size: 10px;
+    font-weight: 700;
+    color: #111;
+    letter-spacing: 0.3px;
+  }
+  .bl-upper-right .bl-no-field .val {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+  }
+  .bl-upper-right .carrier-area {
+    text-align: center;
+    margin-top: 14px;
+  }
+  .bl-upper-right .carrier-area .carrier-name {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #111;
+    letter-spacing: 1px;
+  }
+  .bl-upper-right .carrier-area .carrier-sub {
+    font-size: 9px;
+    color: #555;
+    line-height: 1.5;
+  }
+  .bl-upper-right .carrier-area .original-tag {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 14px;
+    font-weight: bold;
+    color: #c0392b;
+    margin-top: 12px;
+    letter-spacing: 3px;
+  }
+  .bl-upper-right .info-lines {
+    margin-top: 14px;
+    font-size: 10px;
+    line-height: 1.8;
+    color: #333;
+  }
+  .bl-upper-right .info-lines .ilbl {
+    font-weight: 700;
+    color: #111;
+  }
+
+  /* === Transport Info Section (below party boxes, full width) === */
+  .bl-transport {
+    border: 1.5px solid #111;
+    margin-bottom: 10px;
+  }
+  .bl-transport-row {
+    display: flex;
+    border-bottom: 1.5px solid #111;
+  }
+  .bl-transport-row:last-child { border-bottom: none; }
+  .bl-transport-row > div {
+    flex: 1;
+    padding: 6px 10px;
+    border-right: 1.5px solid #111;
+    font-size: 10px;
+    line-height: 1.6;
+  }
+  .bl-transport-row > div:last-child { border-right: none; }
+  .bl-transport-row .tlbl {
+    font-weight: 700;
+    color: #111;
+    font-size: 9px;
+    letter-spacing: 0.3px;
+    display: block;
+  }
+  .bl-transport-row .tval {
+    font-size: 11px;
+    color: #333;
+  }
+
+  /* === Goods Table === */
+  .bl-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1.5px solid #111;
+    margin-bottom: 0;
+    font-size: 10.5px;
+  }
+  .bl-table th {
+    border: 1.5px solid #111;
+    padding: 7px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    color: #111;
+    text-align: center;
+    letter-spacing: 0.3px;
+    background: #f5f5f5;
+  }
+  .bl-table td {
+    border: 1.5px solid #111;
+    padding: 6px;
+    color: #333;
+    vertical-align: top;
+  }
+  .bl-table .col-marks { width: 16%; }
+  .bl-table .col-pkgs  { width: 12%; text-align: center; }
+  .bl-table .col-desc  { width: 40%; }
+  .bl-table .col-gw    { width: 16%; text-align: right; }
+  .bl-table .col-meas  { width: 16%; text-align: right; }
+  .total-row-bl td {
+    font-weight: 700;
+    border-top: 2.5px solid #111;
+  }
+
+  /* === Container / Seal row (between table and total words) === */
+  .bl-container-seal {
+    display: flex;
+    border: 1.5px solid #111;
+    border-top: none;
+  }
+  .bl-container-seal > div {
+    flex: 1;
+    padding: 6px 10px;
+    border-right: 1.5px solid #111;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .bl-container-seal > div:last-child { border-right: none; }
+  .bl-container-seal .lbl {
+    font-weight: 700;
+    color: #111;
+    font-size: 9px;
+    letter-spacing: 0.3px;
+  }
+  .bl-container-seal .val {
+    font-size: 11px;
+    color: #333;
+  }
+
+  /* === Total Packages in Words === */
+  .bl-words {
+    border: 1.5px solid #111;
+    border-top: none;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: #333;
+    line-height: 1.5;
+  }
+  .bl-words .wlbl {
+    font-weight: 700;
+    font-style: normal;
+    font-size: 9px;
+    color: #111;
+    letter-spacing: 0.3px;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* === Freight Section === */
+  .bl-freight {
+    border: 1.5px solid #111;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+  }
+  .bl-freight .flbl {
+    font-weight: 700;
+    font-size: 9px;
+    color: #111;
+    letter-spacing: 0.3px;
+  }
+  .bl-freight .frow {
+    display: flex;
+    gap: 30px;
+    margin-top: 4px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+  .bl-freight .frow > div .flbl2 {
+    font-weight: 700;
+    font-size: 9px;
+    color: #111;
+  }
+
+  /* === Bottom: Issue & Signature === */
+  .bl-bottom {
+    display: flex;
+    border: 1.5px solid #111;
+  }
+  .bl-bottom > div {
+    padding: 8px 12px;
+    border-right: 1.5px solid #111;
+    font-size: 10px;
+    line-height: 1.6;
+  }
+  .bl-bottom > div:last-child { border-right: none; }
+  .bl-bottom .blbl {
+    font-weight: 700;
+    color: #111;
+    font-size: 9px;
+    letter-spacing: 0.3px;
+  }
+  .bl-bottom .bval {
+    font-size: 11px;
+    color: #333;
+    min-height: 18px;
+    margin-bottom: 6px;
+  }
+  .bl-bottom .sig-line {
+    border-bottom: 1.5px solid #111;
+    min-height: 28px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+  }
+  .bl-bottom .sig-label {
+    font-size: 9px;
+    color: #555;
+    font-style: italic;
+  }
+  .bl-bottom .col-issue { width: 28%; }
+  .bl-bottom .col-original { width: 22%; }
+  .bl-bottom .col-sign { flex: 1; }
+
+  /* Legend */
+  .legend {
+    width: 850px;
+    background: #fff;
+    padding: 20px 28px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .legend h3 { margin-bottom: 10px; color: #111; }
+  .legend code { background: #f0f0f0; padding: 1px 6px; border-radius: 3px; font-size: 12px; }
+  .legend .fields { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 20px; }
+  .legend .fields div { font-size: 12px; }
+  .legend .section-title { font-weight: 700; color: #111; margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<!-- ==================== PAGE ==================== -->
+<div class="page">
+
+  <!-- ===== ① Title ===== -->
+  <div class="bl-title">BILL OF LADING</div>
+  <hr class="bl-divider">
+
+  <!-- ===== ② Upper: Party boxes (left) + B/L No / Carrier (right) ===== -->
+  <div class="bl-upper">
+    <!-- Left: Shipper / Consignee / Notify Party -->
+    <div class="bl-upper-left">
+      <div class="bl-party-box" style="min-height:100px;">
+        <div class="party-label">SHIPPER (发货人)</div>
+        <div class="party-content">
+          <strong>Shanghai Export Co.</strong><br>
+          No.123 Zhangjiang Rd, Shanghai, China
+        </div>
+      </div>
+      <div class="bl-party-box" style="min-height:80px;">
+        <div class="party-label">CONSIGNEE (收货人)</div>
+        <div class="party-content">
+          <strong>ABC Trading LLC</strong><br>
+          456 Fifth Ave, New York, NY 10001, USA
+        </div>
+      </div>
+      <div class="bl-party-box" style="min-height:80px;">
+        <div class="party-label">NOTIFY PARTY (通知方)</div>
+        <div class="party-content">
+          <strong>XYZ Customs Broker</strong><br>
+          789 Harbor Blvd, New York, NY 10005
+        </div>
+      </div>
+    </div>
+    <!-- Right: B/L No. + Carrier info -->
+    <div class="bl-upper-right">
+      <div class="bl-no-field">
+        <div class="lbl">B/L NO.</div>
+        <div class="val">BL-2026-001</div>
+      </div>
+      <div class="bl-no-field">
+        <div class="lbl">BOOKING NO.</div>
+        <div class="val">BK-2026-789</div>
+      </div>
+      <div class="carrier-area">
+        <div class="carrier-name">COSCO SHIPPING LINES</div>
+        <div class="carrier-sub">中远海运集装箱运输有限公司</div>
+        <div class="original-tag">ORIGINAL</div>
+        <div class="info-lines">
+          <span class="ilbl">Shipper Ref:</span> SR-001<br>
+          <span class="ilbl">Freight Terms:</span> Prepaid<br>
+          <span class="ilbl">Currency:</span> USD
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ③ Transport Info (full width, below party boxes) ===== -->
+  <div class="bl-transport">
+    <div class="bl-transport-row">
+      <div><span class="tlbl">Vessel (船名)</span><span class="tval">COSCO SHANGHAI</span></div>
+      <div><span class="tlbl">Voyage No. (航次)</span><span class="tval">V.026E</span></div>
+      <div><span class="tlbl">Pre-carriage by (前程运输)</span><span class="tval">—</span></div>
+      <div><span class="tlbl">Place of Receipt (收货地)</span><span class="tval">Shanghai CY</span></div>
+    </div>
+    <div class="bl-transport-row">
+      <div><span class="tlbl">Port of Loading (装货港)</span><span class="tval">Shanghai</span></div>
+      <div><span class="tlbl">Port of Discharge (卸货港)</span><span class="tval">New York</span></div>
+      <div><span class="tlbl">Place of Delivery (交货地)</span><span class="tval">New York CY</span></div>
+      <div></div>
+    </div>
+  </div>
+
+  <!-- ===== ④ Goods Table ===== -->
+  <table class="bl-table">
+    <thead>
+      <tr>
+        <th class="col-marks">Marks &amp; Nos<br>唛头</th>
+        <th class="col-pkgs">Nos. &amp; Kinds<br>of Pkgs<br>件数</th>
+        <th class="col-desc">Description of Goods<br>货品描述</th>
+        <th class="col-gw">Gross Weight<br>毛重</th>
+        <th class="col-meas">Measurement<br>体积 (CBM)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>ABC/NYC</td>
+        <td style="text-align:center;">50</td>
+        <td>Stainless Steel Water Bottles</td>
+        <td style="text-align:right;">140.00 KG</td>
+        <td style="text-align:right;">2.500</td>
+      </tr>
+      <tr>
+        <td>ABC/NYC</td>
+        <td style="text-align:center;">20</td>
+        <td>Thermal Flasks</td>
+        <td style="text-align:right;">95.00 KG</td>
+        <td style="text-align:right;">1.200</td>
+      </tr>
+      <tr class="total-row-bl">
+        <td colspan="2" style="text-align:right;">TOTAL (合计):</td>
+        <td>70 PACKAGES</td>
+        <td style="text-align:right;">235.00 KG</td>
+        <td style="text-align:right;">3.700 CBM</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ===== ⑤ Container No. / Seal No. (between table and total words) ===== -->
+  <div class="bl-container-seal">
+    <div>
+      <span class="lbl">Container No. (柜号)</span>
+      <div class="val">COSU8001234</div>
+    </div>
+    <div>
+      <span class="lbl">Seal No. (封条号)</span>
+      <div class="val">SEAL2026-001</div>
+    </div>
+    <div>
+      <span class="lbl">No. of Containers (柜量)</span>
+      <div class="val">1 × 20GP</div>
+    </div>
+    <div>
+      <span class="lbl">Shipped on Board Date</span>
+      <div class="val">2026-05-15</div>
+    </div>
+  </div>
+
+  <!-- ===== ⑥ Total Packages in Words ===== -->
+  <div class="bl-words">
+    <span class="wlbl">Total Number of Packages (in words) — 大写件数</span>
+    <strong>SAY SEVENTY (70) PACKAGES ONLY</strong>
+  </div>
+
+  <!-- ===== ⑦ Freight & Charges ===== -->
+  <div class="bl-freight">
+    <div class="flbl">Freight &amp; Charges (运费与费用)</div>
+    <div class="frow">
+      <div><span class="flbl2">Freight Terms:</span> Prepaid</div>
+      <div><span class="flbl2">Freight Payable at:</span> Shanghai</div>
+      <div><span class="flbl2">Declaration:</span> The shipper hereby declares that the goods are correctly described.</div>
+    </div>
+  </div>
+
+  <!-- ===== ⑧ Bottom: Issue, Originals, Signature ===== -->
+  <div class="bl-bottom">
+    <div class="col-issue">
+      <div class="blbl">Place of Issue (签发地点)</div>
+      <div class="bval">Shanghai</div>
+      <div class="blbl">Date of Issue (签发日期)</div>
+      <div class="bval">2026-05-16</div>
+    </div>
+    <div class="col-original">
+      <div class="blbl">No. of Original B(s)/L</div>
+      <div class="bval">THREE (3)</div>
+    </div>
+    <div class="col-sign">
+      <div class="blbl">Signed for the Carrier (承运人签章)</div>
+      <div class="sig-line"></div>
+      <div class="sig-label">COSCO SHIPPING LINES</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== LEGEND ==================== -->
+<div class="legend">
+  <h3>📋 调整后的布局说明（基于你的参考截图）</h3>
+
+  <div class="section-title">① 标题区</div>
+  <p>BILL OF LADING — Georgia 30px, bold, 字间距 6px, 双线分隔</p>
+
+  <div class="section-title">② 左列: Shipper / Consignee / Notify Party (竖排, 带边框)</div>
+  <div class="fields">
+    <div><code>shipperName</code> + <code>shipperAddress</code></div>
+    <div><code>consigneeName</code> + <code>consigneeAddress</code></div>
+    <div><code>notifyPartyName</code> + <code>notifyPartyAddress</code></div>
+  </div>
+
+  <div class="section-title">③ 右列: B/L No. / Booking No. / 承运人信息</div>
+  <div class="fields">
+    <div><code>blNo</code> — 提单号</div>
+    <div><code>bookingNo</code> — 订舱号</div>
+    <div><code>shipperRef</code> — 发货人参考</div>
+    <div><code>freightTerms</code> / <code>currency</code> — 运费条款/货币</div>
+    <div>🆕 承运人名称/ORIGINAL 标记（固定内容）</div>
+  </div>
+
+  <div class="section-title">④ 运输信息（全宽，在三栏下方）</div>
+  <div class="fields">
+    <div><code>vessel</code> / <code>voyageNo</code></div>
+    <div><code>preCarriageBy</code> (🆕) — 前程运输</div>
+    <div><code>placeOfReceipt</code> / <code>placeOfDelivery</code></div>
+    <div><code>portOfLoading</code> / <code>portOfDischarge</code></div>
+  </div>
+
+  <div class="section-title">⑤ 货物表格: Marks / Pkgs / Description / G.W. / Meas</div>
+  <div class="fields">
+    <div>items: <code>marks</code>, <code>numberOfPkgs</code>, <code>description</code></div>
+    <div><code>grossWeight</code>, <code>measurement</code></div>
+    <div><code>totalPkgs</code>, <code>totalGrossWeight</code>, <code>totalMeasurement</code></div>
+  </div>
+
+  <div class="section-title">⑥ Container No. / Seal No.（表格与总件数之间）</div>
+  <div class="fields">
+    <div><code>containerNo</code> (🆕) — 柜号</div>
+    <div><code>sealNo</code> (🆕) — 封条号</div>
+    <div><code>shippedOnBoardDate</code> (🆕) — 已装船日</div>
+  </div>
+
+  <div class="section-title">⑦ 大写件数 / 运费 / 底部</div>
+  <div class="fields">
+    <div><code>totalPkgsWords</code> (🆕) — 大写件数</div>
+    <div><code>freightPayableAt</code> (🆕) — 运费支付地</div>
+    <div><code>placeOfIssue</code> (🆕) — 签发地点</div>
+    <div><code>noOfOriginals</code> (🆕) — 正本份数</div>
+    <div><code>declaration</code> / <code>carrierName</code> / <code>carrierSignatureDate</code></div>
+  </div>
+</div>
+
+</body>
+</html>

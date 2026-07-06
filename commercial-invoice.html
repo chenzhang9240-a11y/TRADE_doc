@@ -123,6 +123,7 @@
       <div class="action-bar-right">
         <button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button>
         <button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button>
+        <button class="btn btn-secondary btn-sm" id="btn-excel" data-excel-btn></button>
       </div>
     </div>
 
@@ -149,6 +150,7 @@
       </div>
       <div class="action-bar-right">
         <button class="btn btn-primary" id="btn-pdf-preview" data-pdf-btn></button>
+        <button class="btn btn-secondary btn-sm" id="btn-excel-preview" data-excel-btn></button>
         <button class="btn btn-secondary btn-sm" id="btn-print"></button>
       </div>
     </div>
@@ -194,6 +196,7 @@
 </div>
 
 <script src="common.js"></script>
+<script src="excel-export.js"></script>
 <script>
 // ===== Document Type =====
 var DT = 'commercial_invoice';
@@ -202,65 +205,71 @@ var DT_META = DOC_META[DT];
 // ===== Template & Field Definitions =====
 var CI_DEFAULT_FIELDS = {
   'logo': true,
-  'shipper.company': 'required', 'shipper.address': 'required', 'shipper.name': true, 'shipper.phone': true, 'shipper.taxId': false,
-  'consignee.company': 'required', 'consignee.address': 'required', 'consignee.name': true, 'consignee.phone': true, 'consignee.taxId': false,
-  'importer.name': true, 'importer.address': true, 'importer.phone': true, 'importer.taxId': true,
+  'shipper.company': 'required', 'shipper.address': 'required', 'shipper.name': true, 'shipper.phone': true, 'shipper.taxId': true,
+  'consignee.company': 'required', 'consignee.address': 'required', 'consignee.name': true, 'consignee.phone': true, 'consignee.taxId': true,
   'invoice.invoiceNo': 'required', 'invoice.poNo': 'required', 'invoice.dateOfExport': 'required', 'invoice.paymentTerms': 'required',
   'invoice.lCNo': true, 'invoice.waybillNo': true, 'invoice.reasonForExport': true, 'invoice.exportCountry': true, 'invoice.destinationCountry': true,
   'currency': true,
-  'items.marks': 'required', 'items.pkgs': 'required', 'items.description': 'required', 'items.qty': 'required', 'items.unit': 'required', 'items.unitValue': 'required', 'items.total': 'required',
-  'items.packaging': false, 'items.origin': false, 'items.hsCode': false, 'items.weight': false,
-  'totals.packages': true, 'totals.weight': true, 'totals.subtotal': true, 'totals.invoiceValue': true, 'totals.manualOverride': false,
+  'items.marks': 'required', 'items.pkgs': true, 'items.description': 'required', 'items.qty': 'required', 'items.unit': 'required', 'items.unitValue': 'required', 'items.total': 'required',
+  'items.packaging': true, 'items.origin': true, 'items.hsCode': true, 'items.weight': true,
+  'totals.packages': true, 'totals.weight': true, 'totals.subtotal': true, 'totals.invoiceValue': true, 'totals.manualOverride': true,
   'declaration.footerNote': 'required', 'declaration.text': 'required', 'declaration.signatureName': true, 'declaration.title': true, 'declaration.date': true
 };
 
 var CI_FIELD_META = {
-  'logo': { label: 'Company Logo', labelCn: '企业 Logo', sec: 'logo' },
-  'shipper.company': { label: 'Company', labelCn: '公司名称', sec: 'shipper' },
-  'shipper.address': { label: 'Address', labelCn: '地址', sec: 'shipper' },
-  'shipper.name': { label: 'Name', labelCn: '姓名', sec: 'shipper' },
-  'shipper.phone': { label: 'Phone', labelCn: '电话', sec: 'shipper' },
-  'shipper.taxId': { label: 'Tax ID', labelCn: '税号', sec: 'shipper' },
-  'consignee.name': { label: 'Name', labelCn: '姓名', sec: 'consignee' },
-  'consignee.company': { label: 'Company', labelCn: '公司名称', sec: 'consignee' },
-  'consignee.address': { label: 'Address', labelCn: '地址', sec: 'consignee' },
-  'consignee.phone': { label: 'Phone', labelCn: '电话', sec: 'consignee' },
-  'consignee.taxId': { label: 'Tax ID', labelCn: '税号', sec: 'consignee' },
-  'importer.name': { label: 'Name', labelCn: '姓名', sec: 'importer' },
-  'importer.address': { label: 'Address', labelCn: '地址', sec: 'importer' },
-  'importer.phone': { label: 'Phone', labelCn: '电话', sec: 'importer' },
-  'importer.taxId': { label: 'Tax ID', labelCn: '税号', sec: 'importer' },
-  'invoice.invoiceNo': { label: 'Invoice No.', labelCn: '发票号码', sec: 'invoice' },
-  'invoice.poNo': { label: 'PO / Reference No.', labelCn: '订单/参考号', sec: 'invoice' },
-  'invoice.dateOfExport': { label: 'Date of Export', labelCn: '出口日期', sec: 'invoice' },
-  'invoice.paymentTerms': { label: 'Payment Terms', labelCn: '付款条件', sec: 'invoice' },
-  'invoice.lCNo': { label: 'L/C No.', labelCn: '信用证号', sec: 'invoice' },
-  'invoice.waybillNo': { label: 'Waybill No.', labelCn: '运单号', sec: 'invoice' },
-  'invoice.reasonForExport': { label: 'Reason for Export', labelCn: '出口原因', sec: 'invoice' },
-  'invoice.exportCountry': { label: 'Country of Export', labelCn: '出口国家', sec: 'invoice' },
-  'invoice.destinationCountry': { label: 'Destination Country', labelCn: '目的地国家', sec: 'invoice' },
-  'currency': { label: 'Currency', labelCn: '币种', sec: 'terms' },
-  'items.marks': { label: 'MARKS', labelCn: '唛头', sec: 'items' },
-  'items.pkgs': { label: 'NO. PKGS', labelCn: '件数', sec: 'items' },
-  'items.description': { label: 'DESCRIPTION', labelCn: '货品描述', sec: 'items' },
-  'items.qty': { label: 'QTY', labelCn: '数量', sec: 'items' },
-  'items.unit': { label: 'UNIT', labelCn: '单位', sec: 'items' },
-  'items.unitValue': { label: 'UNIT VALUE', labelCn: '单价', sec: 'items' },
-  'items.total': { label: 'TOTAL VALUE', labelCn: '行总价', sec: 'items' },
-  'items.packaging': { label: 'PACKAGING', labelCn: '包装类型', sec: 'items' },
-  'items.origin': { label: 'ORIGIN', labelCn: '原产国', sec: 'items' },
-  'items.hsCode': { label: 'HS CODE', labelCn: 'HS编码', sec: 'items' },
-  'items.weight': { label: 'WEIGHT', labelCn: '重量', sec: 'items' },
-  'totals.packages': { label: 'Total Packages', labelCn: '总件数', sec: 'totals' },
-  'totals.weight': { label: 'Total Weight', labelCn: '总重量', sec: 'totals' },
-  'totals.subtotal': { label: 'Subtotal', labelCn: '小计', sec: 'totals' },
-  'totals.invoiceValue': { label: 'Total Invoice Value', labelCn: '总货值', sec: 'totals' },
-  'totals.manualOverride': { label: 'Manual Override Fields', labelCn: '手动覆盖字段', sec: 'totals' },
-  'declaration.footerNote': { label: 'Footer Note', labelCn: '底部备注', sec: 'declaration' },
-  'declaration.text': { label: 'Declaration', labelCn: '声明', sec: 'declaration' },
-  'declaration.signatureName': { label: 'Signature Name', labelCn: '签名姓名', sec: 'declaration' },
-  'declaration.title': { label: 'Title', labelCn: '职务', sec: 'declaration' },
-  'declaration.date': { label: 'Signature Date', labelCn: '签名日期', sec: 'declaration' }
+  'logo': { label: 'Company Logo', labelCn: '企业 Logo', section: 'logo' },
+  'shipper.company': { label: 'Company', labelCn: '公司名称', section: 'shipper' },
+  'shipper.address': { label: 'Address', labelCn: '地址', section: 'shipper' },
+  'shipper.name': { label: 'Name', labelCn: '姓名', section: 'shipper' },
+  'shipper.phone': { label: 'Phone', labelCn: '电话', section: 'shipper' },
+  'shipper.taxId': { label: 'Tax ID', labelCn: '税号', section: 'shipper' },
+  'consignee.name': { label: 'Name', labelCn: '姓名', section: 'consignee' },
+  'consignee.company': { label: 'Company', labelCn: '公司名称', section: 'consignee' },
+  'consignee.address': { label: 'Address', labelCn: '地址', section: 'consignee' },
+  'consignee.phone': { label: 'Phone', labelCn: '电话', section: 'consignee' },
+  'consignee.taxId': { label: 'Tax ID', labelCn: '税号', section: 'consignee' },
+  'invoice.invoiceNo': { label: 'Invoice No.', labelCn: '发票号码', section: 'invoice' },
+  'invoice.poNo': { label: 'PO / Reference No.', labelCn: '订单/参考号', section: 'invoice' },
+  'invoice.dateOfExport': { label: 'Date of Export', labelCn: '出口日期', section: 'invoice' },
+  'invoice.paymentTerms': { label: 'Payment Terms', labelCn: '付款条件', section: 'invoice' },
+  'invoice.lCNo': { label: 'L/C No.', labelCn: '信用证号', section: 'invoice' },
+  'invoice.waybillNo': { label: 'Waybill No.', labelCn: '运单号', section: 'invoice' },
+  'invoice.reasonForExport': { label: 'Reason for Export', labelCn: '出口原因', section: 'invoice' },
+  'invoice.exportCountry': { label: 'Country of Export', labelCn: '出口国家', section: 'invoice' },
+  'invoice.destinationCountry': { label: 'Destination Country', labelCn: '目的地国家', section: 'invoice' },
+  'currency': { label: 'Currency', labelCn: '币种', section: 'terms' },
+  'items.marks': { label: 'MARKS', labelCn: '唛头', section: 'items' },
+  'items.pkgs': { label: 'NO. PKGS', labelCn: '件数', section: 'items' },
+  'items.description': { label: 'DESCRIPTION', labelCn: '货品描述', section: 'items' },
+  'items.qty': { label: 'QTY', labelCn: '数量', section: 'items' },
+  'items.unit': { label: 'UNIT', labelCn: '单位', section: 'items' },
+  'items.unitValue': { label: 'UNIT VALUE', labelCn: '单价', section: 'items' },
+  'items.total': { label: 'TOTAL VALUE', labelCn: '行总价', section: 'items' },
+  'items.packaging': { label: 'PACKAGING', labelCn: '包装类型', section: 'items' },
+  'items.origin': { label: 'ORIGIN', labelCn: '原产国', section: 'items' },
+  'items.hsCode': { label: 'HS CODE', labelCn: 'HS编码', section: 'items' },
+  'items.weight': { label: 'WEIGHT', labelCn: '重量', section: 'items' },
+  'totals.packages': { label: 'Total Packages', labelCn: '总件数', section: 'totals' },
+  'totals.weight': { label: 'Total Weight', labelCn: '总重量', section: 'totals' },
+  'totals.subtotal': { label: 'Subtotal', labelCn: '小计', section: 'totals' },
+  'totals.invoiceValue': { label: 'Total Invoice Value', labelCn: '总货值', section: 'totals' },
+  'totals.manualOverride': { label: 'Manual Override Fields', labelCn: '手动覆盖字段', section: 'totals' },
+  'declaration.footerNote': { label: 'Footer Note', labelCn: '底部备注', section: 'declaration' },
+  'declaration.text': { label: 'Declaration', labelCn: '声明', section: 'declaration' },
+  'declaration.signatureName': { label: 'Signature Name', labelCn: '签名姓名', section: 'declaration' },
+  'declaration.title': { label: 'Title', labelCn: '职务', section: 'declaration' },
+  'declaration.date': { label: 'Signature Date', labelCn: '签名日期', section: 'declaration' }
+};
+var CI_TMPL_SECTIONS = ['logo','shipper','consignee','invoice','terms','items','totals','declaration'];
+var CI_TMPL_SECTION_LABELS = {
+  logo: { zh:'企业 Logo', en:'Company Logo' },
+  shipper: { zh:'发货人/出口商', en:'Shipper / Exporter' },
+  consignee: { zh:'收货人', en:'Consignee' },
+  invoice: { zh:'发票信息', en:'Invoice Details' },
+  terms: { zh:'付款与币种', en:'Payment & Currency' },
+  items: { zh:'商品明细列', en:'Item Table Columns' },
+  totals: { zh:'汇总行', en:'Totals' },
+  declaration: { zh:'声明与签名', en:'Declaration & Signature' }
 };
 
 // ===== Template Helpers =====
@@ -282,6 +291,7 @@ var showClearConfirm = false;
 function init() {
   applyTheme();
   ensureTmplData(DT, CI_DEFAULT_FIELDS);
+  migrateTmplData(DT, CI_DEFAULT_FIELDS);
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
@@ -291,61 +301,7 @@ function init() {
   setupTmplEvents();
 }
 
-// ===== Render All =====
-function renderAll() {
-  renderTopBar();
-  renderHeader();
-  renderTabs();
-  renderTmplBar();
-  renderForm();
-  renderPreview();
-  renderHistory();
-  renderClearModal();
-}
-
-// ===== Top Bar =====
-function renderTopBar() {
-  var tr = I18N[lang];
-  document.documentElement.lang = lang;
-  document.getElementById('back-icon').innerHTML = svg('ArrowLeft', 16);
-  document.getElementById('back-text').textContent = tr.backHome;
-  document.getElementById('lang-icon').innerHTML = svg('Languages', 16);
-  document.getElementById('lang-label').textContent = lang === 'zh' ? 'EN' : '中文';
-  document.getElementById('theme-icon').innerHTML = svg(dark ? 'Sun' : 'Moon', 16);
-  document.getElementById('theme-label').textContent = dark ? 'Light' : 'Dark';
-}
-
-// ===== Header =====
-function renderHeader() {
-  document.getElementById('page-title').textContent = DT_META.title;
-  document.getElementById('page-subtitle').textContent = DT_META.titleZh;
-}
-
-// ===== Tabs =====
-function renderTabs() {
-  var tr = I18N[lang];
-  document.getElementById('tab-edit').textContent = tr.formEditor;
-  document.getElementById('tab-preview').textContent = tr.previewTab;
-  document.getElementById('tab-history').textContent = tr.historyTab;
-
-  var panels = ['edit', 'preview', 'history'];
-  panels.forEach(function(p) {
-    document.getElementById('tab-' + p).onclick = function() {
-      panels.forEach(function(pp) {
-        document.getElementById('tab-' + pp).classList.toggle('active', pp === p);
-        document.getElementById('panel-' + pp).classList.toggle('active', pp === p);
-      });
-    };
-  });
-}
-
-// ===== Switch to tab =====
-function switchTab(tab) {
-  ['edit','preview','history'].forEach(function(p) {
-    document.getElementById('tab-' + p).classList.toggle('active', p === tab);
-    document.getElementById('panel-' + p).classList.toggle('active', p === tab);
-  });
-}
+// ===== Rendering (shared functions in common.js) =====
 
 // ===== Form Rendering =====
 function renderForm() {
@@ -357,9 +313,11 @@ function renderForm() {
   document.getElementById('btn-clear').textContent = tr.clear;
   document.getElementById('btn-switch-preview').textContent = tr.preview;
   document.getElementById('btn-pdf').textContent = tr.exportPdf;
+  document.getElementById('btn-excel').textContent = tr.exportExcel;
   document.getElementById('btn-back-edit').textContent = tr.backEdit;
   document.getElementById('btn-preview-lang').textContent = previewLang === 'en' ? 'Switch to 中文' : 'Switch to English';
   document.getElementById('btn-pdf-preview').textContent = tr.exportPdf;
+  document.getElementById('btn-excel-preview').textContent = tr.exportExcel;
   document.getElementById('btn-print').textContent = tr.print;
   document.getElementById('history-search').placeholder = tr.searchPlaceholder;
 
@@ -369,7 +327,9 @@ function renderForm() {
   document.getElementById('btn-switch-preview').onclick = function() { switchTab('preview'); renderPreview(); };
   document.getElementById('btn-back-edit').onclick = function() { switchTab('edit'); };
   document.getElementById('btn-pdf').onclick = function() { doExportPdf(DT, data, 'preview-content'); };
+  document.getElementById('btn-excel').onclick = function() { doExportExcel(DT, data); };
   document.getElementById('btn-pdf-preview').onclick = function() { doExportPdf(DT, data, 'preview-content'); };
+  document.getElementById('btn-excel-preview').onclick = function() { doExportExcel(DT, data); };
   document.getElementById('btn-preview-lang').onclick = function() { previewLang = previewLang === 'en' ? 'zh' : 'en'; renderPreview(); };
   document.getElementById('btn-print').onclick = function() { window.print(); };
 
@@ -470,31 +430,6 @@ function renderForm() {
   if (isFld('consignee.taxId')) {
   html += '<div class="form-label">' + (isZh ? '税号' : 'Tax ID') + '</div>';
   html += '<input class="input-field" value="' + esc(d.consigneeTaxId) + '" onchange="window._ciSet(\'consigneeTaxId\',this.value)" placeholder="Tax ID">';
-  }
-  html += '</div>';
-  html += '</div>';
-  }
-
-  // Importer (optional)
-  if (isFld('importer.name') || isFld('importer.address') || isFld('importer.phone') || isFld('importer.taxId')) {
-  html += '<div class="section-card" style="margin-top:16px;">';
-  html += '<h3>' + (isZh ? 'Importer / 进口人' : 'Importer — If Other Than Consignee') + '</h3>';
-  html += '<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));">';
-  if (isFld('importer.name')) {
-  html += '<div class="form-label">' + (isZh ? '姓名' : 'Name') + '</div>';
-  html += '<input class="input-field" value="' + esc(d.importerName) + '" onchange="window._ciSet(\'importerName\',this.value)" placeholder="' + (isZh ? '进口人姓名' : 'Importer name') + '">';
-  }
-  if (isFld('importer.address')) {
-  html += '<div class="form-label">' + (isZh ? '地址' : 'Address') + '</div>';
-  html += '<textarea class="input-field" rows="2" onchange="window._ciSet(\'importerAddress\',this.value)" placeholder="' + (isZh ? '完整地址' : 'Full address') + '">' + esc(d.importerAddress) + '</textarea>';
-  }
-  if (isFld('importer.phone')) {
-  html += '<div class="form-label">' + (isZh ? '电话' : 'Phone') + '</div>';
-  html += '<input class="input-field" type="tel" value="' + esc(d.importerPhone) + '" onchange="window._ciSet(\'importerPhone\',this.value)" placeholder="+1">';
-  }
-  if (isFld('importer.taxId')) {
-  html += '<div class="form-label">' + (isZh ? '税号' : 'Tax ID') + '</div>';
-  html += '<input class="input-field" value="' + esc(d.importerTaxId) + '" onchange="window._ciSet(\'importerTaxId\',this.value)" placeholder="Tax ID">';
   }
   html += '</div>';
   html += '</div>';
@@ -664,6 +599,52 @@ function renderForm() {
   document.getElementById('form-container').innerHTML = html;
 }
 
+// ===== Number to Words for SAY TOTAL =====
+var CURRENCY_WORDS = {
+  'USD': 'U.S. DOLLARS', 'EUR': 'EUROS', 'GBP': 'POUNDS STERLING', 'JPY': 'JAPANESE YEN',
+  'CNY': 'CHINESE YUAN', 'HKD': 'HONG KONG DOLLARS', 'AUD': 'AUSTRALIAN DOLLARS',
+  'CAD': 'CANADIAN DOLLARS', 'SGD': 'SINGAPORE DOLLARS', 'KRW': 'KOREAN WON',
+  'INR': 'INDIAN RUPEES', 'RUB': 'RUSSIAN RUBLES', 'BRL': 'BRAZILIAN REALS',
+  'TWD': 'TAIWAN DOLLARS', 'CHF': 'SWISS FRANCS', 'SEK': 'SWEDISH KRONA',
+  'NOK': 'NORWEGIAN KRONE', 'DKK': 'DANISH KRONE', 'THB': 'THAI BAHT',
+  'MXN': 'MEXICAN PESOS', 'NZD': 'NEW ZEALAND DOLLARS', 'ZAR': 'SOUTH AFRICAN RAND',
+  'MYR': 'MALAYSIAN RINGGIT', 'PHP': 'PHILIPPINE PESOS', 'IDR': 'INDONESIAN RUPIAH',
+  'VND': 'VIETNAMESE DONG', 'AED': 'UAE DIRHAM', 'SAR': 'SAUDI RIYAL',
+  'TRY': 'TURKISH LIRA', 'PLN': 'POLISH ZLOTY'
+};
+function numToWords(n) {
+  if (n === null || n === undefined) return '';
+  n = parseFloat(n);
+  if (isNaN(n) || n === 0) return '';
+  n = Math.round(n * 100) / 100;
+  var ones = ['','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE',
+    'TEN','ELEVEN','TWELVE','THIRTEEN','FOURTEEN','FIFTEEN','SIXTEEN',
+    'SEVENTEEN','EIGHTEEN','NINETEEN'];
+  var tens = ['','','TWENTY','THIRTY','FORTY','FIFTY','SIXTY','SEVENTY','EIGHTY','NINETY'];
+  function convert(m) {
+    if (m === 0) return '';
+    var s = '';
+    if (m >= 100) { s += ones[Math.floor(m / 100)] + ' HUNDRED'; m %= 100; if (m > 0) s += ' AND '; }
+    if (m >= 20) { s += tens[Math.floor(m / 10)]; m %= 10; if (m > 0) s += ' ' + ones[m]; }
+    else if (m > 0) { s += ones[m]; }
+    return s;
+  }
+  var intPart = Math.floor(n);
+  var decPart = Math.round((n - intPart) * 100);
+  var words = '';
+  var b = Math.floor(intPart / 1000000000);
+  var m = Math.floor((intPart % 1000000000) / 1000000);
+  var t = Math.floor((intPart % 1000000) / 1000);
+  var h = intPart % 1000;
+  if (b) words += convert(b) + ' BILLION ';
+  if (m) words += convert(m) + ' MILLION ';
+  if (t) words += convert(t) + ' THOUSAND ';
+  if (h) words += convert(h);
+  words = words.trim().replace(/\s+/g, ' ');
+  if (decPart > 0) words += ' AND CENTS ' + convert(decPart);
+  return words;
+}
+
 // ===== Preview Rendering =====
 function renderPreview() {
   var d = data;
@@ -687,92 +668,70 @@ function renderPreview() {
   var html = '<div class="invoice-preview" id="preview-content">';
 
   // Header
-  html += '<div style="position:relative;text-align:center;margin-bottom:16px;">';
-  html += '<div class="header-title">' + tr('COMMERCIAL INVOICE', '商业发票') + '</div>';
+  html += '<div class="title">' + tr('COMMERCIAL INVOICE', '商业发票') + '</div>';
   if (d.logo) {
-    html += '<img src="' + d.logo + '" alt="logo" style="position:absolute;right:0;top:-5px;max-width:140px;max-height:56px;object-fit:contain;">';
+    html += '<div style="text-align:right;margin-bottom:8px;"><img src="' + d.logo + '" alt="logo" style="max-width:140px;max-height:56px;object-fit:contain;"></div>';
   }
-  html += '</div>';
 
-  // Shipper & Consignee (only if at least one field visible)
+  // Issuer & To (two-col address layout)
   var shipperVisible = isFld('shipper.company') || isFld('shipper.address') || isFld('shipper.phone') || isFld('shipper.taxId');
   var consigneeVisible = isFld('consignee.company') || isFld('consignee.address') || isFld('consignee.name') || isFld('consignee.phone') || isFld('consignee.taxId');
   if (shipperVisible || consigneeVisible) {
-  html += '<table><tbody><tr>';
+  html += '<div class="two-col">';
   if (shipperVisible) {
-  html += '<td style="width:50%;">';
-  html += '<div class="section-label2">' + tr('SHIPPER / EXPORTER', '发货人/出口商') + '</div>';
-  if (isFld('shipper.company')) html += '<div class="section-value font-semibold">' + (d.shipperName || '—') + '</div>';
-  if (isFld('shipper.address')) html += '<div class="section-value whitespace-pre-wrap">' + (d.shipperAddress || '—') + '</div>';
-  if (isFld('shipper.phone')) html += '<div class="section-value">' + tr('Tel', '电话') + ': ' + (d.shipperPhone || '—') + '</div>';
-  if (isFld('shipper.taxId') && d.shipperTaxId) html += '<div class="section-value">' + tr('Tax ID', '税号') + ': ' + d.shipperTaxId + '</div>';
-  html += '</td>';
+  html += '<div class="col">';
+  html += '<div class="address-block">';
+  html += '<span class="addr-label">' + tr('Issuer:', '发货人/出口商:') + '</span>';
+  if (isFld('shipper.company')) html += (d.shipperName || '—') + '<br>';
+  if (isFld('shipper.address')) html += (d.shipperAddress || '—') + '<br>';
+  if (isFld('shipper.phone')) html += tr('Tel: ', '电话: ') + (d.shipperPhone || '—') + '<br>';
+  if (isFld('shipper.taxId') && d.shipperTaxId) html += tr('Tax ID: ', '税号: ') + d.shipperTaxId;
+  html += '</div></div>';
   }
   if (consigneeVisible) {
-  html += '<td style="width:50%;">';
-  html += '<div class="section-label2">' + tr('CONSIGNEE', '收货人') + '</div>';
-  if (isFld('consignee.name') && d.consigneeName) html += '<div class="section-value font-semibold">' + d.consigneeName + '</div>';
-  if (isFld('consignee.company') && d.consigneeCompany) html += '<div class="section-value">' + d.consigneeCompany + '</div>';
-  if (isFld('consignee.address')) html += '<div class="section-value whitespace-pre-wrap">' + (d.consigneeAddress || '—') + '</div>';
-  if (isFld('consignee.phone')) html += '<div class="section-value">' + tr('Tel', '电话') + ': ' + (d.consigneePhone || '—') + '</div>';
-  if (isFld('consignee.taxId') && d.consigneeTaxId) html += '<div class="section-value">' + tr('Tax ID', '税号') + ': ' + d.consigneeTaxId + '</div>';
-  html += '</td>';
+  html += '<div class="col">';
+  html += '<div class="address-block">';
+  html += '<span class="addr-label">' + tr('To:', '收货人:') + '</span>';
+  if (isFld('consignee.name') && d.consigneeName) html += d.consigneeName + '<br>';
+  if (isFld('consignee.company') && d.consigneeCompany) html += d.consigneeCompany + '<br>';
+  if (isFld('consignee.address')) html += (d.consigneeAddress || '—') + '<br>';
+  if (isFld('consignee.phone')) html += tr('Tel: ', '电话: ') + (d.consigneePhone || '—') + '<br>';
+  if (isFld('consignee.taxId') && d.consigneeTaxId) html += tr('Tax ID: ', '税号: ') + d.consigneeTaxId;
+  html += '</div></div>';
   }
-  html += '</tr>';
-
-  // Importer
-  if ((isFld('importer.name') && d.importerName) || (isFld('importer.address') && d.importerAddress)) {
-    html += '<tr><td colspan="2">';
-    html += '<div class="section-label2">' + tr('IMPORTER — IF OTHER THAN CONSIGNEE', '进口人（非收货人时）') + '</div>';
-    if (isFld('importer.name')) html += '<div class="section-value font-semibold">' + (d.importerName || '—') + '</div>';
-    if (isFld('importer.address')) html += '<div class="section-value whitespace-pre-wrap">' + (d.importerAddress || '—') + '</div>';
-    if (isFld('importer.phone') || isFld('importer.taxId')) {
-      html += '<div class="section-value">';
-      if (isFld('importer.phone')) html += tr('Tel', '电话') + ': ' + (d.importerPhone || '—');
-      if (isFld('importer.phone') && isFld('importer.taxId')) html += ' | ';
-      if (isFld('importer.taxId')) html += tr('Tax ID', '税号') + ': ' + (d.importerTaxId || '—');
-      html += '</div>';
-    }
-    html += '</td></tr>';
-  }
-  html += '</tbody></table>';
+  html += '</div>';
   }
 
-  // Invoice Details Row (multi-row header)
-  var invFields = [
-    { key: 'invoice.invoiceNo', label: tr('INVOICE NO.', '发票号码'), val: d.invoiceNo },
-    { key: 'invoice.poNo', label: tr('PO / REFERENCE NO.', '订单/参考号'), val: d.poNo },
-    { key: 'invoice.dateOfExport', label: tr('DATE OF EXPORT', '出口日期'), val: d.dateOfExport },
-    { key: 'invoice.lCNo', label: tr('L/C NO.', '信用证号'), val: d.lCNo },
-    { key: 'invoice.waybillNo', label: tr('AIR WAYBILL NO.', '空运单号'), val: d.waybillNo },
-    { key: 'currency', label: tr('CURRENCY', '币种'), val: '<span class="font-semibold">' + d.currency + '</span>' }
+  // Invoice Details & Terms — two-col field-row layout
+  var leftFields = [
+    { key: 'invoice.invoiceNo', label: tr('Invoice No.', '发票号码'), val: d.invoiceNo },
+    { key: 'invoice.poNo', label: tr('PO / Reference No.', '订单/参考号'), val: d.poNo },
+    { key: 'invoice.lCNo', label: tr('L/C No.', '信用证号'), val: d.lCNo },
+    { key: 'invoice.waybillNo', label: tr('Air Waybill No.', '空运单号'), val: d.waybillNo },
+    { key: 'invoice.reasonForExport', label: tr('Reason for Export', '出口原因'), val: reasonMap[d.reasonForExport] || '—' }
   ].filter(function(f) { return isFld(f.key); });
 
-  var invFields2 = [
-    { key: 'invoice.exportCountry', label: tr('COUNTRY OF EXPORT', '出口国'), val: d.exportCountry },
-    { key: 'invoice.destinationCountry', label: tr('DESTINATION COUNTRY', '目的国'), val: d.destinationCountry },
-    { key: 'invoice.reasonForExport', label: tr('REASON FOR EXPORT', '出口原因'), val: reasonMap[d.reasonForExport] || '—' },
-    { key: 'invoice.paymentTerms', label: tr('PAYMENT TERMS', '付款条件'), val: d.paymentTerms },
-    { key: 'totals.packages', label: tr('TOTAL PKGS / WEIGHT', '总件数/重量'), val: (displayTotalPkgs || '—') + ' ' + tr('packages', '件') + ' / ' + (displayTotalWeight || '—') + ' kg' }
+  var rightFields = [
+    { key: 'invoice.dateOfExport', label: tr('Date of Export', '出口日期'), val: d.dateOfExport },
+    { key: 'invoice.exportCountry', label: tr('Country of Export', '出口国'), val: d.exportCountry },
+    { key: 'invoice.destinationCountry', label: tr('Destination Country', '目的国'), val: d.destinationCountry },
+    { key: 'invoice.paymentTerms', label: tr('Payment Terms', '付款条件'), val: d.paymentTerms },
+    { key: 'currency', label: tr('Currency', '币种'), val: '<span class="font-semibold">' + d.currency + '</span>' }
   ].filter(function(f) { return isFld(f.key); });
 
-  if (invFields.length > 0 || invFields2.length > 0) {
-  html += '<table class="mt-2"><tbody>';
-  if (invFields.length > 0) {
-    html += '<tr>';
-    invFields.forEach(function(f) { html += '<th style="width:' + (100 / Math.max(invFields.length, 1)) + '%;">' + f.label + '</th>'; });
-    html += '</tr><tr>';
-    invFields.forEach(function(f) { html += '<td class="text-center">' + (f.val || '—') + '</td>'; });
-    html += '</tr>';
-  }
-  if (invFields2.length > 0) {
-    html += '<tr>';
-    invFields2.forEach(function(f) { html += '<th style="width:' + (100 / Math.max(invFields2.length, 1)) + '%;">' + f.label + '</th>'; });
-    html += '</tr><tr>';
-    invFields2.forEach(function(f) { html += '<td class="text-center">' + (f.val || '—') + '</td>'; });
-    html += '</tr>';
-  }
-  html += '</tbody></table>';
+  if (leftFields.length > 0 || rightFields.length > 0) {
+  html += '<div class="two-col">';
+  html += '<div class="col">';
+  leftFields.forEach(function(f) {
+    html += '<div class="field-row"><span class="field-label">' + f.label + ':</span><span class="field-value">' + (f.val || '—') + '</span></div>';
+  });
+  html += '</div>';
+  html += '<div class="col">';
+  rightFields.forEach(function(f) {
+    html += '<div class="field-row"><span class="field-label">' + f.label + ':</span><span class="field-value">' + (f.val || '—') + '</span></div>';
+  });
+  html += '</div>';
+  html += '</div>';
   }
 
   // Items Table — dynamic columns
@@ -781,82 +740,84 @@ function renderPreview() {
     { key: 'items.pkgs', label: 'NO. OF PKGS', labelCn: '件数', width: '6%', field: 'noOfPkgs', render: function(v) { return v || '—'; } },
     { key: 'items.packaging', label: 'TYPE OF PACKAGING', labelCn: '包装类型', width: '8%', field: 'typeOfPackaging', render: function(v) { return v || '—'; } },
     { key: 'items.origin', label: 'COUNTRY OF ORIGIN', labelCn: '原产国', width: '8%', field: 'countryOfOrigin', render: function(v) { return v || '—'; } },
-    { key: 'items.description', label: 'FULL DESCRIPTION OF GOODS', labelCn: '货品完整描述', width: '26%', field: 'description', render: function(v) { return v || '—'; } },
+    { key: 'items.description', label: 'FULL DESCRIPTION OF GOODS', labelCn: '货品完整描述', width: '18%', field: 'description', render: function(v) { return v || '—'; } },
     { key: 'items.hsCode', label: 'HS CODE', labelCn: 'HS编码', width: '8%', field: 'hsCode', render: function(v) { return v || '—'; } },
     { key: 'items.qty', label: 'QTY', labelCn: '数量', width: '6%', field: 'qty', render: function(v) { return v || '—'; } },
     { key: 'items.unit', label: 'UNIT OF MEASURE', labelCn: '单位', width: '6%', field: 'unitOfMeasure', render: function(v) { return v || '—'; } },
     { key: 'items.weight', label: 'WEIGHT (KG)', labelCn: '重量(KG)', width: '6%', field: 'weight', render: function(v) { return v || '—'; } },
-    { key: 'items.unitValue', label: 'UNIT VALUE (' + d.currency + ')', labelCn: '单价', width: '6%', field: 'unitValue', render: function(v) { return v ? parseFloat(v).toFixed(2) : '—'; } },
-    { key: 'items.total', label: 'TOTAL VALUE (' + d.currency + ')', labelCn: '总价', width: '6%', field: 'totalValue', render: function(v) { return v ? parseFloat(v).toFixed(2) : '—'; } }
+    { key: 'items.unitValue', label: 'UNIT VALUE (' + d.currency + ')', labelCn: '单价', width: '10%', field: 'unitValue', render: function(v) { return v ? parseFloat(v).toFixed(2) : '—'; } },
+    { key: 'items.total', label: 'TOTAL VALUE (' + d.currency + ')', labelCn: '总价', width: '10%', field: 'totalValue', render: function(v) { return v ? parseFloat(v).toFixed(2) : '—'; } }
   ];
   var visCols = itemCols.filter(function(c) { return isFld(c.key); });
 
   if (visCols.length > 0) {
-  html += '<table class="mt-2"><thead><tr><th style="width:4%;">' + tr('ITEM', '项号') + '</th>';
+  html += '<table class="items"><thead><tr><th style="width:4%;">' + tr('ITEM', '项号') + '</th>';
   visCols.forEach(function(c) { html += '<th style="width:' + c.width + ';">' + tr(c.label, c.labelCn) + '</th>'; });
   html += '</tr></thead><tbody>';
   d.items.forEach(function(item, idx) {
     html += '<tr><td class="text-center">' + (idx + 1) + '</td>';
     visCols.forEach(function(c) {
       var val = c.render(item[c.field]);
-      html += '<td' + (c.field === 'unitValue' || c.field === 'totalValue' || c.field === 'qty' ? ' class="text-right"' : c.field === 'noOfPkgs' || c.field === 'weight' || c.field === 'hsCode' ? ' class="text-center"' : '') + '>' + val + '</td>';
+      var align = c.field === 'description' ? ' class="text-left"' : (c.field === 'unitValue' || c.field === 'totalValue' ? ' class="text-right"' : '');
+      html += '<td' + align + '>' + val + '</td>';
     });
     html += '</tr>';
   });
-  // Totals row (only show totals columns that are visible)
-  if (isFld('items.qty') || isFld('items.weight') || isFld('items.total')) {
-    html += '<tr class="bg-gray-100">';
-    var totalColspan = 1 + visCols.length;
-    html += '<td colspan="' + (totalColspan - 3) + '" class="text-right font-bold">' + tr('TOTAL', '合计') + ':</td>';
-    if (isFld('items.qty')) html += '<td class="text-center font-bold">' + totalQty + '</td>';
-    if (isFld('items.weight')) html += '<td class="text-center font-bold">' + (displayTotalWeight || '—') + '</td>';
-    if (isFld('items.unitValue')) html += '<td></td>';
-    if (isFld('items.total')) html += '<td class="text-right font-bold text-purple-900">' + (d.totalInvoiceValue || invoiceTotal.toFixed(2)) + ' ' + d.currency + '</td>';
+  // Totals row — each column mapped to same position as header
+  if (isFld('items.pkgs') || isFld('items.qty') || isFld('items.weight') || isFld('items.unitValue') || isFld('items.total')) {
+    html += '<tr class="total-row">';
+    html += '<td></td>'; // ITEM # column — empty
+    visCols.forEach(function(c, idx) {
+      if (idx === 0) {
+        // First data column (MARKS area) — show TOTAL: left-aligned
+        html += '<td class="text-left font-bold">' + tr('TOTAL', '合计') + ':</td>';
+      } else if (c.field === 'noOfPkgs') {
+        html += '<td class="font-bold">' + totalPkgs + '</td>';
+      } else if (c.field === 'qty') {
+        html += '<td class="font-bold">' + totalQty + '</td>';
+      } else if (c.field === 'weight') {
+        html += '<td class="font-bold">' + (displayTotalWeight || '—') + '</td>';
+      } else if (c.field === 'unitValue') {
+        html += '<td></td>';
+      } else if (c.field === 'totalValue') {
+        html += '<td class="text-right font-bold">' + (d.totalInvoiceValue || invoiceTotal.toFixed(2)) + ' ' + d.currency + '</td>';
+      } else {
+        html += '<td></td>';
+      }
+    });
     html += '</tr>';
   }
   html += '</tbody></table>';
+
+  // SAY TOTAL — auto-generated from currency and total amount
+  var sayTotalAmount = parseFloat(d.totalInvoiceValue || invoiceTotal);
+  var sayCurrency = d.currency || '';
+  if (sayTotalAmount > 0 && sayCurrency) {
+    var currName = CURRENCY_WORDS[sayCurrency] || sayCurrency + ' DOLLARS';
+    var words = numToWords(sayTotalAmount);
+    if (words) {
+      html += '<div class="total-words">SAY TOTAL: ' + currName + ' ' + words + ' ONLY.</div>';
+    }
+  }
   }
 
-  // Declaration & Signature
+  // Declaration & Signature — right-aligned matching reference format
   if (isFld('declaration.text') || isFld('declaration.footerNote') || isFld('declaration.signatureName') || isFld('declaration.title') || isFld('declaration.date')) {
-  html += '<div style="margin-top:12px;">';
-  html += '<table><tbody><tr><td>';
   if (isFld('declaration.text')) {
-  html += '<div class="font-bold text-sm mb-2">' + d.declaration + '</div>';
-  html += '<div class="text-sm mb-1">' + tr('I declare that the information on this invoice is true and correct.', '本人声明本发票所载信息真实无误。') + '</div>';
+  html += '<div class="certify-text">' + esc(d.declaration) + '</div>';
+  html += '<div class="certify-text" style="margin-top:2px;font-weight:normal;">' + tr('I declare that the information on this invoice is true and correct.', '本人声明本发票所载信息真实无误。') + '</div>';
   }
   if (isFld('declaration.signatureName') || isFld('declaration.title') || isFld('declaration.date')) {
-  html += '<div style="border-top:1px solid #9ca3af;margin-top:12px;padding-top:8px;">';
-  html += '<table><tbody><tr>';
-  if (isFld('declaration.signatureName')) {
-  html += '<td style="width:33%;">';
-  html += '<div class="section-label">' + tr('SIGNATURE OF SHIPPER / EXPORTER', '发货人/出口商签名') + '</div>';
-  html += '<div style="margin-top:24px;border-bottom:1px solid #000;width:192px;"></div>';
-  html += '<div class="text-xs mt-1">' + tr('Name', '姓名') + ': ' + (d.signatureName || '—') + '</div>';
-  html += '</td>';
-  }
-  if (isFld('declaration.title')) {
-  html += '<td style="width:33%;">';
-  html += '<div class="section-label">' + tr('TITLE', '职务') + '</div>';
-  html += '<div style="margin-top:24px;border-bottom:1px solid #000;width:192px;"></div>';
-  html += '<div class="text-xs mt-1">' + (d.signatureTitle || '—') + '</div>';
-  html += '</td>';
-  }
-  if (isFld('declaration.date')) {
-  html += '<td style="width:33%;">';
-  html += '<div class="section-label">' + tr('DATE', '日期') + '</div>';
-  html += '<div style="margin-top:24px;border-bottom:1px solid #000;width:192px;"></div>';
-  html += '<div class="text-xs mt-1">' + (d.signatureDate || '—') + '</div>';
-  html += '</td>';
-  }
-  html += '</tr></tbody></table>';
+  html += '<div class="signature-block">';
+  if (isFld('declaration.signatureName')) html += esc(d.signatureName || '—') + '<br>';
+  if (isFld('declaration.title')) html += esc(d.signatureTitle || '—') + '<br>';
+  if (isFld('declaration.date')) html += esc(d.signatureDate || '—') + '<br>';
+  html += '(' + tr('Authorized Signature &amp; Stamp', '授权签名 &amp; 盖章') + ')';
   html += '</div>';
   }
-  html += '</td></tr></tbody></table>';
   if (isFld('declaration.footerNote') && d.footerNote) {
-    html += '<div class="text-xs text-gray-500 text-center" style="margin-top:12px;">' + d.footerNote + '</div>';
+    html += '<div class="text-xs text-gray-500 text-center" style="margin-top:12px;">' + esc(d.footerNote) + '</div>';
   }
-  html += '</div>';
   }
 
   html += '</div>';
@@ -903,21 +864,6 @@ function renderHistory() {
 
   // Search handler
   document.getElementById('history-search').oninput = function() { renderHistory(); };
-}
-
-// ===== Clear Modal =====
-function renderClearModal() {
-  var tr = I18N[lang];
-  var modal = document.getElementById('clear-modal');
-  if (showClearConfirm) {
-    modal.classList.remove('hidden');
-    document.getElementById('clear-title').textContent = tr.clearTitle;
-    document.getElementById('clear-msg').textContent = tr.clearMsg;
-    document.getElementById('btn-cancel-clear').textContent = tr.cancel;
-    document.getElementById('btn-confirm-clear').textContent = tr.clear;
-  } else {
-    modal.classList.add('hidden');
-  }
 }
 
 // ===== Event Handlers =====
@@ -1001,191 +947,13 @@ window._ciRemoveLogo = function() {
   renderForm();
 };
 
-// ===== Template rendering =====
-function renderTmplBar() {
-  var tr = I18N[lang];
-  var isZh = lang === 'zh';
-  var data = ensureTmplData(DT, CI_DEFAULT_FIELDS);
-  var current = getCurrentTmpl(DT, CI_DEFAULT_FIELDS);
-
-  document.getElementById('tmpl-config-text').textContent = isZh ? '字段配置' : 'Field Config';
-  document.getElementById('tmpl-label-text').textContent = isZh ? '模板' : 'Template';
-  document.getElementById('tmpl-save-text').textContent = isZh ? '保存' : 'Save';
-  document.getElementById('tmpl-new-text').textContent = isZh ? '新建' : 'New';
-  document.getElementById('tmpl-delete-text').textContent = isZh ? '删除' : 'Delete';
-
-  // Populate selector
-  var sel = document.getElementById('tmpl-selector');
-  var curId = sel.value || data.currentTemplateId;
-  sel.innerHTML = '';
-  data.templates.forEach(function(t) {
-    var opt = document.createElement('option');
-    opt.value = t.id;
-    opt.textContent = t.name + (t.builtIn ? (isZh ? ' (默认)' : ' (Default)') : '');
-    if (t.id === curId || (!curId && t.id === data.currentTemplateId)) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  // If the saved curId isn't in the list, select first
-  if (!sel.value) { sel.value = data.templates[0] ? data.templates[0].id : ''; }
-
-  // Show delete button only for non-builtIn templates
-  var isBuiltIn = current ? current.builtIn : true;
-  document.getElementById('btn-tmpl-delete').classList.toggle('hidden', isBuiltIn);
-}
-
-// ===== Template config modal =====
-function renderTmplModal() {
-  var isZh = lang === 'zh';
-  var t = getCurrentTmpl(DT, CI_DEFAULT_FIELDS);
-  var fields = t.fields;
-
-  document.getElementById('tmpl-modal-title').textContent = isZh ? '字段配置 - ' + t.name : 'Field Config - ' + t.name;
-
-  var sections = [
-    { key: 'logo', title: isZh ? '企业 Logo' : 'Company Logo', fields: ['logo'] },
-    { key: 'shipper', title: isZh ? '发货人/出口商' : 'Shipper / Exporter', fields: ['shipper.company', 'shipper.address', 'shipper.name', 'shipper.phone', 'shipper.taxId'] },
-    { key: 'consignee', title: isZh ? '收货人' : 'Consignee', fields: ['consignee.name', 'consignee.company', 'consignee.address', 'consignee.phone', 'consignee.taxId'] },
-    { key: 'importer', title: isZh ? '进口人' : 'Importer', fields: ['importer.name', 'importer.address', 'importer.phone', 'importer.taxId'] },
-    { key: 'invoice', title: isZh ? '发票信息' : 'Invoice Details', fields: ['invoice.invoiceNo', 'invoice.poNo', 'invoice.dateOfExport', 'invoice.lCNo', 'invoice.waybillNo', 'invoice.reasonForExport', 'invoice.exportCountry', 'invoice.destinationCountry'] },
-    { key: 'terms', title: isZh ? '付款与币种' : 'Payment & Currency', fields: ['invoice.paymentTerms', 'currency'] },
-    { key: 'items', title: isZh ? '商品明细列' : 'Item Table Columns', fields: ['items.marks', 'items.pkgs', 'items.description', 'items.qty', 'items.unit', 'items.unitValue', 'items.total', 'items.packaging', 'items.origin', 'items.hsCode', 'items.weight'] },
-    { key: 'totals', title: isZh ? '汇总行' : 'Totals', fields: ['totals.packages', 'totals.weight', 'totals.subtotal', 'totals.invoiceValue', 'totals.manualOverride'] },
-    { key: 'declaration', title: isZh ? '声明与签名' : 'Declaration & Signature', fields: ['declaration.footerNote', 'declaration.text', 'declaration.signatureName', 'declaration.title', 'declaration.date'] }
-  ];
-
-  var bodyHtml = '';
-  sections.forEach(function(sec) {
-    bodyHtml += '<div class="tmpl-modal-section">';
-    bodyHtml += '<div class="tmpl-modal-section-title">' + sec.title + '</div>';
-    bodyHtml += '<div class="tmpl-field-row">';
-    sec.fields.forEach(function(fk) {
-      var meta = CI_FIELD_META[fk];
-      if (!meta) return;
-      var label = isZh ? meta.labelCn : meta.label;
-      var isReq = fields[fk] === 'required';
-      var checked = isReq || fields[fk] === true;
-      var cls = isReq ? 'tmpl-field-item required' : 'tmpl-field-item';
-      var disabled = isReq ? 'disabled' : '';
-      bodyHtml += '<label class="' + cls + '">';
-      bodyHtml += '<input type="checkbox" data-fk="' + fk + '" ' + (checked ? 'checked' : '') + ' ' + disabled + '>';
-      bodyHtml += label;
-      if (isReq) bodyHtml += ' <span style="color:#dc2626;font-size:10px;">*</span>';
-      bodyHtml += '</label>';
-    });
-    bodyHtml += '</div>';
-    bodyHtml += '</div>';
-  });
-
-  // Preview language
-  bodyHtml += '<div class="tmpl-preview-lang">';
-  bodyHtml += '<span style="font-size:13px;font-weight:600;">' + (isZh ? '预览语言' : 'Preview Language') + ':</span>';
-  bodyHtml += '<label><input type="radio" name="tmpl-preview-lang" value="zh" ' + (t.previewLang === 'zh' ? 'checked' : '') + '> 中文</label>';
-  bodyHtml += '<label><input type="radio" name="tmpl-preview-lang" value="en" ' + (t.previewLang === 'en' ? 'checked' : '') + '> English</label>';
-  bodyHtml += '</div>';
-
-  document.getElementById('tmpl-modal-body').innerHTML = bodyHtml;
-
-  var tr = I18N[lang];
-  document.getElementById('btn-tmpl-modal-cancel').textContent = tr.cancel;
-  document.getElementById('btn-tmpl-modal-save').textContent = tr.saveTemplate;
-
-  document.getElementById('tmpl-modal').classList.remove('hidden');
-}
-
-// ===== Shared save function =====
-function doSaveTmplFromModal() {
-  var data = ensureTmplData(DT, CI_DEFAULT_FIELDS);
-  var tmpl = data.templates.find(function(t) { return t.id === data.currentTemplateId; });
-  if (!tmpl) return;
-  // Always save preview language
-  var langRadio = document.querySelector('input[name="tmpl-preview-lang"]:checked');
-  if (langRadio) tmpl.previewLang = langRadio.value;
-  // Save field config only for non-builtIn templates
-  if (!tmpl.builtIn) {
-    var checks = document.querySelectorAll('#tmpl-modal-body input[type="checkbox"]');
-    checks.forEach(function(cb) {
-      var fk = cb.getAttribute('data-fk');
-      if (fk && CI_DEFAULT_FIELDS[fk] !== 'required') {
-        tmpl.fields[fk] = cb.checked;
-      }
-    });
-  }
-  saveTmplData(DT, data);
-  previewLang = tmpl.previewLang;
-  document.getElementById('tmpl-modal').classList.add('hidden');
-  renderTmplBar();
-  renderForm();
-  renderPreview();
-}
-
-// ===== Template event handlers =====
-function setupTmplEvents() {
-  // ⚙ Field config button
-  document.getElementById('btn-tmpl-config').onclick = function() {
-    renderTmplModal();
-  };
-
-  // Template selector change
-  document.getElementById('tmpl-selector').onchange = function() {
-    var id = this.value;
-    setCurrentTmpl(DT, id, CI_DEFAULT_FIELDS);
-    previewLang = getTmplPreviewLang(DT, CI_DEFAULT_FIELDS);
-    renderTmplBar();
-    renderForm();
-    renderPreview();
-  };
-
-  // 💾 Save button (toolbar) — saves current field config
-  document.getElementById('btn-tmpl-save').onclick = doSaveTmplFromModal;
-
-  // Modal cancel
-  document.getElementById('btn-tmpl-modal-cancel').onclick = function() {
-    document.getElementById('tmpl-modal').classList.add('hidden');
-  };
-
-  // Modal save button
-  document.getElementById('btn-tmpl-modal-save').onclick = doSaveTmplFromModal;
-
-  // +New button
-  document.getElementById('btn-tmpl-new').onclick = function() {
-    var name = prompt(lang === 'zh' ? '请输入新模板名称:' : 'Enter template name:');
-    if (!name) return;
-    // Create with all optional fields unchecked, required fields stay required
-    var newFields = {};
-    for (var key in CI_DEFAULT_FIELDS) {
-      if (CI_DEFAULT_FIELDS[key] === 'required') {
-        newFields[key] = 'required';
-      } else {
-        newFields[key] = false;
-      }
-    }
-    var t = saveNewTmpl(DT, name, newFields, lang === 'zh' ? 'zh' : 'en', CI_DEFAULT_FIELDS);
-    previewLang = t.previewLang || 'zh';
-    renderTmplBar();
-    renderForm();
-    renderPreview();
-    // Open config modal immediately so user can customize
-    renderTmplModal();
-  };
-
-  // 🗑 Delete button
-  document.getElementById('btn-tmpl-delete').onclick = function() {
-    var current = getCurrentTmpl(DT, CI_DEFAULT_FIELDS);
-    if (current.builtIn) return;
-    if (!confirm(lang === 'zh' ? '确定删除模板 "' + current.name + '" 吗？' : 'Delete template "' + current.name + '"?')) return;
-    deleteTmpl(DT, current.id, CI_DEFAULT_FIELDS);
-    previewLang = getTmplPreviewLang(DT, CI_DEFAULT_FIELDS);
-    renderTmplBar();
-    renderForm();
-    renderPreview();
-  };
-}
+// ===== Template rendering (common implementation in common.js) =====
+function renderTmplBar() { tmplRenderBar(DT, CI_DEFAULT_FIELDS); }
+function renderTmplModal() { tmplRenderModal(DT, CI_FIELD_META, CI_TMPL_SECTIONS, CI_TMPL_SECTION_LABELS, CI_DEFAULT_FIELDS); }
+function doSaveTmplFromModal() { tmplSaveFromModal(DT, CI_DEFAULT_FIELDS); }
+function setupTmplEvents() { tmplSetupEvents(DT, CI_DEFAULT_FIELDS, { fieldMeta: CI_FIELD_META, sections: CI_TMPL_SECTIONS, sectionLabels: CI_TMPL_SECTION_LABELS }); }
 
 // ===== Helpers for form HTML =====
-function esc(str) {
-  if (!str) return '';
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
 function fieldBlock(title, subtitle) {
   return '<div style="grid-column:1/-1;"><h3 style="font-size:16px;font-weight:600;color:var(--primary);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-color);">' + title + (subtitle ? ' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">' + subtitle + '</span>' : '') + '</h3></div>';
 }

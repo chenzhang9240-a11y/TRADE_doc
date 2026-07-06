@@ -86,23 +86,249 @@
 <main class="doc-page"><div class="doc-page-content">
   <div class="doc-header"><h1 id="page-title">Bill of Lading Generator</h1><p id="page-subtitle">提单</p></div>
   <div class="tab-bar"><button class="tab-btn active" data-tab="edit" id="tab-edit"></button><button class="tab-btn" data-tab="preview" id="tab-preview"></button><button class="tab-btn" data-tab="history" id="tab-history"></button></div>
-  <div class="tab-panel active" id="panel-edit"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-load-sample"></button><button class="btn btn-secondary btn-sm" id="btn-clear"></button></div><div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button></div></div><div id="form-container"></div></div>
+  <div class="tab-panel active" id="panel-edit"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-load-sample"></button><button class="btn btn-secondary btn-sm" id="btn-clear"></button></div><div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button></div></div><div id="tmpl-bar-container"></div><div id="form-container"></div></div>
   <div class="tab-panel" id="panel-preview"><div class="action-bar"><div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-back-edit"></button><button class="btn btn-secondary btn-sm" id="btn-preview-lang"></button></div><div class="action-bar-right"><button class="btn btn-primary" id="btn-pdf-preview" data-pdf-btn></button><button class="btn btn-secondary btn-sm" id="btn-print"></button></div></div><div id="preview-container"></div></div>
   <div class="tab-panel" id="panel-history"><div class="history-search"><input class="input-field" id="history-search" type="text" placeholder=""></div><div id="history-container"></div></div>
 </div></main>
 <div class="clear-modal hidden" id="clear-modal"><div class="clear-modal-content"><div class="clear-modal-title" id="clear-title"></div><div class="clear-modal-msg" id="clear-msg"></div><div class="clear-modal-actions"><button class="btn btn-secondary btn-sm" id="btn-cancel-clear"></button><button class="btn btn-danger" id="btn-confirm-clear"></button></div></div></div>
+<div class="tmpl-modal hidden" id="tmpl-modal"><div class="tmpl-modal-overlay"></div><div class="tmpl-modal-content"><div class="tmpl-modal-header"><span id="tmpl-modal-title"></span><button class="btn btn-secondary btn-sm" onclick="window._tmplCloseModal()">✕</button></div><div class="tmpl-modal-body" id="tmpl-modal-body"></div><div class="tmpl-modal-footer"><button class="btn btn-primary" onclick="window._doSaveTmplFromModal()" id="btn-tmpl-save"></button></div></div></div>
 <script src="common.js"></script>
 <script>
+// ===== Constants & State =====
 var DT='bill_of_lading',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
-function init(){applyTheme();var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);renderAll();}
-  injectSpaButton();
-  injectBottomCta();
-  injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderForm();renderPreview();renderHistory();renderClearModal();}
-function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
-function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
-function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
-function switchTab(t){['edit','preview','history'].forEach(function(p){document.getElementById('tab-'+p).classList.toggle('active',p===t);document.getElementById('panel-'+p).classList.toggle('active',p===t);});}
+
+// ===== Template System Constants =====
+var BL_DEFAULT_FIELDS={
+  'header.blNo':'required','header.bookingNo':'required','header.freightTerms':'required','header.issueType':true,'header.contractNo':true,
+  'shipper.shipperName':'required','shipper.shipperAddress':'required',
+  'shipper.shipperContact':true,'shipper.shipperPhone':true,'shipper.shipperEmail':true,
+  'consignee.consigneeName':'required','consignee.consigneeAddress':'required',
+  'consignee.consigneeContact':true,'consignee.consigneePhone':true,'consignee.consigneeEmail':true,
+  'notifyParty.notifyPartyName':'required','notifyParty.notifyPartyAddress':'required',
+  'notifyParty.notifyPartyContact':true,'notifyParty.notifyPartyPhone':true,'notifyParty.notifyPartyEmail':true,
+  'transport.vessel':'required','transport.voyageNo':'required','transport.preCarriageBy':true,
+  'transport.portOfLoading':'required','transport.portOfDischarge':'required',
+  'transport.placeOfDelivery':true,
+  'items.marks':true,'items.numberOfPkgs':'required','items.description':'required','items.packagingType':true,'items.grossWeight':'required','items.measurement':'required',
+  'containers.containerNo':true,'containers.containerType':true,'containers.sealNo':true,
+  'containers.cPkgs':true,'containers.cGrossWeight':true,'containers.cMeasurement':true,
+  'totals.totalPkgs':'required','totals.totalGrossWeight':'required','totals.totalMeasurement':'required','totals.totalPkgsWords':true,
+  'freight.freightPayableAt':true,'freight.declaration':true,
+  'signature.placeOfIssue':true,'signature.noOfOriginals':true,
+  'signature.shippedOnBoardDate':true,'signature.carrierName':true,'signature.carrierSignatureDate':true
+};
+var BL_FIELD_META={
+  'header.blNo':                  { label:'B/L No.', labelCn:'提单号', section:'header' },
+  'header.bookingNo':             { label:'Booking No.', labelCn:'订舱号', section:'header' },
+  'header.freightTerms':          { label:'Freight Terms', labelCn:'运费条款', section:'header' },
+  'header.issueType':             { label:'Issue Type', labelCn:'出单方式', section:'header' },
+  'header.contractNo':            { label:'Contract No.', labelCn:'约号', section:'header' },
+  'shipper.shipperName':          { label:'Name', labelCn:'名称', section:'shipper' },
+  'shipper.shipperAddress':       { label:'Address', labelCn:'地址', section:'shipper' },
+  'shipper.shipperContact':       { label:'Contact', labelCn:'联系人', section:'shipper' },
+  'shipper.shipperPhone':         { label:'Phone', labelCn:'电话', section:'shipper' },
+  'shipper.shipperEmail':         { label:'Email', labelCn:'邮箱', section:'shipper' },
+  'consignee.consigneeName':      { label:'Name', labelCn:'名称', section:'consignee' },
+  'consignee.consigneeAddress':   { label:'Address', labelCn:'地址', section:'consignee' },
+  'consignee.consigneeContact':   { label:'Contact', labelCn:'联系人', section:'consignee' },
+  'consignee.consigneePhone':     { label:'Phone', labelCn:'电话', section:'consignee' },
+  'consignee.consigneeEmail':     { label:'Email', labelCn:'邮箱', section:'consignee' },
+  'notifyParty.notifyPartyName':  { label:'Name', labelCn:'名称', section:'notifyParty' },
+  'notifyParty.notifyPartyAddress':{ label:'Address', labelCn:'地址', section:'notifyParty' },
+  'notifyParty.notifyPartyContact':{ label:'Contact', labelCn:'联系人', section:'notifyParty' },
+  'notifyParty.notifyPartyPhone': { label:'Phone', labelCn:'电话', section:'notifyParty' },
+  'notifyParty.notifyPartyEmail': { label:'Email', labelCn:'邮箱', section:'notifyParty' },
+  'transport.vessel':             { label:'Vessel', labelCn:'船名', section:'transport' },
+  'transport.voyageNo':           { label:'Voyage No.', labelCn:'航次', section:'transport' },
+  'transport.preCarriageBy':      { label:'Pre-carriage by', labelCn:'前程运输', section:'transport' },
+  'transport.portOfLoading':      { label:'Port of Loading', labelCn:'装货港', section:'transport' },
+  'transport.portOfDischarge':    { label:'Port of Discharge', labelCn:'卸货港', section:'transport' },
+  'transport.placeOfDelivery':    { label:'Place of Delivery', labelCn:'交货地', section:'transport' },
+  'items.marks':                  { label:'Marks', labelCn:'唛头', section:'items' },
+  'items.numberOfPkgs':           { label:'No. of Pkgs', labelCn:'件数', section:'items' },
+  'items.description':            { label:'Description', labelCn:'描述', section:'items' },
+  'items.packagingType':          { label:'Packaging Type', labelCn:'包装类型', section:'items' },
+  'items.grossWeight':            { label:'Gross Weight', labelCn:'毛重', section:'items' },
+  'items.measurement':            { label:'Measurement', labelCn:'体积', section:'items' },
+  'containers.containerNo':       { label:'Container No.', labelCn:'集装箱号', section:'containers' },
+  'containers.containerType':     { label:'Container Type', labelCn:'箱型', section:'containers' },
+  'containers.sealNo':            { label:'Seal No.', labelCn:'封条号', section:'containers' },
+  'containers.cPkgs':             { label:'Pkgs', labelCn:'件数', section:'containers' },
+  'containers.cGrossWeight':      { label:'G.W.', labelCn:'毛重', section:'containers' },
+  'containers.cMeasurement':      { label:'Meas.', labelCn:'体积', section:'containers' },
+  'totals.totalPkgs':             { label:'Total Packages', labelCn:'总件数', section:'totals' },
+  'totals.totalGrossWeight':      { label:'Total G.W.', labelCn:'总毛重', section:'totals' },
+  'totals.totalMeasurement':      { label:'Total Meas.', labelCn:'总体积', section:'totals' },
+  'totals.totalPkgsWords':        { label:'Total in Words', labelCn:'大写件数', section:'totals' },
+  'freight.freightPayableAt':     { label:'Freight Payable at', labelCn:'运费支付地', section:'freight' },
+  'freight.declaration':          { label:'Declaration', labelCn:'声明', section:'freight' },
+  'signature.placeOfIssue':       { label:'Place of Issue', labelCn:'签发地点', section:'signature' },
+  'signature.noOfOriginals':      { label:'No. of Originals', labelCn:'正本份数', section:'signature' },
+  'signature.shippedOnBoardDate': { label:'Shipped on Board', labelCn:'已装船日期', section:'signature' },
+  'signature.carrierName':        { label:'Carrier Name', labelCn:'承运人名称', section:'signature' },
+  'signature.carrierSignatureDate':{ label:'Date of Issue', labelCn:'签发日期', section:'signature' }
+};
+var BL_TMPL_SECTIONS=['header','shipper','consignee','notifyParty','transport','containers','items','totals','freight','signature'];
+var BL_TMPL_SECTION_LABELS={
+  header:{zh:'提单信息',en:'B/L Info'},
+  shipper:{zh:'发货人',en:'Shipper'},
+  consignee:{zh:'收货人',en:'Consignee'},
+  notifyParty:{zh:'通知方',en:'Notify Party'},
+  transport:{zh:'运输信息',en:'Transport Info'},
+  containers:{zh:'集装箱信息',en:'Container Info'},
+  items:{zh:'商品表',en:'Items'},
+  totals:{zh:'汇总',en:'Totals'},
+  freight:{zh:'运费与声明',en:'Freight & Declaration'},
+  signature:{zh:'签发',en:'Signature'}
+};
+
+// ===== Helper Functions =====
+
+function lI(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._blSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
+function lID(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._blSet(\''+f+'\',this.value)"></div>';}
+function isFld(key){return isFieldVisible(DT,key,BL_DEFAULT_FIELDS);}
+function isFldR(key){return isFieldRequired(DT,key,BL_DEFAULT_FIELDS);}
+function show(key,df){return isFldR(key)||isFld(key);}
+
+// ===== Template System Functions =====
+function renderTmplBar(){
+  var tr=I18N[lang],isZh=lang==='zh',tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS),templates=tmplData.templates,currId=tmplData.currentTemplateId;
+  var h='<div class="tmpl-bar">';
+  h+='<button class="btn btn-secondary btn-sm" onclick="window._showTmplConfig()" title="'+(isZh?'字段配置':'Field Config')+'">⚙ '+(isZh?'字段配置':'Fields')+'</button>';
+  h+='<span class="tmpl-label">'+(isZh?'模板:':'Template:')+'</span>';
+  h+='<select class="input-field tmpl-select" id="tmpl-select" onchange="window._switchTmpl(this.value)">';
+  templates.forEach(function(t){h+='<option value="'+esc(t.id)+'"'+(t.id===currId?' selected':'')+'>'+esc(t.name)+'</option>';});
+  h+='</select>';
+  h+='<button class="btn btn-secondary btn-sm" onclick="window._saveCurrTmpl()">💾 '+(isZh?'保存':'Save')+'</button>';
+  h+='<button class="btn btn-secondary btn-sm" onclick="window._newTmpl()">+ '+(isZh?'新建':'New')+'</button>';
+  var curr=templates.find(function(t){return t.id===currId;});
+  if(curr&&!curr.builtIn){h+='<button class="btn btn-danger btn-sm" onclick="window._deleteCurrTmpl()">🗑 '+(isZh?'删除':'Delete')+'</button>';}
+  h+='</div>';
+  document.getElementById('tmpl-bar-container').innerHTML=h;
+}
+function renderTmplModal(){
+  var isZh2=lang==='zh';
+  function tr2(e,z){return isZh2?z:e;}
+  var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS),currId=tmplData.currentTemplateId;
+  var curr=tmplData.templates.find(function(t){return t.id===currId;});
+  if(!curr)return;
+  document.getElementById('tmpl-modal').classList.remove('hidden');
+  document.getElementById('tmpl-modal-title').textContent=isZh2?'字段配置：':'Field Config: ';
+  var h='';
+  BL_TMPL_SECTIONS.forEach(function(sk){
+    var sl=BL_TMPL_SECTION_LABELS[sk];
+    h+='<div class="tmpl-modal-section"><div class="tmpl-modal-section-title">'+(sl?sl[lang]:sk)+'</div><div class="tmpl-field-row">';
+    Object.keys(BL_FIELD_META).forEach(function(fk){
+      if(BL_FIELD_META[fk].section!==sk)return;
+      var val=curr.fields[fk];
+      var isReq=val==='required';
+      var isChecked=isReq||val===true;
+      var fm=BL_FIELD_META[fk];
+      h+='<label class="tmpl-field-item'+(isReq?' required':'')+'">';
+      h+='<input type="checkbox"'+(isChecked?' checked':'')+(isReq?' disabled':'')+' onchange="window._tmplToggleField(\''+fk+'\',this.checked)">';
+      h+='<span'+(isReq?' class="disabled-label"':'')+'>'+(isZh2?fm.labelCn:fm.label)+'</span>';
+      h+='</label>';
+    });
+    h+='</div></div>';
+  });
+  h+='<div class="tmpl-preview-lang">';
+  h+='<span style="font-size:12px;font-weight:600;">'+(isZh2?'预览语言：':'Preview Lang:')+'</span>';
+  h+='<label><input type="radio" name="tmpl-preview-lang" value="en" '+(curr.previewLang==='en'?'checked':'')+' onchange="window._tmplSetPreviewLang(\'en\')"> English</label>';
+  h+='<label><input type="radio" name="tmpl-preview-lang" value="zh" '+(curr.previewLang==='zh'?'checked':'')+' onchange="window._tmplSetPreviewLang(\'zh\')"> 中文</label>';
+  h+='</div>';
+  document.getElementById('tmpl-modal-body').innerHTML=h;
+  document.getElementById('btn-tmpl-save').textContent=isZh2?'保存配置':'Save';
+}
+function _numToWords(n){
+  var ones=['','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN','ELEVEN','TWELVE','THIRTEEN','FOURTEEN','FIFTEEN','SIXTEEN','SEVENTEEN','EIGHTEEN','NINETEEN'];
+  var tens=['','','TWENTY','THIRTY','FORTY','FIFTY','SIXTY','SEVENTY','EIGHTY','NINETY'];
+  if(n===0)return 'ZERO';
+  var s='';
+  if(n>=1000){s+=ones[Math.floor(n/1000)]+' THOUSAND ';n%=1000;}
+  if(n>=100){s+=ones[Math.floor(n/100)]+' HUNDRED ';n%=100;}
+  if(n>=20){s+=tens[Math.floor(n/10)]+(n%10?'-'+ones[n%10]:'');n=0;}
+  else if(n>0){s+=ones[n];n=0;}
+  return s.trim();
+}
+function _blCalcTotals(){
+  if(!data||!data.items)return;
+  data.totalPkgs=data.items.reduce(function(s,it){return s+(parseFloat(it.numberOfPkgs)||0);},0).toString();
+  data.totalGrossWeight=data.items.reduce(function(s,it){return s+(parseFloat(it.grossWeight)||0);},0).toFixed(2)+' KG';
+  data.totalMeasurement=data.items.reduce(function(s,it){return s+(parseFloat(it.measurement)||0);},0).toFixed(3)+' CBM';
+  // Auto-fill totalPkgsWords
+  var pkgType=data.items[0]&&data.items[0].packagingType?data.items[0].packagingType:'PACKAGES';
+  var totalNum=parseFloat(data.totalPkgs)||0;
+  if(totalNum>0){
+    data.totalPkgsWords='SAY '+_numToWords(totalNum)+' ('+data.totalPkgs+') '+pkgType+' ONLY';
+  }
+}
+window._blCalcTotals=_blCalcTotals;
+window._showTmplConfig=function(){renderTmplModal();};
+window._tmplCloseModal=function(){document.getElementById('tmpl-modal').classList.add('hidden');};
+window._tmplToggleField=function(fk,checked){
+  var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS),currId=tmplData.currentTemplateId;
+  var curr=tmplData.templates.find(function(t){return t.id===currId;});
+  if(curr){curr.fields[fk]=checked?true:false;saveTmplData(DT,tmplData);}
+};
+window._tmplSetPreviewLang=function(v){
+  var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS),currId=tmplData.currentTemplateId;
+  var curr=tmplData.templates.find(function(t){return t.id===currId;});
+  if(curr){curr.previewLang=v;previewLang=v;saveTmplData(DT,tmplData);renderPreview();}
+};
+window._switchTmpl=function(id){
+  setCurrentTmpl(DT,id);var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS);
+  var curr=tmplData.templates.find(function(t){return t.id===id;});
+  if(curr){previewLang=curr.previewLang||'en';}
+  renderTmplBar();renderForm();renderPreview();
+};
+window._saveCurrTmpl=function(){
+  var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS),currId=tmplData.currentTemplateId;
+  var curr=tmplData.templates.find(function(t){return t.id===currId;});
+  if(!curr)return;
+  var isZh2=lang==='zh';
+  var name=prompt(isZh2?'保存模板为：':'Save template as:',curr.name);
+  if(!name)return;
+  curr.name=name;saveTmplData(DT,tmplData);renderTmplBar();
+};
+window._newTmpl=function(){
+  var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS);
+  var isZh2=lang==='zh';
+  var name=prompt(isZh2?'新模板名称：':'New template name:','');
+  if(!name)return;
+  var id='tmpl_'+Date.now();
+  var fields={};
+  Object.keys(BL_DEFAULT_FIELDS).forEach(function(k){fields[k]=false;});
+  var curr=tmplData.templates.find(function(t){return t.id===tmplData.currentTemplateId;});
+  if(curr){Object.keys(curr.fields).forEach(function(k){fields[k]=curr.fields[k];});}
+  fields['shipper.shipperName']='required';fields['shipper.shipperAddress']='required';
+  fields['consignee.consigneeName']='required';fields['consignee.consigneeAddress']='required';
+  fields['notifyParty.notifyPartyName']='required';fields['notifyParty.notifyPartyAddress']='required';
+  fields['signature.shippedOnBoardDate']='required';fields['signature.carrierSignatureDate']='required';
+  tmplData.templates.push({id:id,name:name,builtIn:false,previewLang:previewLang||'en',fields:fields});
+  tmplData.currentTemplateId=id;saveTmplData(DT,tmplData);renderTmplBar();renderForm();renderPreview();
+};
+window._deleteCurrTmpl=function(){
+  var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS),currId=tmplData.currentTemplateId;
+  var curr=tmplData.templates.find(function(t){return t.id===currId;});
+  if(!curr||curr.builtIn)return;
+  var isZh2=lang==='zh';
+  if(!confirm(isZh2?'确认删除模板"'+curr.name+'"?':'Delete template "'+curr.name+'"?'))return;
+  tmplData.templates=tmplData.templates.filter(function(t){return t.id!==currId;});
+  tmplData.currentTemplateId='tmpl_default';saveTmplData(DT,tmplData);renderTmplBar();renderForm();renderPreview();
+};
+window._doSaveTmplFromModal=function(){
+  var tmplData=ensureTmplData(DT,BL_DEFAULT_FIELDS),currId=tmplData.currentTemplateId;
+  var curr=tmplData.templates.find(function(t){return t.id===currId;});
+  if(!curr)return;
+  saveTmplData(DT,tmplData);
+  document.getElementById('tmpl-modal').classList.add('hidden');
+  renderTmplBar();renderForm();renderPreview();
+};
+function setupTmplEvents(){}
+
+// ===== Page Render Functions =====
+
+// ===== Form =====
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data;
   document.getElementById('btn-load-sample').textContent=tr.loadSample;document.getElementById('btn-clear').textContent=tr.clear;
@@ -114,86 +340,286 @@ function renderForm(){
   document.getElementById('btn-switch-preview').onclick=function(){switchTab('preview');renderPreview();};document.getElementById('btn-back-edit').onclick=function(){switchTab('edit');};
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
   document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
+
   var h='';
-  h+='<div class="section-card"><h3>'+fB(isZh?'提单信息':'B/L Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
-  h+=lI(isZh?'提单号':'B/L No.',d.blNo,'blNo','');h+=lI(isZh?'发货人参考':'Shipper Ref',d.shipperRef,'shipperRef','');
-  h+=lI(isZh?'订舱号':'Booking No.',d.bookingNo,'bookingNo','');h+=lI(isZh?'运费条款':'Freight Terms',d.freightTerms,'freightTerms','');
-  h+=lI(isZh?'货币':'Currency',d.currency,'currency','');h+=lID(isZh?'装船日期':'Date of Shipment',d.dateOfShipment,'dateOfShipment');
-  h+=lID(isZh?'签发日期':'Date of Issue',d.dateOfIssue,'dateOfIssue');h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'发货人':'Shipper','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'名称':'Name',d.shipperName,'shipperName','');h+=lI(isZh?'地址':'Address',d.shipperAddress,'shipperAddress','');h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'收货人':'Consignee','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'名称':'Name',d.consigneeName,'consigneeName','');h+=lI(isZh?'地址':'Address',d.consigneeAddress,'consigneeAddress','');h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'通知方':'Notify Party','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'名称':'Name',d.notifyPartyName,'notifyPartyName','');h+=lI(isZh?'地址':'Address',d.notifyPartyAddress,'notifyPartyAddress','');h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'运输信息':'Transport Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
-  h+=lI(isZh?'船名':'Vessel',d.vessel,'vessel','');h+=lI(isZh?'航次':'Voyage No.',d.voyageNo,'voyageNo','');
-  h+=lI(isZh?'装货港':'Port of Loading',d.portOfLoading,'portOfLoading','');h+=lI(isZh?'卸货港':'Port of Discharge',d.portOfDischarge,'portOfDischarge','');
-  h+=lI(isZh?'收货地':'Place of Receipt',d.placeOfReceipt,'placeOfReceipt','');h+=lI(isZh?'交货地':'Place of Delivery',d.placeOfDelivery,'placeOfDelivery','');h+='</div></div>';
+  // 1. B/L Info
+  h+='<div class="section-card"><h3>'+fB(isZh?'提单信息':'B/L Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">';
+  if(isFld('header.blNo'))h+=lI(isZh?'提单号':'B/L No.',d.blNo,'blNo','');
+  if(isFld('header.bookingNo'))h+=lI(isZh?'订舱号':'Booking No.',d.bookingNo,'bookingNo','');
+  if(isFld('header.freightTerms'))h+=lI(isZh?'运费条款':'Freight Terms',d.freightTerms,'freightTerms','');
+  if(isFld('header.issueType'))h+=lI(isZh?'出单方式':'Issue Type',d.issueType,'issueType','');
+  if(isFld('header.contractNo'))h+=lI(isZh?'约号':'Contract No.',d.contractNo,'contractNo','');
+  h+='</div></div>';
+
+  // 2. Shipper
+  if(isFld('shipper.shipperName')||isFld('shipper.shipperAddress')||isFld('shipper.shipperContact')||isFld('shipper.shipperPhone')||isFld('shipper.shipperEmail')){
+    h+='<div class="section-card"><h3>'+fB(isZh?'发货人':'Shipper','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">';
+    if(isFld('shipper.shipperName'))h+=lI(isZh?'名称':'Name',d.shipperName,'shipperName','');
+    if(isFld('shipper.shipperAddress'))h+=lI(isZh?'地址':'Address',d.shipperAddress,'shipperAddress','');
+    if(isFld('shipper.shipperContact'))h+=lI(isZh?'联系人':'Contact',d.shipperContact,'shipperContact','');
+    if(isFld('shipper.shipperPhone'))h+=lI(isZh?'电话':'Phone',d.shipperPhone,'shipperPhone','');
+    if(isFld('shipper.shipperEmail'))h+=lI(isZh?'邮箱':'Email',d.shipperEmail,'shipperEmail','');
+    h+='</div></div>';
+  }
+
+  // 3. Consignee
+  if(isFld('consignee.consigneeName')||isFld('consignee.consigneeAddress')||isFld('consignee.consigneeContact')||isFld('consignee.consigneePhone')||isFld('consignee.consigneeEmail')){
+    h+='<div class="section-card"><h3>'+fB(isZh?'收货人':'Consignee','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">';
+    if(isFld('consignee.consigneeName'))h+=lI(isZh?'名称':'Name',d.consigneeName,'consigneeName','');
+    if(isFld('consignee.consigneeAddress'))h+=lI(isZh?'地址':'Address',d.consigneeAddress,'consigneeAddress','');
+    if(isFld('consignee.consigneeContact'))h+=lI(isZh?'联系人':'Contact',d.consigneeContact,'consigneeContact','');
+    if(isFld('consignee.consigneePhone'))h+=lI(isZh?'电话':'Phone',d.consigneePhone,'consigneePhone','');
+    if(isFld('consignee.consigneeEmail'))h+=lI(isZh?'邮箱':'Email',d.consigneeEmail,'consigneeEmail','');
+    h+='</div></div>';
+  }
+
+  // 4. Notify Party
+  if(isFld('notifyParty.notifyPartyName')||isFld('notifyParty.notifyPartyAddress')||isFld('notifyParty.notifyPartyContact')||isFld('notifyParty.notifyPartyPhone')||isFld('notifyParty.notifyPartyEmail')){
+    h+='<div class="section-card"><h3>'+fB(isZh?'通知方':'Notify Party','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">';
+    if(isFld('notifyParty.notifyPartyName'))h+=lI(isZh?'名称':'Name',d.notifyPartyName,'notifyPartyName','');
+    if(isFld('notifyParty.notifyPartyAddress'))h+=lI(isZh?'地址':'Address',d.notifyPartyAddress,'notifyPartyAddress','');
+    if(isFld('notifyParty.notifyPartyContact'))h+=lI(isZh?'联系人':'Contact',d.notifyPartyContact,'notifyPartyContact','');
+    if(isFld('notifyParty.notifyPartyPhone'))h+=lI(isZh?'电话':'Phone',d.notifyPartyPhone,'notifyPartyPhone','');
+    if(isFld('notifyParty.notifyPartyEmail'))h+=lI(isZh?'邮箱':'Email',d.notifyPartyEmail,'notifyPartyEmail','');
+    h+='</div></div>';
+  }
+
+  // 5. Transport Info
+  h+='<div class="section-card"><h3>'+fB(isZh?'运输信息':'Transport Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">';
+  if(isFld('transport.vessel'))h+=lI(isZh?'船名':'Vessel',d.vessel,'vessel','');
+  if(isFld('transport.voyageNo'))h+=lI(isZh?'航次':'Voyage No.',d.voyageNo,'voyageNo','');
+  if(isFld('transport.preCarriageBy'))h+=lI(isZh?'前程运输':'Pre-carriage',d.preCarriageBy,'preCarriageBy','');
+  if(isFld('transport.portOfLoading'))h+=lI(isZh?'装货港':'Port of Loading',d.portOfLoading,'portOfLoading','');
+  if(isFld('transport.portOfDischarge'))h+=lI(isZh?'卸货港':'Port of Discharge',d.portOfDischarge,'portOfDischarge','');
+  if(isFld('transport.placeOfDelivery'))h+=lI(isZh?'交货地':'Place of Delivery',d.placeOfDelivery,'placeOfDelivery','');
+  h+='</div></div>';
+
+  // 6. Goods Details
   h+='<div class="section-card"><h3>'+fB(isZh?'货品明细':'Goods Details','')+'</h3>';
   h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
   h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加货品。':'Add items.')+'</p>';
   h+='<button class="btn btn-success btn-sm" onclick="window._blAddItem()">'+tr.addItem+'</button></div>';
   h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
-  ['#',isZh?'唛头':'MARKS',isZh?'件数':'NO.PKGS',isZh?'描述':'DESCRIPTION',isZh?'毛重':'G.W.',isZh?'体积':'MEAS.',isZh?'运费':'FREIGHT',isZh?'操作':'Action'].forEach(function(th){h+='<th>'+th+'</th>';});
-  h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
+  var cols=[];
+  if(isFld('items.marks'))cols.push(isZh?'唛头':'MARKS');
+  if(isFld('items.numberOfPkgs'))cols.push(isZh?'件数':'PKGS');
+  if(isFld('items.description'))cols.push(isZh?'描述':'DESCRIPTION');
+  if(isFld('items.packagingType'))cols.push(isZh?'包装类型':'PKG');
+  if(isFld('items.grossWeight'))cols.push(isZh?'毛重':'G.W.');
+  if(isFld('items.measurement'))cols.push(isZh?'体积':'MEAS.');
+  h+='<th>#</th>';
+  cols.forEach(function(c){h+='<th>'+c+'</th>';});
+  h+='<th>'+(isZh?'操作':'Action')+'</th></tr></thead><tbody>';
+  (d.items||[]).forEach(function(it,idx){
     h+='<tr><td class="row-number">'+(idx+1)+'</td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc(it.marks)+'" onchange="window._blItem('+idx+',\'marks\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.numberOfPkgs)+'" onchange="window._blItem('+idx+',\'numberOfPkgs\',this.value)"></td>';
-    h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._blItem('+idx+',\'description\',this.value)">'+esc(it.description)+'</textarea></td>';
-    h+='<td><input class="input-field input-field-xs text-right" value="'+esc(it.grossWeight)+'" onchange="window._blItem('+idx+',\'grossWeight\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-right" value="'+esc(it.measurement)+'" onchange="window._blItem('+idx+',\'measurement\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc(it.freight)+'" onchange="window._blItem('+idx+',\'freight\',this.value)"></td>';
+    if(isFld('items.marks'))h+='<td><input class="input-field input-field-xs" value="'+esc(it.marks)+'" onchange="window._blItem('+idx+',\'marks\',this.value)"></td>';
+    if(isFld('items.numberOfPkgs'))h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.numberOfPkgs)+'" onchange="window._blItem('+idx+',\'numberOfPkgs\',this.value)"></td>';
+    if(isFld('items.description'))h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._blItem('+idx+',\'description\',this.value)">'+esc(it.description)+'</textarea></td>';
+    if(isFld('items.packagingType'))h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.packagingType)+'" onchange="window._blItem('+idx+',\'packagingType\',this.value)"></td>';
+    if(isFld('items.grossWeight'))h+='<td><input class="input-field input-field-xs text-right" value="'+esc(it.grossWeight)+'" onchange="window._blItem('+idx+',\'grossWeight\',this.value)"></td>';
+    if(isFld('items.measurement'))h+='<td><input class="input-field input-field-xs text-right" value="'+esc(it.measurement)+'" onchange="window._blItem('+idx+',\'measurement\',this.value)"></td>';
     h+='<td class="actions"><button class="btn btn-danger" onclick="window._blRemoveItem('+idx+')" '+(d.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
   });
   h+='</tbody></table></div>';
-  h+='<div class="totals-summary"><div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:12px;">';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总件数':'Total Packages')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalPkgs||'—')+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总毛重':'Total G.W.')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalGrossWeight||'—')+'</span></div>';
-  h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总体积':'Total Measurement')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalMeasurement||'—')+'</span></div>';
+  // Goods totals
+  h+='<div class="totals-summary"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">';
+  if(isFld('totals.totalPkgs'))h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总件数':'Total Packages')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalPkgs||'—')+'</span></div>';
+  if(isFld('totals.totalGrossWeight'))h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总毛重':'Total G.W.')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalGrossWeight||'—')+'</span></div>';
+  if(isFld('totals.totalMeasurement'))h+='<div><span style="font-size:12px;color:#6b7280;">'+(isZh?'总体积':'Total Meas.')+'</span><br><span style="font-size:18px;font-weight:700;color:#4a0e4e;">'+(d.totalMeasurement||'—')+'</span></div>';
   h+='</div></div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'声明与签发':'Declaration & Issue','')+'</h3>';
-  h+='<div><div class="form-label">'+(isZh?'声明内容':'Declaration')+'</div><textarea class="input-field" rows="2" onchange="window._blSet(\'declaration\',this.value)">'+esc(d.declaration)+'</textarea></div>';
-  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));margin-top:12px;">';
-  h+=lI(isZh?'承运人名称':'Carrier Name',d.carrierName,'carrierName','');h+=lID(isZh?'签发日期':'Date',d.carrierSignatureDate,'carrierSignatureDate');h+='</div></div>';
+
+  // 7. Container Info (table below items)
+  h+='<div class="section-card"><h3>'+fB(isZh?'集装箱信息':'Container Info','')+'</h3>';
+  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+  h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'添加集装箱信息。':'Add containers.')+'</p>';
+  h+='<button class="btn btn-success btn-sm" onclick="window._blAddContainer()">'+(isZh?'添加集装箱':'Add Container')+'</button></div>';
+  h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
+  var ccols=[];
+  if(isFld('containers.containerNo'))ccols.push(isZh?'集装箱号':'CTN NO.');
+  if(isFld('containers.containerType'))ccols.push(isZh?'箱型':'TYPE');
+  if(isFld('containers.sealNo'))ccols.push(isZh?'封条号':'SEAL');
+  if(isFld('containers.cPkgs'))ccols.push(isZh?'件数':'PKGS');
+  if(isFld('containers.cGrossWeight'))ccols.push(isZh?'毛重':'G.W.');
+  if(isFld('containers.cMeasurement'))ccols.push(isZh?'体积':'CBM');
+  ccols.forEach(function(c){h+='<th>'+c+'</th>';});
+  h+='<th>'+(isZh?'操作':'Action')+'</th></tr></thead><tbody>';
+  (d.containers||[]).forEach(function(c,idx){
+    h+='<tr>';
+    if(isFld('containers.containerNo'))h+='<td><input class="input-field input-field-xs" value="'+esc(c.containerNo)+'" onchange="window._blContainerItem('+idx+',\'containerNo\',this.value)"></td>';
+    if(isFld('containers.containerType'))h+='<td><input class="input-field input-field-xs" value="'+esc(c.containerType)+'" onchange="window._blContainerItem('+idx+',\'containerType\',this.value)"></td>';
+    if(isFld('containers.sealNo'))h+='<td><input class="input-field input-field-xs" value="'+esc(c.sealNo)+'" onchange="window._blContainerItem('+idx+',\'sealNo\',this.value)"></td>';
+    if(isFld('containers.cPkgs'))h+='<td><input class="input-field input-field-xs text-center" value="'+esc(c.cPkgs)+'" onchange="window._blContainerItem('+idx+',\'cPkgs\',this.value)"></td>';
+    if(isFld('containers.cGrossWeight'))h+='<td><input class="input-field input-field-xs text-right" value="'+esc(c.cGrossWeight)+'" onchange="window._blContainerItem('+idx+',\'cGrossWeight\',this.value)"></td>';
+    if(isFld('containers.cMeasurement'))h+='<td><input class="input-field input-field-xs text-right" value="'+esc(c.cMeasurement)+'" onchange="window._blContainerItem('+idx+',\'cMeasurement\',this.value)"></td>';
+    h+='<td class="actions"><button class="btn btn-danger" onclick="window._blRemoveContainer('+idx+')" '+(d.containers.length<=1?'disabled':'')+'>&times;</button></td></tr>';
+  });
+  h+='</tbody></table></div></div>';
+
+  // 8. Summary & Issue
+  h+='<div class="section-card"><h3>'+fB(isZh?'汇总与签发':'Summary & Issue','')+'</h3>';
+  if(isFld('totals.totalPkgsWords')){
+    h+='<div><div class="form-label">'+(isZh?'大写件数':'Total Packages in Words')+'</div>';
+    h+='<textarea class="input-field" rows="2" style="font-style:italic;" placeholder="e.g., SAY SEVENTY (70) PACKAGES ONLY" onchange="window._blSet(\'totalPkgsWords\',this.value)">'+esc(d.totalPkgsWords)+'</textarea></div>';
+  }
+  if(isFld('freight.declaration')){
+    h+='<div style="margin-top:10px;"><div class="form-label">'+(isZh?'声明':'Declaration')+'</div>';
+    h+='<textarea class="input-field" rows="2" onchange="window._blSet(\'declaration\',this.value)">'+esc(d.declaration)+'</textarea></div>';
+  }
+  if(isFld('freight.freightPayableAt')){
+    h+='<div style="margin-top:10px;"><div class="form-label">'+(isZh?'运费支付地':'Freight Payable At')+'</div>';
+    h+='<input class="input-field" value="'+esc(d.freightPayableAt)+'" onchange="window._blSet(\'freightPayableAt\',this.value)"></div>';
+  }
+  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-top:12px;">';
+  if(isFld('signature.placeOfIssue'))h+=lI(isZh?'签发地点':'Place of Issue',d.placeOfIssue,'placeOfIssue','');
+  if(isFld('signature.shippedOnBoardDate'))h+=lID(isZh?'已装船日期':'Shipped on Board',d.shippedOnBoardDate,'shippedOnBoardDate');
+  if(isFld('signature.noOfOriginals'))h+=lI(isZh?'正本份数':'No. of Originals',d.noOfOriginals,'noOfOriginals','');
+  if(isFld('signature.carrierName'))h+=lI(isZh?'承运人名称':'Carrier Name',d.carrierName,'carrierName','');
+  if(isFld('signature.carrierSignatureDate'))h+=lID(isZh?'签发日期':'Date',d.carrierSignatureDate,'carrierSignatureDate');
+  h+='</div></div>';
+
   document.getElementById('form-container').innerHTML=h;
 }
+
+// ===== Preview (Classic BL Layout) =====
 function renderPreview(){
   var d=data,isZh2=previewLang==='zh';
-  function tr2(en,zh){return isZh2?zh:en;}
-  var h='<div class="invoice-preview" id="preview-content">';
-  h+='<div class="header-title">'+tr2('BILL OF LADING','提单')+'</div>';
-  h+='<table><tbody><tr><th style="width:16%;">'+tr2('B/L NO.','提单号')+'</th><th style="width:16%;">'+tr2('BOOKING NO.','订舱号')+'</th><th style="width:16%;">'+tr2('VESSEL','船名')+'</th><th style="width:16%;">'+tr2('VOYAGE','航次')+'</th><th style="width:16%;">'+tr2('FREIGHT TERMS','运费条款')+'</th><th style="width:16%;">'+tr2('CURRENCY','货币')+'</th></tr>';
-  h+='<tr><td class="text-center">'+esc(d.blNo||'—')+'</td><td class="text-center">'+esc(d.bookingNo||'—')+'</td><td class="text-center">'+esc(d.vessel||'—')+'</td><td class="text-center">'+esc(d.voyageNo||'—')+'</td><td class="text-center">'+esc(d.freightTerms||'—')+'</td><td class="text-center">'+esc(d.currency||'—')+'</td></tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr><td style="width:33%;"><div class="section-label2">'+tr2('SHIPPER','发货人')+'</div>';
-  h+='<div class="section-value">'+esc(d.shipperName||'—')+'</div><div class="section-value">'+esc(d.shipperAddress||'—')+'</div></td>';
-  h+='<td style="width:33%;"><div class="section-label2">'+tr2('CONSIGNEE','收货人')+'</div>';
-  h+='<div class="section-value">'+esc(d.consigneeName||'—')+'</div><div class="section-value">'+esc(d.consigneeAddress||'—')+'</div></td>';
-  h+='<td style="width:33%;"><div class="section-label2">'+tr2('NOTIFY PARTY','通知方')+'</div>';
-  h+='<div class="section-value">'+esc(d.notifyPartyName||'—')+'</div><div class="section-value">'+esc(d.notifyPartyAddress||'—')+'</div></td></tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr>';
-  [tr2('PORT OF LOADING','装货港'),tr2('PORT OF DISCHARGE','卸货港'),tr2('PLACE OF RECEIPT','收货地'),tr2('PLACE OF DELIVERY','交货地')].forEach(function(t){h+='<th style="width:25%;">'+t+'</th>';});
-  h+='</tr><tr>';
-  [d.portOfLoading,d.portOfDischarge,d.placeOfReceipt,d.placeOfDelivery].forEach(function(v){h+='<td class="text-center">'+esc(v||'—')+'</td>';});
-  h+='</tr></tbody></table>';
-  h+='<table class="mt-2"><thead><tr>';
-  ['#',tr2('MARKS','唛头'),tr2('NO.PKGS','件数'),tr2('DESCRIPTION','描述'),tr2('G.W.','毛重'),tr2('MEAS.','体积'),tr2('FREIGHT','运费')].forEach(function(t){h+='<th>'+t+'</th>';});
+  function tr2(e,z){return isZh2?z:e;}
+
+  var h='<div class="invoice-preview"><div class="bl-preview" id="preview-content">';
+
+  // 1. Title
+  h+='<div class="bl-title">OCEAN BILL OF LADING</div><hr class="bl-divider">';
+
+  // 2. Upper: party boxes (left) + B/L No / Booking No (right, left-aligned)
+  h+='<div class="bl-upper">';
+  h+='<div class="bl-upper-left">';
+  h+='<div class="bl-party-box" style="min-height:100px;"><div class="bl-party-label">'+tr2('SHIPPER','SHIPPER (发货人)')+'</div><div class="bl-party-content">';
+  h+=(show('shipper.shipperName')?esc(d.shipperName||'—')+'<br>':'');
+  if(show('shipper.shipperContact')&&d.shipperContact)h+=(isZh2?'联系人:':'Contact: ')+esc(d.shipperContact)+'<br>';
+  if(show('shipper.shipperPhone')&&d.shipperPhone)h+=(isZh2?'电话:':'Tel: ')+esc(d.shipperPhone)+'<br>';
+  if(show('shipper.shipperEmail')&&d.shipperEmail)h+=(isZh2?'邮箱:':'Email: ')+esc(d.shipperEmail)+'<br>';
+  h+=(show('shipper.shipperAddress')?esc(d.shipperAddress||''):'');
+  h+='</div></div>';
+  h+='<div class="bl-party-box" style="min-height:80px;"><div class="bl-party-label">'+tr2('CONSIGNEE','CONSIGNEE (收货人)')+'</div><div class="bl-party-content">';
+  h+=(show('consignee.consigneeName')?esc(d.consigneeName||'—')+'<br>':'');
+  if(show('consignee.consigneeContact')&&d.consigneeContact)h+=(isZh2?'联系人:':'Contact: ')+esc(d.consigneeContact)+'<br>';
+  if(show('consignee.consigneePhone')&&d.consigneePhone)h+=(isZh2?'电话:':'Tel: ')+esc(d.consigneePhone)+'<br>';
+  if(show('consignee.consigneeEmail')&&d.consigneeEmail)h+=(isZh2?'邮箱:':'Email: ')+esc(d.consigneeEmail)+'<br>';
+  h+=(show('consignee.consigneeAddress')?esc(d.consigneeAddress||''):'');
+  h+='</div></div>';
+  h+='<div class="bl-party-box" style="min-height:80px;"><div class="bl-party-label">'+tr2('NOTIFY PARTY','NOTIFY PARTY (通知方)')+'</div><div class="bl-party-content">';
+  h+=(show('notifyParty.notifyPartyName')?esc(d.notifyPartyName||'—')+'<br>':'');
+  if(show('notifyParty.notifyPartyContact')&&d.notifyPartyContact)h+=(isZh2?'联系人:':'Contact: ')+esc(d.notifyPartyContact)+'<br>';
+  if(show('notifyParty.notifyPartyPhone')&&d.notifyPartyPhone)h+=(isZh2?'电话:':'Tel: ')+esc(d.notifyPartyPhone)+'<br>';
+  if(show('notifyParty.notifyPartyEmail')&&d.notifyPartyEmail)h+=(isZh2?'邮箱:':'Email: ')+esc(d.notifyPartyEmail)+'<br>';
+  h+=(show('notifyParty.notifyPartyAddress')?esc(d.notifyPartyAddress||''):'');
+  h+='</div></div>';
+  h+='</div>';
+
+  // Right side: B/L No., Booking No. (left-aligned) + Carrier name/ORIGINAL
+  h+='<div class="bl-upper-right" style="text-align:left;">';
+  if(show('header.blNo')){h+='<div class="bl-no-field" style="text-align:left;"><div class="bl-lbl">'+tr2('B/L NO.','提单号')+'</div><div class="bl-val">'+esc(d.blNo||'—')+'</div></div>';}
+  if(show('header.bookingNo')){h+='<div class="bl-no-field" style="text-align:left;"><div class="bl-lbl">'+tr2('BOOKING NO.','订舱号')+'</div><div class="bl-val">'+esc(d.bookingNo||'—')+'</div></div>';}
+  h+='<div class="carrier-area">';
+  h+='<div class="carrier-name">'+tr2('CARRIER','承运人')+'</div>';
+  h+='<div class="carrier-sub">'+tr2('Shipping Line','航运公司')+'</div>';
+  h+='<div class="original-tag">ORIGINAL</div>';
+  // Freight removed from header per user request
+  if(show('header.issueType')&&d.issueType)h+='<div class="bl-no-field" style="text-align:left;margin-top:6px;"><div class="bl-lbl">'+tr2('Issue Type','出单方式')+'</div><div class="bl-val">'+esc(d.issueType)+'</div></div>';
+  if(show('header.contractNo')&&d.contractNo)h+='<div class="bl-no-field" style="text-align:left;"><div class="bl-lbl">'+tr2('Contract No.','约号')+'</div><div class="bl-val">'+esc(d.contractNo)+'</div></div>';
+  h+='</div></div></div>';
+
+  // 3. Transport Info (full width below party boxes)
+  h+='<div class="bl-transport">';
+  h+='<div class="bl-transport-row">';
+  if(show('transport.vessel'))h+='<div><span class="tlbl">'+tr2('Ocean Vessel','船名')+'</span><span class="tval">'+esc(d.vessel||'—')+'</span></div>';
+  if(show('transport.voyageNo'))h+='<div><span class="tlbl">'+tr2('Voyage No.','航次')+'</span><span class="tval">'+esc(d.voyageNo||'—')+'</span></div>';
+  if(show('transport.preCarriageBy'))h+='<div><span class="tlbl">'+tr2('Pre-carriage','前程运输')+'</span><span class="tval">'+esc(d.preCarriageBy||'—')+'</span></div>';
+  h+='</div><div class="bl-transport-row">';
+  if(show('transport.portOfLoading'))h+='<div><span class="tlbl">'+tr2('Port of Loading','装货港')+'</span><span class="tval">'+esc(d.portOfLoading||'—')+'</span></div>';
+  if(show('transport.portOfDischarge'))h+='<div><span class="tlbl">'+tr2('Port of Discharge','卸货港')+'</span><span class="tval">'+esc(d.portOfDischarge||'—')+'</span></div>';
+  if(show('transport.placeOfDelivery'))h+='<div><span class="tlbl">'+tr2('Place of Delivery','交货地')+'</span><span class="tval">'+esc(d.placeOfDelivery||'—')+'</span></div>';
+  h+='<div></div></div></div>';
+
+  // 4. Goods Table
+  h+='<table class="bl-table"><thead><tr>';
+  h+='<th class="col-marks">'+tr2('MARKS &amp; NUMBERS','唛头')+'</th>';
+  h+='<th class="col-pkgs">'+tr2('QUANTITY &amp; KIND OF PKGS','件数')+'</th>';
+  h+='<th class="col-desc">'+tr2('DESCRIPTION OF PACKAGES AND GOODS','货品描述')+'</th>';
+  h+='<th class="col-gw">'+tr2('GROSS WEIGHT KGS','毛重')+'</th>';
+  h+='<th class="col-meas">'+tr2('MEASUREMENT CBM','体积')+'</th>';
   h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
-    h+='<tr><td class="text-center">'+(idx+1)+'</td><td>'+esc(it.marks||'—')+'</td><td class="text-center">'+esc(it.numberOfPkgs||'—')+'</td>';
-    h+='<td>'+esc(it.description||'—')+'</td><td class="text-right">'+esc(it.grossWeight||'—')+'</td><td class="text-right">'+esc(it.measurement||'—')+'</td>';
-    h+='<td>'+esc(it.freight||'—')+'</td></tr>';
+  (d.items||[]).forEach(function(it,idx){
+    h+='<tr>';
+    h+='<td>'+(show('items.marks')?esc(it.marks||'—'):'')+'</td>';
+    var pkgsVal=show('items.numberOfPkgs')?(it.numberOfPkgs||'—'):'';
+    var pkgType=show('items.packagingType')?it.packagingType:'';
+    h+='<td style="text-align:center;">'+esc(pkgsVal+(pkgsVal!=='—'&&pkgType?' '+pkgType:''))+'</td>';
+    h+='<td>'+(show('items.description')?esc(it.description||'—'):'')+'</td>';
+    h+='<td style="text-align:right;">'+(show('items.grossWeight')?esc(it.grossWeight||'—'):'')+'</td>';
+    h+='<td style="text-align:right;">'+(show('items.measurement')?esc(it.measurement||'—'):'')+'</td>';
+    h+='</tr>';
   });
-  h+='<tr class="bg-gray-100"><td colspan="2" class="text-right font-bold">'+tr2('TOTAL','合计')+':</td>';
-  h+='<td class="text-center font-bold">'+(d.totalPkgs||'—')+'</td><td colspan="2"></td>';
-  h+='<td class="text-right font-bold">'+(d.totalGrossWeight||'—')+'</td><td class="text-right font-bold">'+(d.totalMeasurement||'—')+'</td></tr>';
-  h+='</tbody></table>';
-  h+='<div class="mt-2"><div class="section-label2">'+tr2('DECLARATION','声明')+'</div><div class="section-value">'+esc(d.declaration)+'</div></div>';
-  h+='<div class="mt-2" style="text-align:right;"><div class="section-label2">'+tr2('CARRIER','承运人')+'</div>';
-  h+='<div class="section-value">'+esc(d.carrierName||'—')+'</div><div class="section-value">'+esc(d.carrierSignatureDate||'')+'</div></div></div>';
+  var pkgTypeDefault=d.items&&d.items[0]&&d.items[0].packagingType?d.items[0].packagingType:'PKGS';
+  h+='<tr class="total-row-bl"><td colspan="2" style="text-align:right;">'+tr2('TOTAL','合计')+':</td>';
+  h+='<td style="text-align:center;">'+(show('totals.totalPkgs')?esc(d.totalPkgs||'—')+' '+pkgTypeDefault:'')+'</td>';
+  h+='<td style="text-align:right;">'+(show('totals.totalGrossWeight')?esc(d.totalGrossWeight||'—'):'')+'</td>';
+  h+='<td style="text-align:right;">'+(show('totals.totalMeasurement')?esc(d.totalMeasurement||'—'):'')+'</td>';
+  h+='</tr></tbody></table>';
+
+  // 5. Container Info (vertical, one per row)
+  var cArr=d.containers||[];
+  if(cArr.length>0){
+    h+='<div class="bl-container-section">';
+    cArr.forEach(function(c){
+      h+='<div class="bl-container-row">';
+      var parts=[];
+      if(c.containerNo||c.sealNo)parts.push((c.containerNo||'')+'/'+(c.sealNo||''));
+      if(c.containerType)parts.push(c.containerType);
+      if(c.cPkgs)parts.push(c.cPkgs+' '+(isZh2?'件':'pkgs'));
+      if(c.cGrossWeight)parts.push(c.cGrossWeight+' KG');
+      if(c.cMeasurement)parts.push(c.cMeasurement+' CBM');
+      if(parts.length)h+=esc(parts.join('  '));
+      h+='</div>';
+    });
+    h+='</div>';
+  }
+
+  // 6. Total Packages in Words
+  if(show('totals.totalPkgsWords')){
+    h+='<div class="bl-words"><span class="wlbl">'+tr2('Total Packages (in words):','大写件数:')+'</span>';
+    h+='<strong>'+esc(d.totalPkgsWords||'SAY _____ ONLY')+'</strong></div>';
+  } else {
+    h+='<div class="bl-words" style="border-top:1.5px solid #111;"><span class="wlbl">'+tr2('Total Packages (in words):','大写件数:')+'</span>';
+    h+='<strong>'+esc(d.totalPkgsWords||'SAY _____ ONLY')+'</strong></div>';
+  }
+
+  // 7. Freight & Charges (simplified)
+  h+='<div class="bl-freight"><div class="flbl">'+tr2('Freight &amp; Charges','运费与费用')+'</div><div class="frow">';
+  if(show('header.freightTerms'))h+='<div><span class="flbl2">'+tr2('Terms:','条款:')+'</span> '+esc(d.freightTerms||'—')+'</div>';
+  if(show('freight.freightPayableAt'))h+='<div><span class="flbl2">'+tr2('Payable at:','支付地:')+'</span> '+esc(d.freightPayableAt||'—')+'</div>';
+  if(show('freight.declaration'))h+='<div><span class="flbl2">'+tr2('Declaration:','声明:')+'</span> '+esc(d.declaration||'')+'</div>';
+  h+='</div></div>';
+
+  // 8. Bottom: Originals | Place+Date | Shipped on Board + Signature
+  h+='<div class="bl-bottom">';
+  h+='<div class="col-original" style="width:22%;">';
+  if(show('signature.noOfOriginals')){h+='<div class="blbl">'+tr2('No. of Original B(s)/L','正本份数')+'</div><div class="bval">'+esc(d.noOfOriginals||'THREE (3)')+'</div>';}
+  h+='</div>';
+  h+='<div style="width:30%;padding:8px 12px;border-right:1.5px solid #111;font-size:10px;">';
+  if(show('signature.placeOfIssue')){h+='<div class="blbl">'+tr2('Place of Issue','签发地点')+'</div><div class="bval">'+esc(d.placeOfIssue||'—')+'</div>';}
+  if(show('signature.carrierSignatureDate')){h+='<div class="blbl">'+tr2('Date of Issue','签发日期')+'</div><div class="bval">'+esc(d.carrierSignatureDate||'')+'</div>';}
+  h+='</div>';
+  h+='<div style="flex:1;padding:8px 12px;font-size:10px;">';
+  if(show('signature.shippedOnBoardDate')){h+='<div class="blbl">'+tr2('Shipped on Board','已装船日期')+'</div><div class="bval">'+esc(d.shippedOnBoardDate||'—')+'</div>';}
+  if(show('signature.carrierName')){h+='<div class="blbl" style="margin-top:6px;">'+tr2('Signed for the Carrier','承运人签章')+'</div><div class="sig-line" style="border-bottom:1.5px solid #111;min-height:28px;margin-top:2px;margin-bottom:2px;"></div><div class="sig-label" style="font-size:9px;color:#555;font-style:italic;">'+esc(d.carrierName||'')+'</div>';}
+  h+='</div></div>';
+
+  h+='</div></div>';
   document.getElementById('preview-container').innerHTML=h;
 }
+
+// ===== History =====
 function renderHistory(){
   var tr=I18N[lang],snaps=loadSnapshots(DT),search=(document.getElementById('history-search').value||'').toLowerCase();
   if(search)snaps=snaps.filter(function(s){return(s.label||'').toLowerCase().indexOf(search)!==-1||(s.ref||'').toLowerCase().indexOf(search)!==-1;});
@@ -206,38 +632,75 @@ function renderHistory(){
   h+='</div><div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="window._blClearAllHistory()">'+tr.clearAll+'</button></div>';}
   document.getElementById('history-container').innerHTML=h;document.getElementById('history-search').oninput=function(){renderHistory();};
 }
-function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
-document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
-document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
+
+// ===== Event Handlers =====
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
-  injectSpaButton();
-  injectBottomCta();
-  injectPageFaq();
+injectSpaButton();injectBottomCta();injectPageFaq();
 document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
 document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
+
 window._blSet=function(f,v){data[f]=v;saveDocData(DT,data);};
-window._blItem=function(idx,f,v){data.items[idx][f]=v;saveDocData(DT,data);};
-window._blAddItem=function(){data.items.push(getEmptyItem(DT));saveDocData(DT,data);renderForm();};
-window._blRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);saveDocData(DT,data);renderForm();}};
+window._blItem=function(idx,f,v){
+  data.items[idx][f]=v;
+  _blCalcTotals();
+  saveDocData(DT,data);renderForm();
+};
+window._blAddItem=function(){data.items.push(getEmptyItem(DT));_blCalcTotals();saveDocData(DT,data);renderForm();};
+window._blRemoveItem=function(idx){
+  if(data.items.length>1){data.items.splice(idx,1);_blCalcTotals();saveDocData(DT,data);renderForm();}
+};
 window._blRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function(x){return x.id===id;});if(s&&s.data){data=JSON.parse(JSON.stringify(s.data));saveDocData(DT,data);renderAll();}};
-window._blDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._blClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
-function esc(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
-function lI(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._blSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
-function lID(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._blSet(\''+f+'\',this.value)"></div>';}
-function loadSample(){var s=getDefaultDoc(DT);s.blNo='BL-2026-001';s.shipperRef='SR-001';s.bookingNo='BK-2026-789';s.freightTerms='Prepaid';s.currency='USD';
-s.dateOfShipment='2026-05-15';s.dateOfIssue='2026-05-16';
-s.shipperName='Shanghai Export Co.';s.shipperAddress='No.123 Zhangjiang Rd, Shanghai';
-s.consigneeName='ABC Trading LLC';s.consigneeAddress='456 Fifth Ave, New York, NY';
-s.notifyPartyName='XYZ Customs Broker';s.notifyPartyAddress='789 Harbor Blvd, New York';
-s.vessel='COSCO SHANGHAI';s.voyageNo='V.026E';s.portOfLoading='Shanghai';s.portOfDischarge='New York';s.placeOfReceipt='Shanghai CY';s.placeOfDelivery='New York CY';
-s.items=[{marks:'ABC/NYC',numberOfPkgs:'50',description:'Stainless Steel Water Bottles',grossWeight:'140.00 KG',measurement:'2.5 CBM',freight:'Prepaid'},
-{marks:'ABC/NYC',numberOfPkgs:'20',description:'Thermal Flasks',grossWeight:'95.00 KG',measurement:'1.2 CBM',freight:'Prepaid'}];
-s.totalPkgs='70';s.totalGrossWeight='235.00 KG';s.totalMeasurement='3.7 CBM';
-s.declaration='The shipper hereby declares that the goods described herein are correctly described.';
-s.carrierName='COSCO Shipping Lines';s.carrierSignatureDate='2026-05-16';
-data=s;saveDocData(DT,data);renderAll();}
+window._blDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};
+window._blClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
+
+// ===== Load Sample =====
+function loadSample(){
+  var s=getDefaultDoc(DT);
+  s.blNo='SGL25124184';s.bookingNo='BK-2026-789';s.freightTerms='FREIGHT PREPAID';s.issueType='TELEX RELEASE';s.contractNo='CN-2026-001';
+  s.shipperName='Shanghai Export Co.';s.shipperAddress='No.123 Zhangjiang Rd, Shanghai';
+  s.shipperContact='Michael Chen';s.shipperPhone='+86-21-12345678';s.shipperEmail='michael@export.cn';
+  s.consigneeName='ABC Trading LLC';s.consigneeAddress='456 Fifth Ave, New York, NY';
+  s.consigneeContact='John Smith';s.consigneePhone='+1-212-9876543';s.consigneeEmail='john@abctrading.com';
+  s.notifyPartyName='XYZ Customs Broker';s.notifyPartyAddress='789 Harbor Blvd, New York';s.notifyPartyContact='Alice Wang';s.notifyPartyPhone='+1-212-555-1234';s.notifyPartyEmail='alice@xyzbroker.com';
+  s.vessel='COSCO SHANGHAI';s.voyageNo='V.026E';s.portOfLoading='Shanghai';s.portOfDischarge='New York';
+  s.placeOfDelivery='New York CY';s.preCarriageBy='';
+  s.items=[{marks:'ABC/NYC',numberOfPkgs:'50',description:'Stainless Steel Water Bottles',packagingType:'CTNS',grossWeight:'140.00 KG',measurement:'2.500'},
+           {marks:'ABC/NYC',numberOfPkgs:'20',description:'Thermal Flasks',packagingType:'CTNS',grossWeight:'95.00 KG',measurement:'1.200'}];
+  s.totalPkgs='70';s.totalGrossWeight='235.00 KG';s.totalMeasurement='3.700 CBM';
+  s.totalPkgsWords='SAY SEVENTY (70) CTNS ONLY';
+  s.declaration='The shipper hereby declares that the goods described herein are correctly described.';
+  s.freightPayableAt='Shanghai';s.placeOfIssue='Shanghai';s.noOfOriginals='THREE';
+  s.shippedOnBoardDate='2026-05-15';s.carrierName='COSCO Shipping Lines';s.carrierSignatureDate='2026-05-16';
+  s.containers=[{containerNo:'TSSU5216110',containerType:'40HQ',sealNo:'TSF0288516',cPkgs:'70',cGrossWeight:'235.00',cMeasurement:'3.700'}];
+  data=s;_blCalcTotals();saveDocData(DT,data);renderAll();
+}
+
+// ===== Container CRUD =====
+window._blContainerItem=function(idx,f,v){data.containers=data.containers||[];data.containers[idx][f]=v;saveDocData(DT,data);};
+window._blAddContainer=function(){data.containers=data.containers||[];data.containers.push({containerNo:'',containerType:'',sealNo:'',cPkgs:'',cGrossWeight:'',cMeasurement:''});saveDocData(DT,data);renderForm();};
+window._blRemoveContainer=function(idx){data.containers=data.containers||[];if(data.containers.length>1){data.containers.splice(idx,1);saveDocData(DT,data);renderForm();}};
+
+// ===== Init =====
+function init(){
+  applyTheme();
+  var s=loadDocData(DT);
+  data=s?s:getDefaultDoc(DT);
+  ensureTmplData(DT,BL_DEFAULT_FIELDS);
+  // Migrate: ensure new fields exist + convert signature fields to optional
+  migrateTmplData(DT,BL_DEFAULT_FIELDS,function(t){
+    ['placeOfIssue','noOfOriginals','shippedOnBoardDate','carrierName','carrierSignatureDate'].forEach(function(sk){
+      var fk='signature.'+sk;
+      if(t.fields[fk]==='required')t.fields[fk]=true;
+    });
+  });
+  var tmplData=loadTmplData(DT);
+  var curr=tmplData&&tmplData.templates?tmplData.templates.find(function(t){return t.id===tmplData.currentTemplateId;}):null;
+  if(curr)previewLang=curr.previewLang||'en';
+  setupTmplEvents();
+  renderAll();
+}
+
 init();
 </script>
 <!-- GoatCounter -->

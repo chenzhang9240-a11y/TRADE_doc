@@ -43,7 +43,7 @@ const I18N = {
     featLocal: '数据本地', featLocalEn: 'Local Data',
     featLocalDesc: '浏览器存储，不上传', featLocalDescEn: 'Browser storage, no upload',
     backHome: '返回主页', loadSample: '加载示例', clear: '清空',
-    preview: '预览 →', backEdit: '← 返回编辑', exportPdf: '导出PDF', generating: '生成中...',
+    preview: '预览 →', backEdit: '← 返回编辑', exportPdf: '导出PDF', exportExcel: '导出Excel', generating: '生成中...',
     print: '打印',
     formEditor: 'Form Editor / 表单编辑', previewTab: 'Preview / 预览', historyTab: 'History / 历史记录',
     searchPlaceholder: '按编号搜索...', records: '条记录', clearAll: '清除全部',
@@ -55,6 +55,13 @@ const I18N = {
     logoLabel: 'Company Logo / 企业 Logo',
     toggleLang: '中文/English',
     save: '保存', saveTemplate: '保存模板',
+    dataMgmtTitle: '数据备份与恢复',
+    dataMgmtDesc: '将所有本地数据（包含已存单据、历史快照、模板配置等）导出为 JSON 备份文件，或从备份恢复。',
+    btnBackup: '备份全部数据 (JSON)',
+    btnRestore: '恢复备份数据',
+    restoreConfirm: '导入备份将完全覆盖所有现有的单证和配置数据，且不可撤销！您确定要继续吗？',
+    restoreSuccess: '数据恢复成功！正在重新载入页面...',
+    invalidBackupFile: '无效的备份文件格式！',
   },
   en: {
     heroTitle: 'TradeKit — Trade Document Generator',
@@ -82,7 +89,7 @@ const I18N = {
     featLocal: 'Local Data', featLocalEn: 'Local Data',
     featLocalDesc: 'Browser storage, no upload', featLocalDescEn: 'Browser storage, no upload',
     backHome: 'Home', loadSample: 'Load Sample', clear: 'Clear',
-    preview: 'Preview →', backEdit: '← Back to Edit', exportPdf: 'Export PDF', generating: 'Generating...',
+    preview: 'Preview →', backEdit: '← Back to Edit', exportPdf: 'Export PDF', exportExcel: 'Export Excel', generating: 'Generating...',
     print: 'Print',
     formEditor: 'Form Editor / 表单编辑', previewTab: 'Preview / 预览', historyTab: 'History / 历史记录',
     searchPlaceholder: 'Search by reference...', records: 'snapshots', clearAll: 'Clear All',
@@ -94,6 +101,13 @@ const I18N = {
     logoLabel: 'Company Logo / 企业 Logo',
     toggleLang: 'EN/中文',
     save: 'Save', saveTemplate: 'Save Template',
+    dataMgmtTitle: 'Data Backup & Restore',
+    dataMgmtDesc: 'Export all local data (including documents, templates, history) as a JSON file, or restore from a backup.',
+    btnBackup: 'Backup All Data (JSON)',
+    btnRestore: 'Restore Backup Data',
+    restoreConfirm: 'Importing backup will completely overwrite all existing documents and settings, and cannot be undone. Are you sure you want to proceed?',
+    restoreSuccess: 'Data restored successfully! Reloading page...',
+    invalidBackupFile: 'Invalid backup file format!',
   }
 };
 
@@ -249,7 +263,9 @@ function loadSnapshots(dt) {
   } catch(e) { return []; }
 }
 function saveSnapshots(dt, snaps) {
-  try { localStorage.setItem(userKey('doc_snapshots_' + dt), JSON.stringify(snaps.slice(0, 50))); } catch(e) {}
+  try { localStorage.setItem(userKey('doc_snapshots_' + dt), JSON.stringify(snaps.slice(0, 50))); } catch(e) {
+    console.warn('[TradeKit] Failed to save snapshots for', dt, e.message);
+  }
 }
 function addSnapshot(dt, ref, data) {
   const snap = {
@@ -597,7 +613,6 @@ function getDefaultDoc(dt) {
     case 'commercial_invoice': return {
       logo:'', shipperName:'', shipperAddress:'', shipperPhone:'', shipperTaxId:'',
       consigneeName:'', consigneeCompany:'', consigneeAddress:'', consigneePhone:'', consigneeTaxId:'',
-      importerName:'', importerAddress:'', importerPhone:'', importerTaxId:'',
       invoiceNo:'', poNo:'', dateOfExport:'', waybillNo:'', reasonForExport:'commercial',
       paymentTerms:'', currency:'USD', lCNo:'', exportCountry:'', destinationCountry:'',
       items:[empty], totalPkgs:'', totalWeight:'', totalInvoiceValue:'',
@@ -606,13 +621,17 @@ function getDefaultDoc(dt) {
       signatureName:'', signatureTitle:'', signatureDate:''
     };
     case 'cost_estimation': return {
-      projectRef:'', preparationDate:'', preparedBy:'', companyName:'', companyAddress:'', contactPhone:'',
-      clientName:'', clientCompany:'', clientAddress:'', productName:'', productSpec:'',
-      currency:'USD', validityPeriod:'', items:[empty],
-      subtotalCost:'', profitMargin:'10', taxRate:'13', discountRate:'0',
-      profitAmount:'', taxAmount:'', discountAmount:'', grandTotal:'',
-      termsAndConditions:'Standard terms and conditions apply.',
-      signatureName:'', signatureTitle:'', signatureDate:''
+      projectName:'', client:'', preparationDate:'', preparedBy:'',
+      origin:'', destination:'', tradeTerms:'', priceValidity:'',
+      containerSpec:'', grossWeight:'', chargeableWeight:'', volume:'', cargoType:'',
+      exchangeRates:[{currency:'USD', rate:'7.25'}],
+      activeTab:'sea',
+      sea:{route:'', sections:[{name:'一、国内段（起运港）', items:[]},{name:'二、主运费（海运）', items:[]},{name:'三、目的港段', items:[]},{name:'四、隐性费用', items:[]}]},
+      lcl:{sections:[{name:'一、国内段（起运港）', items:[]},{name:'二、主运费（海运）', items:[]},{name:'三、目的港段', items:[]},{name:'四、隐性费用', items:[]}]},
+      air:{route:'', sections:[{name:'一、国内段', items:[]},{name:'二、主运费（空运）', items:[]},{name:'三、目的港段', items:[]},{name:'四、隐性费用', items:[]}]},
+      courier:{route:'', sections:[{name:'一、取件 & 操作', items:[]},{name:'二、运费（按重量段）', items:[]},{name:'三、目的港 & 清关', items:[]},{name:'四、隐性费用', items:[]}]},
+      parcel:{route:'', sections:[{name:'一、国内操作', items:[]},{name:'二、干线运输', items:[]},{name:'三、隐性费用', items:[]}]},
+      notes:''
     };
     case 'commercial_quotation': return {
       logo:'', quotationNo:'', quotationDate:'', validityPeriod:'', currency:'USD',
@@ -684,17 +703,20 @@ function getDefaultDoc(dt) {
       numbers:[]
     };
     case 'bill_of_lading': return {
-      shipperName:'', shipperAddress:'',
-      consigneeName:'', consigneeAddress:'',
-      notifyPartyName:'', notifyPartyAddress:'',
+      shipperName:'', shipperAddress:'', shipperContact:'', shipperPhone:'', shipperEmail:'',
+      consigneeName:'', consigneeAddress:'', consigneeContact:'', consigneePhone:'', consigneeEmail:'',
+      notifyPartyName:'', notifyPartyAddress:'', notifyPartyContact:'', notifyPartyPhone:'', notifyPartyEmail:'',
       vessel:'', voyageNo:'', portOfLoading:'', portOfDischarge:'',
-      placeOfReceipt:'', placeOfDelivery:'',
-      blNo:'', shipperRef:'', bookingNo:'',
-      freightTerms:'Prepaid', currency:'USD',
-      dateOfShipment:'', dateOfIssue:'',
+      placeOfDelivery:'',
+      blNo:'', bookingNo:'',
+      freightTerms:'Prepaid', issueType:'', contractNo:'',
       items:[empty], totalPkgs:'', totalGrossWeight:'', totalMeasurement:'',
       declaration:'The shipper hereby declares that the goods described herein are correctly described.',
-      carrierName:'', carrierSignatureDate:''
+      carrierName:'', carrierSignatureDate:'',
+      totalPkgsWords:'', placeOfIssue:'',
+      noOfOriginals:'THREE', preCarriageBy:'',
+      shippedOnBoardDate:'', freightPayableAt:'',
+      containers:[{containerNo:'',containerType:'',sealNo:'',cPkgs:'',cGrossWeight:'',cMeasurement:''}]
     };
     case 'insurance_policy': return {
       insuredName:'', insuredAddress:'',
@@ -759,16 +781,33 @@ function getDefaultDoc(dt) {
       beneficiarySignature:'', signatureDate:''
     };
     case 'shipper_letter_instruction': return {
+      activeTab:'sea',
+      clientName:'', clientAddress:'', clientContact:'', clientPhone:'', clientEmail:'',
       shipperName:'', shipperAddress:'', shipperPhone:'', shipperEmail:'', shipperTaxId:'',
-      consigneeName:'', consigneeCompany:'', consigneeAddress:'', consigneePhone:'',
-      notifyPartyName:'', notifyPartyAddress:'',
-      forwarderName:'', forwarderContact:'',
-      shipmentDate:'', vessel:'',
-      portOfLoading:'', portOfDischarge:'',
-      blType:'Original', currency:'USD', paymentTerms:'T/T',
-      insuranceRequired:false, insuranceValue:'', specialInstructions:'',
-      items:[empty], totalValue:'', totalWeight:'', totalPkgs:'',
-      shipperSignature:'', signatureDate:''
+      consigneeCompany:'', consigneeAddress:'', consigneeContact:'', consigneePhone:'', consigneeEmail:'', consigneeTaxId:'',
+      notifyPartyCompany:'', notifyPartyAddress:'', notifyPartyContact:'', notifyPartyPhone:'', notifyPartyEmail:'', notifyPartyTaxId:'',
+      paymentTerms:'T/T',
+      shipperSignature:'', signatureDate:'',
+      specialInstructions:'',
+      sea:{
+        portOfLoading:'', portOfDischarge:'', placeOfDelivery:'',
+        estSailingDate:'', vessel:'',
+        tradeTerms:'FOB', directVoyage:'N', freeDemurrage:'', shipmentMode:'FCL', containerInfo:'',
+        blType:'Original',
+        insuranceRequired:false, insuranceValue:'',
+        items:[{marks:'',description:'',hsCode:'',quantity:'',unitOfMeasure:'',weight:'',volume:'',value:''}],
+        totalValue:'', totalWeight:'', totalPkgs:'', totalVolume:''
+      },
+      air:{
+        pol:'', pod:'', placeOfDelivery:'', etd:'',
+        airline:'', flightNo:'',
+        masterHouse:'', randomDocs:'', tradeTerms:'FOB',
+        insuranceRequired:false, insuranceValue:'', currency:'USD',
+        hasBattery:false, hasMagnet:false, hasLiquidGas:false,
+        items:[{marks:'',description:'',hsCode:'',quantity:'',unitOfMeasure:'',weight:'',volume:'',value:'',length:'',width:'',height:''}],
+        totalPkgs:'', totalGrossWeight:'', totalVolume:'', totalValue:'',
+        volumeWeight:'', chargeableWeight:''
+      }
     };
     case 'commercial_packing_list': return {
       shipperName:'', shipperCompany:'', shipperAddress:'',
@@ -787,17 +826,16 @@ function getDefaultDoc(dt) {
 function getEmptyItem(dt) {
   switch(dt) {
     case 'commercial_invoice': return {marks:'',noOfPkgs:'',typeOfPackaging:'',countryOfOrigin:'',description:'',hsCode:'',qty:'',unitOfMeasure:'',weight:'',unitValue:'',totalValue:''};
-    case 'cost_estimation': return {itemName:'',specification:'',quantity:'',unitCost:'',totalCost:'',notes:''};
-    case 'commercial_quotation': return {itemNo:'',description:'',specification:'',quantity:'',unitOfMeasure:'',unitPrice:'',discount:'',lineTotal:''};
+    case 'cost_estimation': return {costItem:'', supplier:'', basePrice:'', currency:'CNY', ourCost:'', sellPrice:'', qty:'1', note:''};
     case 'packing_list': return {marks:'',noOfPkgs:'',typeOfPackaging:'',description:'',qty:'',unitOfMeasure:'',netWeight:'',grossWeight:'',measurement:''};
     case 'proforma_invoice': return {itemNo:'',marks:'',description:'',hsCode:'',qty:'',unitOfMeasure:'',unitPrice:'',totalAmount:''};
     case 'trade_contract': return {itemNo:'',description:'',specification:'',qty:'',unitOfMeasure:'',unitPrice:'',totalAmount:''};
     case 'certificate_of_origin': return {marks:'',numberOfPkgs:'',description:'',hsCode:'',grossWeight:'',quantity:''};
-    case 'bill_of_lading': return {marks:'',numberOfPkgs:'',description:'',grossWeight:'',measurement:'',freight:''};
+    case 'bill_of_lading': return {marks:'',numberOfPkgs:'',description:'',packagingType:'',grossWeight:'',measurement:''};
     case 'insurance_policy': return {marks:'',numberOfPkgs:'',description:'',hsCode:'',quantity:'',insuredAmount:''};
     case 'customs_declaration': return {itemNo:'',hsCode:'',description:'',specification:'',quantity:'',unitOfMeasure:'',unitPrice:'',totalAmount:'',originCountry:'',destinationCountry:'',netWeight:'',grossWeight:''};
     case 'inspection_certificate': return {itemNo:'',description:'',specification:'',quantity:'',unitOfMeasure:'',batchNo:''};
-    case 'shipper_letter_instruction': return {description:'',hsCode:'',quantity:'',unitOfMeasure:'',weight:'',value:''};
+    case 'shipper_letter_instruction': return {marks:'',description:'',hsCode:'',quantity:'',unitOfMeasure:'',weight:'',volume:'',value:'',length:'',width:'',height:''};
     case 'commercial_packing_list': return {itemNo:'',description:'',specification:'',numberOfPkgs:'',typeOfPackaging:'',qtyPerPkg:'',totalQty:'',unitOfMeasure:'',netWeightPerPkg:'',grossWeightPerPkg:'',totalNetWeight:'',totalGrossWeight:'',dimensionL:'',dimensionW:'',dimensionH:'',measurementCBM:''};
     default: return {};
   }
@@ -811,10 +849,17 @@ function autoCalcItem(dt, item) {
       if (item.qty && item.unitValue) item.totalValue = (parseFloat(item.qty) * parseFloat(item.unitValue) || 0).toFixed(2);
       break;
     case 'cost_estimation':
-      item.totalCost = ((parseFloat(item.quantity)||0) * (parseFloat(item.unitCost)||0)).toFixed(2);
+      if (item.qty) {
+        item.totalCost = ((parseFloat(item.ourCost)||0) * parseFloat(item.qty)).toFixed(2);
+        item.totalSell = ((parseFloat(item.sellPrice)||0) * parseFloat(item.qty)).toFixed(2);
+      } else {
+        item.totalCost = (parseFloat(item.ourCost)||0).toFixed(2);
+        item.totalSell = (parseFloat(item.sellPrice)||0).toFixed(2);
+      }
       break;
     case 'commercial_quotation':
       item.lineTotal = ((parseFloat(item.quantity)||0) * (parseFloat(item.unitPrice)||0) - (parseFloat(item.discount)||0)).toFixed(2);
+      item.taxAmount = ((parseFloat(item.lineTotal)||0) * (parseFloat(item.taxRate)||0) / 100).toFixed(2);
       break;
     case 'proforma_invoice':
     case 'trade_contract':
@@ -825,11 +870,12 @@ function autoCalcItem(dt, item) {
       item.totalNetWeight = ((parseFloat(item.netWeightPerPkg)||0) * (parseFloat(item.numberOfPkgs)||0)).toFixed(2);
       item.totalGrossWeight = ((parseFloat(item.grossWeightPerPkg)||0) * (parseFloat(item.numberOfPkgs)||0)).toFixed(2);
       if (item.dimensionL && item.dimensionW && item.dimensionH) {
-        item.measurementCBM = ((parseFloat(item.dimensionL)||0) * (parseFloat(item.dimensionW)||0) * (parseFloat(item.dimensionH)||0) / 1000000 * (parseFloat(item.numberOfPkgs)||0)).toFixed(4);
+        item.measurementCBM = ((parseFloat(item.dimensionL)||0) * (parseFloat(item.dimensionW)||0) * (parseFloat(item.dimensionH)||0) / 1000000 * (parseFloat(item.numberOfPkgs)||0)).toFixed(2);
       }
       break;
   }
 }
+
 
 // ===== PDF Export =====
 function doExportPdf(dt, data, previewElId) {
@@ -883,7 +929,7 @@ function getDocRef(dt, data) {
     case 'inspection_certificate': return data.certificateNo;
     case 'fumigation_certificate': return data.certificateNo;
     case 'beneficiary_certificate': return data.lcNo;
-    case 'shipper_letter_instruction': return data.forwarderName;
+    case 'shipper_letter_instruction': return data.clientName;
     case 'commercial_packing_list': return data.invoiceNo;
     default: return '';
   }
@@ -897,10 +943,14 @@ function loadDocData(dt) {
   } catch(e) { return null; }
 }
 function saveDocData(dt, data) {
-  try { localStorage.setItem(userKey('doc_data_' + dt), JSON.stringify(data)); } catch(e) {}
+  try { localStorage.setItem(userKey('doc_data_' + dt), JSON.stringify(data)); } catch(e) {
+    console.warn('[TradeKit] Failed to save data for', dt, e.message);
+  }
 }
 function clearDocData(dt) {
-  try { localStorage.removeItem(userKey('doc_data_' + dt)); } catch(e) {}
+  try { localStorage.removeItem(userKey('doc_data_' + dt)); } catch(e) {
+    console.warn('[TradeKit] Failed to clear data for', dt, e.message);
+  }
 }
 
 // ===== Utility helpers =====
@@ -927,6 +977,95 @@ function generateInvoiceNumber() {
   return 'INV' + '-' + y + m + d + '-' + seq;
 }
 
+// ===== localStorage Quota Check =====
+function checkStorageQuota() {
+  try {
+    var testKey = userKey('__quota_test__');
+    var testData = new Array(1024).join('x');
+    localStorage.setItem(testKey, testData);
+    localStorage.removeItem(testKey);
+  } catch(e) {
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      console.warn('[TradeKit] localStorage is nearly full! Data may not be saved correctly.');
+    }
+  }
+}
+// Run once on page load
+checkStorageQuota();
+
+// ===== Shared Rendering Functions =====
+// These are duplicated across all HTML files; defined here to be shared.
+// HTML files should REMOVE their own copy once this is in common.js.
+
+function esc(str) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function renderTopBar() {
+  var tr = I18N[lang];
+  document.documentElement.lang = lang;
+  document.getElementById('back-icon').innerHTML = svg('ArrowLeft', 16);
+  document.getElementById('back-text').textContent = tr.backHome;
+  document.getElementById('lang-icon').innerHTML = svg('Languages', 16);
+  document.getElementById('lang-label').textContent = lang === 'zh' ? 'EN' : '中文';
+  document.getElementById('theme-icon').innerHTML = svg(dark ? 'Sun' : 'Moon', 16);
+  document.getElementById('theme-label').textContent = dark ? 'Light' : 'Dark';
+}
+
+function renderHeader() {
+  document.getElementById('page-title').textContent = DT_META.title;
+  document.getElementById('page-subtitle').textContent = DT_META.titleZh;
+}
+
+function renderTabs() {
+  var tr = I18N[lang];
+  document.getElementById('tab-edit').textContent = tr.formEditor;
+  document.getElementById('tab-preview').textContent = tr.previewTab;
+  document.getElementById('tab-history').textContent = tr.historyTab;
+  var ps = ['edit', 'preview', 'history'];
+  ps.forEach(function(p) {
+    document.getElementById('tab-' + p).onclick = function() {
+      ps.forEach(function(pp) {
+        document.getElementById('tab-' + pp).classList.toggle('active', pp === p);
+        document.getElementById('panel-' + pp).classList.toggle('active', pp === p);
+      });
+    };
+  });
+}
+
+function switchTab(tab) {
+  ['edit','preview','history'].forEach(function(p) {
+    document.getElementById('tab-' + p).classList.toggle('active', p === tab);
+    document.getElementById('panel-' + p).classList.toggle('active', p === tab);
+  });
+}
+
+function renderClearModal() {
+  var tr = I18N[lang];
+  var modal = document.getElementById('clear-modal');
+  if (showClearConfirm) {
+    modal.classList.remove('hidden');
+    document.getElementById('clear-title').textContent = tr.clearTitle;
+    document.getElementById('clear-msg').textContent = tr.clearMsg;
+    document.getElementById('btn-cancel-clear').textContent = tr.cancel;
+    document.getElementById('btn-confirm-clear').textContent = tr.clear;
+  } else {
+    modal.classList.add('hidden');
+  }
+}
+
+function renderAll() {
+  renderTopBar();
+  renderHeader();
+  renderTabs();
+  if (typeof renderTmplBar === 'function') renderTmplBar();
+  renderForm();
+  renderPreview();
+  renderHistory();
+  renderClearModal();
+}
+
 // ===== Template Management =====
 // Each doc type stores: { currentTemplateId, previewLang, templates: [{ id, name, builtIn, previewLang, fields }] }
 
@@ -938,7 +1077,9 @@ function loadTmplData(dt) {
 }
 
 function saveTmplData(dt, data) {
-  try { localStorage.setItem(getTmplKey(dt), JSON.stringify(data)); } catch(e) {}
+  try { localStorage.setItem(getTmplKey(dt), JSON.stringify(data)); } catch(e) {
+    console.warn('[TradeKit] Failed to save template for', dt, e.message);
+  }
 }
 
 function buildDefaultTmpl(dt, defaultFields) {
@@ -1038,3 +1179,252 @@ function deleteTmpl(dt, id, defaultFields) {
   saveTmplData(dt, data);
   return true;
 }
+
+// ===== Template Migration =====
+function migrateTmplData(dt, defaultFields, customizer) {
+  var data = loadTmplData(dt);
+  if (!data || !data.templates) return;
+  var changed = false;
+  data.templates.forEach(function(t) {
+    for (var k in defaultFields) {
+      if (!(k in t.fields)) {
+        t.fields[k] = defaultFields[k];
+        changed = true;
+      } else if (t.builtIn && t.fields[k] !== defaultFields[k]) {
+        t.fields[k] = defaultFields[k];
+        changed = true;
+      }
+    }
+    if (typeof customizer === 'function') customizer(t);
+  });
+  if (changed) saveTmplData(dt, data);
+}
+
+// ===== Common Template UI Functions =====
+// Parameterized versions shared across doc types.
+// Per-file wrappers (renderTmplBar, renderTmplModal, doSaveTmplFromModal, setupTmplEvents)
+// call these with doc-type-specific constants.
+
+function tmplRenderBar(dt, defaultFields) {
+  var isZh = lang === 'zh';
+  var data = ensureTmplData(dt, defaultFields);
+  var current = getCurrentTmpl(dt, defaultFields);
+
+  document.getElementById('tmpl-config-text').textContent = isZh ? '字段配置' : 'Field Config';
+  document.getElementById('tmpl-label-text').textContent = isZh ? '模板' : 'Template';
+  document.getElementById('tmpl-save-text').textContent = isZh ? '保存' : 'Save';
+  document.getElementById('tmpl-new-text').textContent = isZh ? '新建' : 'New';
+  document.getElementById('tmpl-delete-text').textContent = isZh ? '删除' : 'Delete';
+
+  var sel = document.getElementById('tmpl-selector');
+  var curId = sel.value || data.currentTemplateId;
+  sel.innerHTML = '';
+  data.templates.forEach(function(t) {
+    var opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name + (t.builtIn ? (isZh ? ' (默认)' : ' (Default)') : '');
+    if (t.id === curId || (!curId && t.id === data.currentTemplateId)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if (!sel.value && sel.options.length > 0) { sel.value = sel.options[0].value; }
+
+  var isBuiltIn = current ? current.builtIn : true;
+  document.getElementById('btn-tmpl-delete').classList.toggle('hidden', isBuiltIn);
+  previewLang = getTmplPreviewLang(dt, defaultFields);
+}
+
+function tmplRenderModal(dt, fieldMeta, sections, sectionLabels, defaultFields, sectionFilter) {
+  var isZh = lang === 'zh';
+  var t = getCurrentTmpl(dt, defaultFields);
+  if (!t) return;
+
+  document.getElementById('tmpl-modal-title').textContent = (isZh ? '字段配置 - ' : 'Field Config - ') + t.name;
+
+  var secList = sections;
+  if (typeof sectionFilter === 'function') {
+    secList = sections.filter(function(sk) { return sectionFilter(sk); });
+  }
+
+  var h = '';
+  secList.forEach(function(sk) {
+    var sl = sectionLabels[sk];
+    var title = sl ? (isZh ? sl.zh : sl.en) : sk;
+    var secFields = Object.keys(fieldMeta).filter(function(k) { return fieldMeta[k].section === sk; });
+    if (secFields.length === 0) return;
+
+    h += '<div class="tmpl-modal-section">';
+    h += '<div class="tmpl-modal-section-title">' + title + '</div>';
+    h += '<div class="tmpl-field-row">';
+    secFields.forEach(function(fk) {
+      var meta = fieldMeta[fk];
+      if (!meta) return;
+      var val = t.fields[fk];
+      var isReq = val === 'required';
+      var checked = isReq || val === true;
+      h += '<label class="tmpl-field-item' + (isReq ? ' required' : '') + '">';
+      h += '<input type="checkbox" data-fk="' + fk + '" ' + (checked ? 'checked' : '') + ' ' + (isReq ? 'disabled' : '') + '>';
+      h += (isZh ? meta.labelCn : meta.label);
+      if (isReq) h += ' <span style="color:#dc2626;font-size:10px;">*</span>';
+      h += '</label>';
+    });
+    h += '</div></div>';
+  });
+
+  // Preview language selection
+  h += '<div class="tmpl-preview-lang">';
+  h += '<span style="font-size:13px;font-weight:600;">' + (isZh ? '预览语言' : 'Preview Language') + ':</span>';
+  h += '<label><input type="radio" name="tmpl-preview-lang" value="zh" ' + (t.previewLang === 'zh' ? 'checked' : '') + '> 中文</label>';
+  h += '<label><input type="radio" name="tmpl-preview-lang" value="en" ' + (t.previewLang === 'en' ? 'checked' : '') + '> English</label>';
+  h += '</div>';
+
+  document.getElementById('tmpl-modal-body').innerHTML = h;
+
+  var tr = I18N[lang];
+  document.getElementById('btn-tmpl-modal-cancel').textContent = tr.cancel;
+  document.getElementById('btn-tmpl-modal-save').textContent = tr.saveTemplate;
+  document.getElementById('tmpl-modal').classList.remove('hidden');
+}
+
+function tmplSaveFromModal(dt, defaultFields) {
+  var data = ensureTmplData(dt, defaultFields);
+  var tmpl = data.templates.find(function(t) { return t.id === data.currentTemplateId; });
+  if (!tmpl) return;
+
+  var langRadio = document.querySelector('input[name="tmpl-preview-lang"]:checked');
+  if (langRadio) tmpl.previewLang = langRadio.value;
+
+  if (!tmpl.builtIn) {
+    var checks = document.querySelectorAll('#tmpl-modal-body input[type="checkbox"]');
+    checks.forEach(function(cb) {
+      var fk = cb.getAttribute('data-fk');
+      if (fk && defaultFields[fk] !== 'required') {
+        tmpl.fields[fk] = cb.checked;
+      }
+    });
+  }
+
+  saveTmplData(dt, data);
+  previewLang = tmpl.previewLang;
+  document.getElementById('tmpl-modal').classList.add('hidden');
+  renderTmplBar();
+  renderForm();
+  renderPreview();
+}
+
+function tmplSetupEvents(dt, defaultFields, tmplConfig) {
+  tmplConfig = tmplConfig || {};
+
+  document.getElementById('btn-tmpl-config').onclick = function() {
+    tmplRenderModal(dt, tmplConfig.fieldMeta, tmplConfig.sections, tmplConfig.sectionLabels, defaultFields, tmplConfig.sectionFilter);
+  };
+
+  document.getElementById('btn-tmpl-modal-cancel').onclick = function() {
+    document.getElementById('tmpl-modal').classList.add('hidden');
+  };
+
+  document.getElementById('btn-tmpl-modal-save').onclick = function() {
+    tmplSaveFromModal(dt, defaultFields);
+  };
+
+  document.getElementById('btn-tmpl-save').onclick = function() {
+    tmplSaveFromModal(dt, defaultFields);
+  };
+
+  document.getElementById('tmpl-selector').onchange = function() {
+    setCurrentTmpl(dt, this.value, defaultFields);
+    previewLang = getTmplPreviewLang(dt, defaultFields);
+    renderTmplBar();
+    renderForm();
+    renderPreview();
+  };
+
+  document.getElementById('btn-tmpl-new').onclick = function() {
+    var name = prompt(lang === 'zh' ? '请输入新模板名称:' : 'Enter template name:');
+    if (!name) return;
+    var newFields = {};
+    for (var key in defaultFields) {
+      if (defaultFields[key] === 'required') {
+        newFields[key] = 'required';
+      } else {
+        newFields[key] = false;
+      }
+    }
+    var t = saveNewTmpl(dt, name, newFields, lang === 'zh' ? 'zh' : 'en', defaultFields);
+    previewLang = t.previewLang || 'zh';
+    renderTmplBar();
+    renderForm();
+    renderPreview();
+    tmplRenderModal(dt, tmplConfig.fieldMeta, tmplConfig.sections, tmplConfig.sectionLabels, defaultFields, tmplConfig.sectionFilter);
+  };
+
+  document.getElementById('btn-tmpl-delete').onclick = function() {
+    var current = getCurrentTmpl(dt, defaultFields);
+    if (current.builtIn) return;
+    if (!confirm(lang === 'zh' ? '确定删除模板 "' + current.name + '" 吗？' : 'Delete template "' + current.name + '"?')) return;
+    deleteTmpl(dt, current.id, defaultFields);
+    previewLang = getTmplPreviewLang(dt, defaultFields);
+    renderTmplBar();
+    renderForm();
+    renderPreview();
+  };
+}
+
+// ===== Common Form Helpers =====
+// Short section header (used by most doc types; CI has its own expanded fieldBlock).
+function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
+
+// ===== Global Data Backup & Restore =====
+function backupTradeKitData() {
+  try {
+    var data = {};
+    for (var i = 0; i < localStorage.length; i++) {
+      var key = localStorage.key(i);
+      data[key] = localStorage.getItem(key);
+    }
+    var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    var dateStr = new Date().toISOString().slice(0, 10);
+    a.download = 'tradekit_backup_' + dateStr + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    alert('Export failed: ' + e.message);
+  }
+}
+
+function restoreTradeKitData(file) {
+  if (!file) return;
+  var lang = getLang();
+  var tr = I18N[lang];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (typeof data !== 'object' || data === null) {
+        alert(tr.invalidBackupFile || 'Invalid backup file format!');
+        return;
+      }
+      var confirmMsg = tr.restoreConfirm || 'Importing backup will completely overwrite all existing data. Proceed?';
+      if (confirm(confirmMsg)) {
+        localStorage.clear();
+        for (var key in data) {
+          if (data.hasOwnProperty(key)) {
+            localStorage.setItem(key, data[key]);
+          }
+        }
+        alert(tr.restoreSuccess || 'Data restored successfully! Reloading...');
+        window.location.reload();
+      }
+    } catch(err) {
+      alert('Error parsing file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+window.backupTradeKitData = backupTradeKitData;
+window.restoreTradeKitData = restoreTradeKitData;

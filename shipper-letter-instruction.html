@@ -94,15 +94,13 @@
 <script src="common.js"></script>
 <script>
 var DT='shipper_letter_instruction',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
-function init(){applyTheme();var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);renderAll();}
+var TAB_KEYS=['sea','air'];
+var TAB_ICONS={'sea':'🚢','air':'✈️'};
+var TAB_NAMES={'sea':{zh:'海运',en:'Sea'},'air':{zh:'空运',en:'Air'}};
+function init(){applyTheme();var s=loadDocData(DT);data=s?_sliMigrateData(s):getDefaultDoc(DT);_sliCalcTotals();renderAll();}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
-function renderAll(){renderTopBar();renderHeader();renderTabs();renderForm();renderPreview();renderHistory();renderClearModal();}
-function renderTopBar(){var tr=I18N[lang];document.documentElement.lang=lang;document.getElementById('back-icon').innerHTML=svg('ArrowLeft',16);document.getElementById('back-text').textContent=tr.backHome;document.getElementById('lang-icon').innerHTML=svg('Languages',16);document.getElementById('lang-label').textContent=lang==='zh'?'EN':'中文';document.getElementById('theme-icon').innerHTML=svg(dark?'Sun':'Moon',16);document.getElementById('theme-label').textContent=dark?'Light':'Dark';}
-function renderHeader(){document.getElementById('page-title').textContent=DT_META.title;document.getElementById('page-subtitle').textContent=DT_META.titleZh;}
-function renderTabs(){var tr=I18N[lang];document.getElementById('tab-edit').textContent=tr.formEditor;document.getElementById('tab-preview').textContent=tr.previewTab;document.getElementById('tab-history').textContent=tr.historyTab;var ps=['edit','preview','history'];ps.forEach(function(p){document.getElementById('tab-'+p).onclick=function(){ps.forEach(function(pp){document.getElementById('tab-'+pp).classList.toggle('active',pp===p);document.getElementById('panel-'+pp).classList.toggle('active',pp===p);});};});}
-function switchTab(t){['edit','preview','history'].forEach(function(p){document.getElementById('tab-'+p).classList.toggle('active',p===t);document.getElementById('panel-'+p).classList.toggle('active',p===t);});}
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data;
   document.getElementById('btn-load-sample').textContent=tr.loadSample;document.getElementById('btn-clear').textContent=tr.clear;
@@ -115,91 +113,361 @@ function renderForm(){
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
   document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
   var h='';
+  // Shared: Client Info
+  h+='<div class="section-card"><h3>'+fB(isZh?'委托人信息':'Client Info','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
+  h+=lI(isZh?'委托人名称':'Client Name',d.clientName,'clientName','');h+=lI(isZh?'联系人':'Contact',d.clientContact,'clientContact','');
+  h+=lI(isZh?'电话':'Phone',d.clientPhone,'clientPhone','');h+=lI(isZh?'邮箱':'Email',d.clientEmail,'clientEmail','');
+  h+='<div style="grid-column:1/-1;"><div class="form-label">'+(isZh?'地址':'Address')+'</div><textarea class="input-field" rows="2" onchange="window._sliSet(\'clientAddress\',this.value)">'+esc(d.clientAddress)+'</textarea></div>';
+  h+='</div></div>';
+  // Shared: Shipper
   h+='<div class="section-card"><h3>'+fB(isZh?'发货人':'Shipper','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
   h+=lI(isZh?'名称':'Name',d.shipperName,'shipperName','');h+=lI(isZh?'电话':'Phone',d.shipperPhone,'shipperPhone','');
   h+=lI(isZh?'邮箱':'Email',d.shipperEmail,'shipperEmail','');h+=lI(isZh?'税号':'Tax ID',d.shipperTaxId,'shipperTaxId','');
   h+='<div style="grid-column:1/-1;"><div class="form-label">'+(isZh?'地址':'Address')+'</div><textarea class="input-field" rows="2" onchange="window._sliSet(\'shipperAddress\',this.value)">'+esc(d.shipperAddress)+'</textarea></div>';
   h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'收货人与通知方':'Consignee & Notify','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
-  h+=lI(isZh?'收货人名称':'Consignee Name',d.consigneeName,'consigneeName','');h+=lI(isZh?'公司名称':'Company',d.consigneeCompany,'consigneeCompany','');
-  h+=lI(isZh?'电话':'Phone',d.consigneePhone,'consigneePhone','');h+=lI(isZh?'通知方名称':'Notify Party',d.notifyPartyName,'notifyPartyName','');
-  h+='<div style="grid-column:1/-1;"><div class="form-label">'+(isZh?'收货人地址':'Consignee Address')+'</div><textarea class="input-field" rows="2" onchange="window._sliSet(\'consigneeAddress\',this.value)">'+esc(d.consigneeAddress)+'</textarea></div>';
-  h+='<div style="grid-column:1/-1;"><div class="form-label">'+(isZh?'通知方地址':'Notify Party Address')+'</div><textarea class="input-field" rows="2" onchange="window._sliSet(\'notifyPartyAddress\',this.value)">'+esc(d.notifyPartyAddress)+'</textarea></div>';
+  // Shared: Consignee
+  h+='<div class="section-card"><h3>'+fB(isZh?'收货人':'Consignee','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
+  h+=lI(isZh?'公司名称':'Company Name',d.consigneeCompany,'consigneeCompany','');h+=lI(isZh?'联系人':'Contact',d.consigneeContact,'consigneeContact','');
+  h+=lI(isZh?'电话':'Phone',d.consigneePhone,'consigneePhone','');h+=lI(isZh?'邮箱':'Email',d.consigneeEmail,'consigneeEmail','');
+  h+=lI(isZh?'税号':'Tax ID',d.consigneeTaxId,'consigneeTaxId','');
+  h+='<div style="grid-column:1/-1;"><div class="form-label">'+(isZh?'地址':'Address')+'</div><textarea class="input-field" rows="2" onchange="window._sliSet(\'consigneeAddress\',this.value)">'+esc(d.consigneeAddress)+'</textarea></div>';
   h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'货代与运输':'Forwarder & Shipment','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
-  h+=lI(isZh?'货代名称':'Forwarder Name',d.forwarderName,'forwarderName','');h+=lI(isZh?'货代联系人':'Forwarder Contact',d.forwarderContact,'forwarderContact','');
-  h+=lID(isZh?'装运日期':'Shipment Date',d.shipmentDate,'shipmentDate');h+=lI(isZh?'船名':'Vessel',d.vessel,'vessel','');
-  h+=lI(isZh?'装货港':'Port of Loading',d.portOfLoading,'portOfLoading','');h+=lI(isZh?'卸货港':'Port of Discharge',d.portOfDischarge,'portOfDischarge','');
-  h+='<div><div class="form-label">'+(isZh?'提单类型':'B/L Type')+'</div><select class="input-field" onchange="window._sliSet(\'blType\',this.value)"><option value="Original"'+(d.blType==='Original'?' selected':'')+'>Original</option><option value="Telex Release"'+(d.blType==='Telex Release'?' selected':'')+'>Telex Release</option><option value="Sea Waybill"'+(d.blType==='Sea Waybill'?' selected':'')+'>Sea Waybill</option></select></div>';
-  h+=lI(isZh?'币种':'Currency',d.currency,'currency','');h+=lI(isZh?'付款条款':'Payment Terms',d.paymentTerms,'paymentTerms','');h+='</div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'保险与指示':'Insurance & Instructions','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
-  h+='<div><div class="form-label">'+(isZh?'需要保险':'Insurance Required')+'</div><select class="input-field" onchange="window._sliSet(\'insuranceRequired\',this.value===\'true\')"><option value="true"'+(d.insuranceRequired?' selected':'')+''+(isZh?'>是':'>Yes')+'</option><option value="false"'+(!d.insuranceRequired?' selected':'')+''+(isZh?'>否':'>No')+'</option></select></div>';
-  h+=lI(isZh?'保险金额':'Insurance Value',d.insuranceValue,'insuranceValue','');
-  h+='</div><div style="margin-top:12px;"><div class="form-label">'+(isZh?'特殊指示':'Special Instructions')+'</div><textarea class="input-field" rows="3" onchange="window._sliSet(\'specialInstructions\',this.value)">'+esc(d.specialInstructions)+'</textarea></div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'货品描述':'Goods Description','')+'</h3>';
-  h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
-  h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加货品。':'Add items.')+'</p>';
-  h+='<button class="btn btn-success btn-sm" onclick="window._sliAddItem()">'+tr.addItem+'</button></div>';
-  h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
-  ['#',isZh?'描述':'DESCRIPTION',isZh?'HS编码':'HS Code',isZh?'数量':'QTY',isZh?'单位':'UOM',isZh?'重量(KG)':'Weight',isZh?'货值':'Value',isZh?'操作':'Action'].forEach(function(th){h+='<th>'+th+'</th>';});
-  h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
-    h+='<tr><td class="row-number">'+(idx+1)+'</td>';
-    h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._sliItem('+idx+',\'description\',this.value)">'+esc(it.description)+'</textarea></td>';
-    h+='<td><input class="input-field input-field-xs" value="'+esc(it.hsCode)+'" onchange="window._sliItem('+idx+',\'hsCode\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.quantity)+'" onchange="window._sliItem('+idx+',\'quantity\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.unitOfMeasure)+'" onchange="window._sliItem('+idx+',\'unitOfMeasure\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.weight)+'" onchange="window._sliItem('+idx+',\'weight\',this.value)"></td>';
-    h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.value)+'" onchange="window._sliItem('+idx+',\'value\',this.value)"></td>';
-    h+='<td class="actions"><button class="btn btn-danger" onclick="window._sliRemoveItem('+idx+')" '+(d.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
+  // Shared: Notify Party
+  h+='<div class="section-card"><h3>'+fB(isZh?'通知方':'Notify Party','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));">';
+  h+=lI(isZh?'公司名称':'Company Name',d.notifyPartyCompany,'notifyPartyCompany','');h+=lI(isZh?'联系人':'Contact',d.notifyPartyContact,'notifyPartyContact','');
+  h+=lI(isZh?'电话':'Phone',d.notifyPartyPhone,'notifyPartyPhone','');h+=lI(isZh?'邮箱':'Email',d.notifyPartyEmail,'notifyPartyEmail','');
+  h+=lI(isZh?'税号':'Tax ID',d.notifyPartyTaxId,'notifyPartyTaxId','');
+  h+='<div style="grid-column:1/-1;"><div class="form-label">'+(isZh?'地址':'Address')+'</div><textarea class="input-field" rows="2" onchange="window._sliSet(\'notifyPartyAddress\',this.value)">'+esc(d.notifyPartyAddress)+'</textarea></div>';
+  h+='</div></div>';
+  // Transport Mode Tab Bar
+  h+='<div class="section-card"><h3>'+fB(isZh?'运输模式与详情':'Transport Mode & Details','')+'</h3>';
+  h+='<div class="sli-tabs" style="display:flex;border-bottom:1px solid #e4e9f0;background:#f8faff;border-radius:8px 8px 0 0;">';
+  TAB_KEYS.forEach(function(key){
+    var act=(d.activeTab===key);
+    h+='<button class="sli-tab-btn'+(act?' active':'')+'" onclick="window._sliSwitchTab(\''+key+'\')" style="padding:10px 20px;font-size:14px;cursor:pointer;border:none;background:'+(act?'#fff':'transparent')+';border-bottom:2px solid '+(act?'#0066cc':'transparent')+';color:'+(act?'#002b5e':'#445566')+';font-weight:'+(act?'600':'400')+';margin-bottom:-1px;">'+TAB_ICONS[key]+' '+(isZh?TAB_NAMES[key].zh:TAB_NAMES[key].en)+'</button>';
   });
-  h+='</tbody></table></div></div>';
-  h+='<div class="section-card"><h3>'+fB(isZh?'汇总与签署':'Totals & Signature','')+'</h3><div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
-  h+=lI(isZh?'总货值':'Total Value',d.totalValue,'totalValue','');h+=lI(isZh?'总重量':'Total Weight',d.totalWeight,'totalWeight','');
-  h+=lI(isZh?'总件数':'Total Packages',d.totalPkgs,'totalPkgs','');h+='</div>';
-  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));margin-top:12px;">';
+  h+='</div>';
+  // Mode-specific content
+  var mode=d.activeTab||'sea';
+  if(mode==='sea'){
+    var sd=d.sea;
+    // SEA: Forwarder & Shipment
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'货代与运输':'Forwarder & Shipment','')+'</h4>';
+    h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+    h+=lIS(isZh?'装货港':'Port of Loading',sd.portOfLoading,'portOfLoading');h+=lIS(isZh?'卸货港':'Port of Discharge',sd.portOfDischarge,'portOfDischarge');
+    h+=lIS(isZh?'交货地':'Place of Delivery',sd.placeOfDelivery,'placeOfDelivery');
+    h+=lIDS(isZh?'预计开船日':'Est. Sailing Date',sd.estSailingDate,'estSailingDate');h+=lIS(isZh?'船名航次':'Vessel/Voyage',sd.vessel,'vessel');
+    h+='<div><div class="form-label">'+(isZh?'贸易条款':'Trade Terms')+'</div><select class="input-field" onchange="window._sliSetSea(\'tradeTerms\',this.value)"><option value="FOB"'+(sd.tradeTerms==='FOB'?' selected':'')+'>FOB</option><option value="CIF"'+(sd.tradeTerms==='CIF'?' selected':'')+'>CIF</option><option value="CFR"'+(sd.tradeTerms==='CFR'?' selected':'')+'>CFR</option><option value="EXW"'+(sd.tradeTerms==='EXW'?' selected':'')+'>EXW</option><option value="DAP"'+(sd.tradeTerms==='DAP'?' selected':'')+'>DAP</option></select></div>';
+    h+='<div><div class="form-label">'+(isZh?'是否直航':'Direct Voyage')+'</div><select class="input-field" onchange="window._sliSetSea(\'directVoyage\',this.value)"><option value="Y"'+(sd.directVoyage==='Y'?' selected':'')+'>Yes</option><option value="N"'+(sd.directVoyage==='N'?' selected':'')+'>No</option></select></div>';
+    h+=lIS(isZh?'免用箱要求':'Free Demurrage',sd.freeDemurrage,'freeDemurrage');
+    h+='<div><div class="form-label">'+(isZh?'出货方式':'Shipment Mode')+'</div><select class="input-field" onchange="window._sliSetSea(\'shipmentMode\',this.value)"><option value="FCL"'+(sd.shipmentMode==='FCL'?' selected':'')+'>FCL (整柜)</option><option value="LCL"'+(sd.shipmentMode==='LCL'?' selected':'')+'>LCL (拼箱)</option></select></div>';
+    h+=lIS(isZh?'柜型柜量':'Container Info',sd.containerInfo,'containerInfo');
+    h+='<div><div class="form-label">'+(isZh?'提单类型':'B/L Type')+'</div><select class="input-field" onchange="window._sliSetSea(\'blType\',this.value)"><option value="Original"'+(sd.blType==='Original'?' selected':'')+'>Original</option><option value="Telex Release"'+(sd.blType==='Telex Release'?' selected':'')+'>Telex Release</option><option value="Sea Waybill"'+(sd.blType==='Sea Waybill'?' selected':'')+'>Sea Waybill</option></select></div>';
+    h+=lIS(isZh?'付款条款':'Payment Terms',d.paymentTerms,'paymentTerms');h+='</div></div>';
+    // SEA: Insurance & Instructions
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'保险与指示':'Insurance & Instructions','')+'</h4>';
+    h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+    h+='<div><div class="form-label">'+(isZh?'需要保险':'Insurance Required')+'</div><select class="input-field" onchange="window._sliSetSea(\'insuranceRequired\',this.value===\'true\')"><option value="true"'+(sd.insuranceRequired?' selected':'')+'>'+(isZh?'是':'Yes')+'</option><option value="false"'+(!sd.insuranceRequired?' selected':'')+'>'+(isZh?'否':'No')+'</option></select></div>';
+    h+=lIS(isZh?'保险金额':'Insurance Value',sd.insuranceValue,'insuranceValue');
+    h+='</div>';
+    h+='<div style="margin-top:12px;"><div class="form-label">'+(isZh?'特殊指示':'Special Instructions')+'</div><textarea class="input-field" rows="3" onchange="window._sliSet(\'specialInstructions\',this.value)">'+esc(d.specialInstructions)+'</textarea></div></div>';
+    // SEA: Goods Description
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'货品描述':'Goods Description','')+'</h4>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+    h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加货品。':'Add items.')+'</p>';
+    h+='<button class="btn btn-success btn-sm" onclick="window._sliAddItem(\'sea\')">'+tr.addItem+'</button></div>';
+    h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
+    ['#',isZh?'唛头':'MARKS',isZh?'描述':'DESCRIPTION',isZh?'HS编码':'HS Code',isZh?'件数':'QTY',isZh?'单位':'UOM',isZh?'重量(KG)':'Weight',isZh?'体积(CBM)':'Volume',isZh?'货值':'Value',isZh?'操作':'Action'].forEach(function(th){h+='<th>'+th+'</th>';});
+    h+='</tr></thead><tbody>';
+    (sd.items||[]).forEach(function(it,idx){
+      h+='<tr><td class="row-number">'+(idx+1)+'</td>';
+      h+='<td><input class="input-field input-field-xs" value="'+esc(it.marks)+'" onchange="window._sliItem(\'sea\','+idx+',\'marks\',this.value)"></td>';
+      h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._sliItem(\'sea\','+idx+',\'description\',this.value)">'+esc(it.description)+'</textarea></td>';
+      h+='<td><input class="input-field input-field-xs" value="'+esc(it.hsCode)+'" onchange="window._sliItem(\'sea\','+idx+',\'hsCode\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.quantity)+'" onchange="window._sliItem(\'sea\','+idx+',\'quantity\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.unitOfMeasure)+'" onchange="window._sliItem(\'sea\','+idx+',\'unitOfMeasure\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.weight)+'" onchange="window._sliItem(\'sea\','+idx+',\'weight\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.volume)+'" onchange="window._sliItem(\'sea\','+idx+',\'volume\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.value)+'" onchange="window._sliItem(\'sea\','+idx+',\'value\',this.value)"></td>';
+      h+='<td class="actions"><button class="btn btn-danger" onclick="window._sliRemoveItem(\'sea\','+idx+')" '+(sd.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+    // SEA: Totals & Signature
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'汇总与签署':'Totals & Signature','')+'</h4>';
+    h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+    h+=lIS(isZh?'总货值':'Total Value',sd.totalValue,'totalValue');h+=lIS(isZh?'总重量':'Total Weight',sd.totalWeight,'totalWeight');h+=lIS(isZh?'总体积':'Total Volume',sd.totalVolume,'totalVolume');
+    h+=lIS(isZh?'总件数':'Total Packages',sd.totalPkgs,'totalPkgs');h+='</div></div>';
+  } else if(mode==='air'){
+    var ad=d.air;
+    // AIR: Forwarder & Shipment
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'空运货代与运输':'Air Forwarder & Shipment','')+'</h4>';
+    h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+    h+=lIA(isZh?'起运机场':'POL (Airport)',ad.pol,'pol');h+=lIA(isZh?'目的机场':'POD (Airport)',ad.pod,'pod');
+    h+=lIA(isZh?'交货地':'Place of Delivery',ad.placeOfDelivery,'placeOfDelivery');
+    h+=lIDA(isZh?'预计发运日期':'ETD',ad.etd,'etd');
+    h+=lIA(isZh?'航空公司':'Airline',ad.airline,'airline');h+=lIA(isZh?'航班号':'Flight No.',ad.flightNo,'flightNo');
+    h+=lIA(isZh?'主分单':'Master/House',ad.masterHouse,'masterHouse');
+    h+=lIA(isZh?'随机文件':'Accompanying Docs',ad.randomDocs,'randomDocs');
+    h+='<div><div class="form-label">'+(isZh?'贸易条款':'Trade Terms')+'</div><select class="input-field" onchange="window._sliSetAir(\'tradeTerms\',this.value)"><option value="FOB"'+(ad.tradeTerms==='FOB'?' selected':'')+'>FOB</option><option value="CIF"'+(ad.tradeTerms==='CIF'?' selected':'')+'>CIF</option><option value="CFR"'+(ad.tradeTerms==='CFR'?' selected':'')+'>CFR</option><option value="EXW"'+(ad.tradeTerms==='EXW'?' selected':'')+'>EXW</option><option value="DAP"'+(ad.tradeTerms==='DAP'?' selected':'')+'>DAP</option></select></div>';
+    h+='</div></div>';
+    // AIR: Insurance & Instructions
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'空运保险与指示':'Air Insurance & Instructions','')+'</h4>';
+    h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+    h+='<div><div class="form-label">'+(isZh?'需要保险':'Insurance Required')+'</div><select class="input-field" onchange="window._sliSetAir(\'insuranceRequired\',this.value===\'true\')"><option value="true"'+(ad.insuranceRequired?' selected':'')+'>'+(isZh?'是':'Yes')+'</option><option value="false"'+(!ad.insuranceRequired?' selected':'')+'>'+(isZh?'否':'No')+'</option></select></div>';
+    h+=lIA(isZh?'保险金额':'Insurance Value',ad.insuranceValue,'insuranceValue');
+    h+='<div><div class="form-label">'+(isZh?'货币':'Currency')+'</div><select class="input-field" onchange="window._sliSetAir(\'currency\',this.value);_sliCalcTotals();renderForm()"><option value="USD"'+(ad.currency==='USD'?' selected':'')+'>USD</option><option value="CNY"'+(ad.currency==='CNY'?' selected':'')+'>CNY</option><option value="EUR"'+(ad.currency==='EUR'?' selected':'')+'>EUR</option><option value="GBP"'+(ad.currency==='GBP'?' selected':'')+'>GBP</option><option value="JPY"'+(ad.currency==='JPY'?' selected':'')+'>JPY</option><option value="HKD"'+(ad.currency==='HKD'?' selected':'')+'>HKD</option></select></div>';
+    h+='<div><div class="form-label">'+(isZh?'是否带电':'Has Battery')+'</div><select class="input-field" onchange="window._sliSetAir(\'hasBattery\',this.value===\'true\')"><option value="true"'+(ad.hasBattery?' selected':'')+'>'+(isZh?'是':'Yes')+'</option><option value="false"'+(!ad.hasBattery?' selected':'')+'>'+(isZh?'否':'No')+'</option></select></div>';
+    h+='<div><div class="form-label">'+(isZh?'是否含磁':'Has Magnet')+'</div><select class="input-field" onchange="window._sliSetAir(\'hasMagnet\',this.value===\'true\')"><option value="true"'+(ad.hasMagnet?' selected':'')+'>'+(isZh?'是':'Yes')+'</option><option value="false"'+(!ad.hasMagnet?' selected':'')+'>'+(isZh?'否':'No')+'</option></select></div>';
+    h+='<div><div class="form-label">'+(isZh?'是否含液体/气体':'Has Liquid/Gas')+'</div><select class="input-field" onchange="window._sliSetAir(\'hasLiquidGas\',this.value===\'true\')"><option value="true"'+(ad.hasLiquidGas?' selected':'')+'>'+(isZh?'是':'Yes')+'</option><option value="false"'+(!ad.hasLiquidGas?' selected':'')+'>'+(isZh?'否':'No')+'</option></select></div>';
+    h+='</div>';
+    h+='<div style="margin-top:12px;"><div class="form-label">'+(isZh?'特殊指示':'Special Instructions')+'</div><textarea class="input-field" rows="3" onchange="window._sliSet(\'specialInstructions\',this.value)">'+esc(d.specialInstructions)+'</textarea></div></div>';
+    // AIR: Cargo Description
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'空运货品描述':'Cargo Description','')+'</h4>';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+    h+='<p style="font-size:13px;color:var(--text-muted);">'+(isZh?'逐项添加货品（长宽高自动计算体积）。':'Add items (auto-calc volume from L/W/H).')+'</p>';
+    h+='<button class="btn btn-success btn-sm" onclick="window._sliAddItem(\'air\')">'+tr.addItem+'</button></div>';
+    h+='<div class="items-table-container"><table class="items-table"><thead><tr>';
+    ['#',isZh?'唛头':'MARKS',isZh?'描述':'DESCRIPTION',isZh?'HS编码':'HS Code',isZh?'件数':'QTY',isZh?'单位':'UOM',isZh?'重量(KG)':'Weight',isZh?'长(mm)':'L',isZh?'宽(mm)':'W',isZh?'高(mm)':'H',isZh?'体积(CBM)':'Volume',isZh?'货值':'Value',isZh?'操作':'Action'].forEach(function(th){h+='<th>'+th+'</th>';});
+    h+='</tr></thead><tbody>';
+    (ad.items||[]).forEach(function(it,idx){
+      h+='<tr><td class="row-number">'+(idx+1)+'</td>';
+      h+='<td><input class="input-field input-field-xs" value="'+esc(it.marks)+'" onchange="window._sliItem(\'air\','+idx+',\'marks\',this.value)"></td>';
+      h+='<td class="description-cell"><textarea class="input-field input-field-sm" rows="2" onchange="window._sliItem(\'air\','+idx+',\'description\',this.value)">'+esc(it.description)+'</textarea></td>';
+      h+='<td><input class="input-field input-field-xs" value="'+esc(it.hsCode)+'" onchange="window._sliItem(\'air\','+idx+',\'hsCode\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.quantity)+'" onchange="window._sliItem(\'air\','+idx+',\'quantity\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.unitOfMeasure)+'" onchange="window._sliItem(\'air\','+idx+',\'unitOfMeasure\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.weight)+'" onchange="window._sliItem(\'air\','+idx+',\'weight\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.length)+'" onchange="window._sliItem(\'air\','+idx+',\'length\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.width)+'" onchange="window._sliItem(\'air\','+idx+',\'width\',this.value)"></td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.height)+'" onchange="window._sliItem(\'air\','+idx+',\'height\',this.value)"></td>';
+      h+='<td class="text-center" style="font-weight:500;font-size:12px;">'+esc(it.volume)+'</td>';
+      h+='<td><input class="input-field input-field-xs text-center" value="'+esc(it.value)+'" onchange="window._sliItem(\'air\','+idx+',\'value\',this.value)"></td>';
+      h+='<td class="actions"><button class="btn btn-danger" onclick="window._sliRemoveItem(\'air\','+idx+')" '+(ad.items.length<=1?'disabled':'')+'>&times;</button></td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+    // AIR: Totals & Signature
+    h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'空运汇总与签署':'Air Totals & Signature','')+'</h4>';
+    h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
+    h+=lIA(isZh?'总件数':'Total Pkgs',ad.totalPkgs,'totalPkgs');
+    h+=lIA(isZh?'总毛重':'Gross Weight',ad.totalGrossWeight,'totalGrossWeight');
+    h+=lIA(isZh?'总体积':'Total Volume',ad.totalVolume,'totalVolume');
+    h+=lIA(isZh?'总货值':'Total Value',ad.totalValue,'totalValue');
+    h+=lIA(isZh?'体积重(kg)':'Vol Wt',ad.volumeWeight,'volumeWeight');
+    h+=lIA(isZh?'计费重(kg)':'Chg Wt',ad.chargeableWeight,'chargeableWeight');
+    h+='</div></div>';
+  }
+  // Signature (shared)
+  h+='<div style="margin-top:14px;"><h4 style="margin:0 0 10px 0;font-size:15px;">'+fB(isZh?'签署':'Signature','')+'</h4>';
+  h+='<div class="field-grid" style="grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));">';
   h+=lI(isZh?'发货人签名':'Shipper Signature',d.shipperSignature,'shipperSignature','');
-  h+=lID(isZh?'签名日期':'Signature Date',d.signatureDate,'signatureDate');h+='</div></div>';
+  h+=lID(isZh?'签名日期':'Signature Date',d.signatureDate,'signatureDate');
+  h+='</div></div>';
+  h+='</div>';
   document.getElementById('form-container').innerHTML=h;
 }
 function renderPreview(){
   var d=data,isZh2=previewLang==='zh';
-  function tr2(en,zh){return isZh2?zh:en;}
-  var h='<div class="invoice-preview" id="preview-content">';
-  h+='<div class="header-title">'+tr2("SHIPPER'S LETTER OF INSTRUCTION",'发货人委托书')+'</div>';
-  h+='<table><tbody><tr><td style="width:50%;"><div class="section-label2">'+tr2('SHIPPER','发货人')+'</div>';
-  h+='<div class="section-value">'+esc(d.shipperName||'—')+'</div><div class="section-value">'+esc(d.shipperPhone||'—')+'</div><div class="section-value">'+esc(d.shipperEmail||'—')+'</div>';
-  h+='<div class="section-value">'+esc(d.shipperAddress||'—')+'</div></td>';
-  h+='<td style="width:50%;"><div class="section-label2">'+tr2('CONSIGNEE','收货人')+'</div>';
-  h+='<div class="section-value">'+esc(d.consigneeName||'—')+'</div><div class="section-value">'+esc(d.consigneeCompany||'—')+'</div><div class="section-value">'+esc(d.consigneePhone||'—')+'</div>';
-  h+='<div class="section-value">'+esc(d.consigneeAddress||'—')+'</div></td></tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr>';
-  [tr2('FORWARDER','货代'),tr2('CONTACT','联系人'),tr2('SHIPMENT DATE','装运日期'),tr2('VESSEL','船名'),tr2('PORT OF LOADING','装货港'),tr2('PORT OF DISCHARGE','卸货港'),tr2('B/L TYPE','提单类型')].forEach(function(t){h+='<th style="width:14%;">'+t+'</th>';});
-  h+='</tr><tr>';
-  [d.forwarderName,d.forwarderContact,d.shipmentDate,d.vessel,d.portOfLoading,d.portOfDischarge,d.blType].forEach(function(v){h+='<td class="text-center">'+esc(v||'—')+'</td>';});
-  h+='</tr></tbody></table>';
-  h+='<table class="mt-2"><tbody><tr>';
-  [tr2('CURRENCY','币种'),tr2('PAYMENT','付款方式'),tr2('INSURANCE','保险'),tr2('INSURANCE VALUE','保险金额'),tr2('NOTIFY PARTY','通知方')].forEach(function(t,i){h+='<th style="width:'+(i<4?'14':'44')+'%;">'+t+'</th>';});
-  h+='</tr><tr>';
-  h+='<td class="text-center">'+esc(d.currency||'—')+'</td><td class="text-center">'+esc(d.paymentTerms||'—')+'</td>';
-  h+='<td class="text-center">'+(d.insuranceRequired?tr2('Yes','是'):tr2('No','否'))+'</td><td class="text-center">'+esc(d.insuranceValue||'—')+'</td><td class="text-center">'+esc(d.notifyPartyName||'—')+'</td></tr></tbody></table>';
-  h+='<table class="mt-2"><thead><tr>';
-  ['#',tr2('DESCRIPTION','描述'),tr2('HS CODE','HS编码'),tr2('QTY','数量'),tr2('UOM','单位'),tr2('WEIGHT (KG)','重量'),tr2('VALUE','价值')].forEach(function(t){h+='<th>'+t+'</th>';});
-  h+='</tr></thead><tbody>';
-  d.items.forEach(function(it,idx){
-    h+='<tr><td class="text-center">'+(idx+1)+'</td><td>'+esc(it.description||'—')+'</td><td class="text-center">'+esc(it.hsCode||'—')+'</td>';
-    h+='<td class="text-center">'+esc(it.quantity||'—')+'</td><td class="text-center">'+esc(it.unitOfMeasure||'—')+'</td><td class="text-center">'+esc(it.weight||'—')+'</td><td class="text-center">'+esc(it.value||'—')+'</td></tr>';
-  });
-  h+='</tbody></table>';
-  h+='<table class="mt-2"><tbody><tr>';
-  [tr2('TOTAL VALUE','总价值'),tr2('TOTAL WEIGHT','总重量'),tr2('TOTAL PACKAGES','总件数')].forEach(function(t){h+='<th style="width:20%;">'+t+'</th>';});
-  h+='<th style="width:40%;"></th></tr><tr>';
-  h+='<td class="text-center">'+esc(d.totalValue||'—')+'</td><td class="text-center">'+esc(d.totalWeight||'—')+'</td><td class="text-center">'+esc(d.totalPkgs||'—')+'</td><td></td></tr></tbody></table>';
-  if(d.specialInstructions)h+='<div class="mt-2"><div class="section-label2">'+tr2('SPECIAL INSTRUCTIONS','特殊说明')+'</div><div class="section-value">'+esc(d.specialInstructions)+'</div></div>';
-  h+='<div class="mt-2"><table><tbody><tr><td style="width:50%;"><div class="section-label2">'+tr2('SHIPPER SIGNATURE','发货人签名')+'</div>';
-  h+='<div class="section-value">'+esc(d.shipperSignature||'—')+'</div><div style="margin-top:48px;border-top:1px solid #000;width:192px;"></div></td>';
-  h+='<td style="width:50%;"><div class="section-label2">'+tr2('SIGNATURE DATE','签名日期')+'</div>';
-  h+='<div class="section-value">'+esc(d.signatureDate||'—')+'</div><div style="margin-top:48px;border-top:1px solid #000;width:192px;"></div></td></tr></tbody></table></div></div>';
+  function tr2(e,z){return isZh2?z:e;}
+  function si(v){return esc(v||'\u2014');}
+
+  var h='<div class="invoice-preview"><div class="bl-preview sli-preview" id="preview-content">';
+
+  // 1. Title
+  h+='<div class="bl-title">'+tr2("SHIPPER\'S LETTER OF INSTRUCTION",'\u53d1\u8d27\u4eba\u59d4\u6258\u4e66')+'</div><hr class="bl-divider">';
+
+  // 2. Upper: party boxes (left 60%) + client/ref info (right 40%)
+  h+='<div class="bl-upper">';
+  h+='<div class="bl-upper-left">';
+
+  // SHIPPER box
+  h+='<div class="bl-party-box" style="min-height:85px;"><div class="bl-party-label">'+tr2('SHIPPER','SHIPPER (\u53d1\u8d27\u4eba)')+'</div><div class="bl-party-content">';
+  h+=si(d.shipperName)+'<br>';
+  h+=si(d.shipperAddress)+'<br>';
+  if(d.shipperPhone)h+=(isZh2?'\u7535\u8bdd:':'Tel: ')+si(d.shipperPhone)+'<br>';
+  if(d.shipperEmail)h+=(isZh2?'\u90ae\u7bb1:':'Email: ')+si(d.shipperEmail)+'<br>';
+  if(d.shipperTaxId)h+=(isZh2?'\u7a0e\u53f7:':'Tax ID: ')+si(d.shipperTaxId)+'<br>';
+  h+='</div></div>';
+
+  // CONSIGNEE box
+  h+='<div class="bl-party-box" style="min-height:70px;"><div class="bl-party-label">'+tr2('CONSIGNEE','CONSIGNEE (\u6536\u8d27\u4eba)')+'</div><div class="bl-party-content">';
+  h+=si(d.consigneeCompany)+'<br>';
+  h+=si(d.consigneeAddress)+'<br>';
+  if(d.consigneeContact)h+=(isZh2?'\u8054\u7cfb\u4eba:':'Contact: ')+si(d.consigneeContact)+'<br>';
+  if(d.consigneePhone)h+=(isZh2?'\u7535\u8bdd:':'Tel: ')+si(d.consigneePhone)+'<br>';
+  if(d.consigneeEmail)h+=(isZh2?'\u90ae\u7bb1:':'Email: ')+si(d.consigneeEmail)+'<br>';
+  if(d.consigneeTaxId)h+=(isZh2?'\u7a0e\u53f7:':'Tax ID: ')+si(d.consigneeTaxId)+'<br>';
+  h+='</div></div>';
+
+  // NOTIFY PARTY box
+  h+='<div class="bl-party-box" style="min-height:55px;"><div class="bl-party-label">'+tr2('NOTIFY PARTY','NOTIFY PARTY (\u901a\u77e5\u65b9)')+'</div><div class="bl-party-content">';
+  h+=si(d.notifyPartyCompany)+'<br>';
+  h+=si(d.notifyPartyAddress)+'<br>';
+  if(d.notifyPartyContact)h+=(isZh2?'\u8054\u7cfb\u4eba:':'Contact: ')+si(d.notifyPartyContact)+'<br>';
+  if(d.notifyPartyPhone)h+=(isZh2?'\u7535\u8bdd:':'Tel: ')+si(d.notifyPartyPhone)+'<br>';
+  if(d.notifyPartyEmail)h+=(isZh2?'\u90ae\u7bb1:':'Email: ')+si(d.notifyPartyEmail)+'<br>';
+  if(d.notifyPartyTaxId)h+=(isZh2?'\u7a0e\u53f7:':'Tax ID: ')+si(d.notifyPartyTaxId)+'<br>';
+  h+='</div></div>';
+
+  h+='</div>';  // end upper-left
+
+  // Right panel: client info + shipping terms
+  h+='<div class="bl-upper-right">';
+  h+='<div class="ref-group"><div class="ref-group-title">'+tr2('CLIENT','\u59d4\u6258\u4eba')+'</div>';
+  h+='<div class="ref-row">'+si(d.clientName)+'</div>';
+  h+='<div class="ref-row">'+si(d.clientAddress)+'</div>';
+  h+='<div class="ref-row">'+si(d.clientContact)+'</div>';
+  h+='<div class="ref-row">'+si(d.clientPhone)+'</div>';
+  h+='<div class="ref-row">'+si(d.clientEmail)+'</div>';
+  h+='</div>';
+  h+='<div class="ref-divider"></div>';
+  if((d.activeTab||'sea')==='sea'){
+    var sd=d.sea;
+    h+='<div class="ref-row"><span class="ref-label">'+tr2('Payment Terms','\u4ed8\u6b3e\u65b9\u5f0f')+': </span>'+si(d.paymentTerms)+'</div>';
+    h+='<div class="ref-row"><span class="ref-label">'+tr2('B/L Type','\u63d0\u5355\u7c7b\u578b')+': </span>'+si(sd.blType)+'</div>';
+    h+='<div class="ref-row"><span class="ref-label">'+tr2('Insurance','\u662f\u5426\u8d2d\u4e70\u4fdd\u9669')+': </span>'+(sd.insuranceRequired?tr2('Yes','\u662f'):tr2('No','\u5426'))+'</div>';
+    if(sd.insuranceValue){h+='<div class="ref-row"><span class="ref-label">'+tr2('Amount','\u4fdd\u9669\u91d1\u989d')+': </span>'+si(sd.insuranceValue)+'</div>';}
+  } else {
+    var ad=d.air;
+    h+='<div class="ref-row"><span class="ref-label">'+tr2('Payment Terms','\u4ed8\u6b3e\u65b9\u5f0f')+': </span>'+si(d.paymentTerms)+'</div>';
+    h+='<div class="ref-row"><span class="ref-label">'+tr2('Insurance','\u662f\u5426\u8d2d\u4e70\u4fdd\u9669')+': </span>'+(ad.insuranceRequired?tr2('Yes','\u662f'):tr2('No','\u5426'))+'</div>';
+    if(ad.insuranceValue){h+='<div class="ref-row"><span class="ref-label">'+tr2('Amount','\u4fdd\u9669\u91d1\u989d')+': </span>'+si(ad.insuranceValue)+' '+(ad.currency||'')+'</div>';}
+  }
+  h+='</div>';  // end upper-right
+
+  h+='</div>';  // end bl-upper
+
+  // 3. Transport info
+  if((d.activeTab||'sea')==='sea'){
+    var sd=d.sea;
+    h+='<div class="bl-transport">';
+    h+='<div class="bl-transport-row">';
+    h+='<div><span class="tlbl">'+tr2('Port of Loading','\u88c5\u8d27\u6e2f')+'</span><span class="tval">'+si(sd.portOfLoading)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Port of Discharge','\u5378\u8d27\u6e2f')+'</span><span class="tval">'+si(sd.portOfDischarge)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Place of Delivery','\u4ea4\u8d27\u5730')+'</span><span class="tval">'+si(sd.placeOfDelivery)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('ETD','ETD')+'</span><span class="tval">'+si(sd.estSailingDate)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Vessel/Voyage','\u8239\u540d\u822a\u6b21')+'</span><span class="tval">'+si(sd.vessel)+'</span></div>';
+    h+='</div>';
+    h+='<div class="bl-transport-row">';
+    h+='<div><span class="tlbl">'+tr2('Trade Terms','\u8d38\u6613\u6761\u6b3e')+'</span><span class="tval">'+si(sd.tradeTerms)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Direct Voyage','\u76f4\u822a')+'</span><span class="tval">'+(sd.directVoyage==='Y'?tr2('Yes','\u662f'):tr2('No','\u5426'))+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Free Demurrage','\u514d\u7528\u7bb1')+'</span><span class="tval">'+si(sd.freeDemurrage)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Shipment Mode','\u51fa\u8d27\u65b9\u5f0f')+'</span><span class="tval">'+(sd.shipmentMode==='FCL'?'FCL':'LCL')+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Container Info','\u67dc\u578b\u67dc\u91cf')+'</span><span class="tval">'+si(sd.containerInfo)+'</span></div>';
+    h+='</div></div>';
+  } else {
+    var ad=d.air;
+    h+='<div class="bl-transport">';
+    h+='<div class="bl-transport-row">';
+    h+='<div><span class="tlbl">'+tr2('POL (Airport)','\u8d77\u8fd0\u673a\u573a')+'</span><span class="tval">'+si(ad.pol)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('POD (Airport)','\u76ee\u7684\u673a\u573a')+'</span><span class="tval">'+si(ad.pod)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Place of Delivery','\u4ea4\u8d27\u5730')+'</span><span class="tval">'+si(ad.placeOfDelivery)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('ETD','ETD')+'</span><span class="tval">'+si(ad.etd)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Airline','\u822a\u7a7a\u516c\u53f8')+'</span><span class="tval">'+si(ad.airline)+'</span></div>';
+    h+='</div>';
+    h+='<div class="bl-transport-row">';
+    h+='<div><span class="tlbl">'+tr2('Flight No.','\u822a\u73ed\u53f7')+'</span><span class="tval">'+si(ad.flightNo)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Master/House','\u4e3b\u5206\u5355')+'</span><span class="tval">'+si(ad.masterHouse)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Accompanying Docs','\u968f\u673a\u6587\u4ef6')+'</span><span class="tval">'+si(ad.randomDocs)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Trade Terms','\u8d38\u6613\u6761\u6b3e')+'</span><span class="tval">'+si(ad.tradeTerms)+'</span></div>';
+    h+='<div><span class="tlbl">'+tr2('Battery/Magnet/Liquid','\u7535/\u78c1/\u6db2')+'</span><span class="tval">'+(ad.hasBattery?tr2('Battery','\u5e26\u7535'):'')+' '+(ad.hasMagnet?tr2('Magnet','\u542b\u78c1'):'')+' '+(ad.hasLiquidGas?tr2('Liquid/Gas','\u542b\u6db2\u4f53'):'')+'</span></div>';
+    h+='</div></div>';
+  }
+
+  // 4. Goods table
+  var mode=d.activeTab||'sea';
+  if(mode==='sea'){
+    var sd=d.sea;
+    h+='<table class="bl-table"><thead><tr>';
+    h+='<th style="width:5%;">#</th><th style="width:11%;">'+tr2('MARKS','\u5504\u5934')+'</th>';
+    h+='<th style="width:22%;">'+tr2('DESCRIPTION','\u63cf\u8ff0')+'</th>';
+    h+='<th style="width:10%;">'+tr2('HS CODE','HS\u7f16\u7801')+'</th>';
+    h+='<th style="width:7%;">'+tr2('QTY','\u4ef6\u6570')+'</th>';
+    h+='<th style="width:7%;">'+tr2('UOM','\u5355\u4f4d')+'</th>';
+    h+='<th style="width:9%;">'+tr2('WEIGHT(kg)','\u91cd\u91cf(kg)')+'</th>';
+    h+='<th style="width:9%;">'+tr2('VOLUME(CBM)','\u4f53\u79ef(CBM)')+'</th>';
+    h+='<th style="width:10%;">'+tr2('VALUE','\u8d27\u503c')+'</th>';
+    h+='</tr></thead><tbody>';
+    (sd.items||[]).forEach(function(it,idx){
+      h+='<tr>';
+      h+='<td style="text-align:center;">'+(idx+1)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.marks)+'</td>';
+      h+='<td>'+si(it.description)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.hsCode)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.quantity)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.unitOfMeasure)+'</td>';
+      h+='<td style="text-align:right;">'+si(it.weight)+'</td>';
+      h+='<td style="text-align:right;">'+si(it.volume)+'</td>';
+      h+='<td style="text-align:right;">'+si(it.value)+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    // Sea Totals
+    h+='<div class="sli-totals"><div class="totals-row">';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('TOTAL PACKAGES','\u603b\u4ef6\u6570')+'</div><div class="totals-val">'+si(sd.totalPkgs)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('TOTAL WEIGHT','\u603b\u91cd\u91cf')+'</div><div class="totals-val">'+si(sd.totalWeight)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('TOTAL VOLUME','\u603b\u4f53\u79ef')+'</div><div class="totals-val">'+si(sd.totalVolume)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('TOTAL VALUE','\u603b\u8d27\u503c')+'</div><div class="totals-val">'+si(sd.totalValue)+'</div></div>';
+    h+='</div></div>';
+  } else {
+    var ad=d.air;
+    h+='<table class="bl-table"><thead><tr>';
+    h+='<th style="width:4%;">#</th><th style="width:9%;">'+tr2('MARKS','\u5504\u5934')+'</th>';
+    h+='<th style="width:18%;">'+tr2('DESCRIPTION','\u63cf\u8ff0')+'</th>';
+    h+='<th style="width:8%;">'+tr2('HS CODE','HS\u7f16\u7801')+'</th>';
+    h+='<th style="width:5%;">'+tr2('QTY','\u4ef6\u6570')+'</th>';
+    h+='<th style="width:5%;">'+tr2('UOM','\u5355\u4f4d')+'</th>';
+    h+='<th style="width:7%;">'+tr2('WT(kg)','\u91cd\u91cf(kg)')+'</th>';
+    h+='<th style="width:5%;">'+tr2('L(mm)','\u957f(mm)')+'</th><th style="width:5%;">'+tr2('W(mm)','\u5bbd(mm)')+'</th><th style="width:5%;">'+tr2('H(mm)','\u9ad8(mm)')+'</th>';
+    h+='<th style="width:8%;">'+tr2('VOLUME(CBM)','\u4f53\u79ef(CBM)')+'</th>';
+    h+='<th style="width:8%;">'+tr2('VALUE','\u8d27\u503c')+'</th>';
+    h+='</tr></thead><tbody>';
+    (ad.items||[]).forEach(function(it,idx){
+      h+='<tr>';
+      h+='<td style="text-align:center;">'+(idx+1)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.marks)+'</td>';
+      h+='<td>'+si(it.description)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.hsCode)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.quantity)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.unitOfMeasure)+'</td>';
+      h+='<td style="text-align:right;">'+si(it.weight)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.length)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.width)+'</td>';
+      h+='<td style="text-align:center;">'+si(it.height)+'</td>';
+      h+='<td style="text-align:right;">'+si(it.volume)+'</td>';
+      h+='<td style="text-align:right;">'+si(it.value)+'</td>';
+      h+='</tr>';
+    });
+    h+='</tbody></table>';
+    // Air Totals (6 columns)
+    h+='<div class="sli-totals"><div class="totals-row">';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('TOTAL PKGS','\u603b\u4ef6\u6570')+'</div><div class="totals-val">'+si(ad.totalPkgs)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('GROSS WT','\u603b\u6bdb\u91cd')+'</div><div class="totals-val">'+si(ad.totalGrossWeight)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('VOLUME','\u603b\u4f53\u79ef')+'</div><div class="totals-val">'+si(ad.totalVolume)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('TOTAL VALUE','\u603b\u8d27\u503c')+'</div><div class="totals-val">'+si(ad.totalValue)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('VOL WT','\u4f53\u79ef\u91cd')+'</div><div class="totals-val">'+si(ad.volumeWeight)+'</div></div>';
+    h+='<div class="totals-cell"><div class="totals-lbl">'+tr2('CHG WT','\u8ba1\u8d39\u91cd')+'</div><div class="totals-val">'+si(ad.chargeableWeight)+'</div></div>';
+    h+='</div></div>';
+  }
+
+  // 6. Special Instructions
+  if(d.specialInstructions){
+    h+='<div class="bl-party-box" style="padding:8px 12px;"><div class="bl-party-label">'+tr2('SPECIAL INSTRUCTIONS','\u7279\u6b8a\u8bf4\u660e')+'</div>';
+    h+='<div style="font-size:10.5px;color:#333;line-height:1.6;min-height:30px;">'+esc(d.specialInstructions)+'</div></div>';
+  }
+
+  // 7. Signature
+  h+='<div class="bl-bottom">';
+  h+='<div style="flex:1;padding:8px 14px;border-right:1.5px solid #111;">';
+  h+='<div class="blbl">'+tr2('SHIPPER SIGNATURE','\u53d1\u8d27\u4eba\u7b7e\u540d')+'</div>';
+  h+='<div style="font-size:10.5px;margin-bottom:2px;">'+si(d.shipperSignature)+'</div>';
+  h+='<div class="sig-line" style="height:32px;"></div></div>';
+  h+='<div style="flex:1;padding:8px 14px;">';
+  h+='<div class="blbl">'+tr2('SIGNATURE DATE','\u7b7e\u540d\u65e5\u671f')+'</div>';
+  h+='<div style="font-size:10.5px;margin-bottom:2px;">'+si(d.signatureDate)+'</div>';
+  h+='<div class="sig-line" style="height:32px;"></div></div>';
+  h+='</div>';
+
+  h+='</div></div>';
   document.getElementById('preview-container').innerHTML=h;
 }
 function renderHistory(){
@@ -214,9 +482,6 @@ function renderHistory(){
   h+='</div><div style="margin-top:16px;"><button class="btn btn-secondary btn-sm" onclick="window._sliClearAllHistory()">'+tr.clearAll+'</button></div>';}
   document.getElementById('history-container').innerHTML=h;document.getElementById('history-search').oninput=function(){renderHistory();};
 }
-function renderClearModal(){var tr=I18N[lang],m=document.getElementById('clear-modal');if(showClearConfirm){m.classList.remove('hidden');
-document.getElementById('clear-title').textContent=tr.clearTitle;document.getElementById('clear-msg').textContent=tr.clearMsg;
-document.getElementById('btn-cancel-clear').textContent=tr.cancel;document.getElementById('btn-confirm-clear').textContent=tr.clear;}else m.classList.add('hidden');}
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
   injectSpaButton();
@@ -225,29 +490,101 @@ document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark
 document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
 document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
 window._sliSet=function(f,v){data[f]=v;saveDocData(DT,data);};
-window._sliItem=function(idx,f,v){data.items[idx][f]=v;saveDocData(DT,data);};
-window._sliAddItem=function(){data.items.push(getEmptyItem(DT));saveDocData(DT,data);renderForm();};
-window._sliRemoveItem=function(idx){if(data.items.length>1){data.items.splice(idx,1);saveDocData(DT,data);renderForm();}};
+window._sliSetSea=function(f,v){data.sea[f]=v;saveDocData(DT,data);};
+window._sliSetAir=function(f,v){data.air[f]=v;saveDocData(DT,data);};
+window._sliItem=function(mode,idx,f,v){data[mode].items[idx][f]=v;saveDocData(DT,data);_sliCalcTotals();renderForm();};
+window._sliAddItem=function(mode){data[mode].items.push(getEmptyItem(DT));saveDocData(DT,data);_sliCalcTotals();renderForm();};
+window._sliRemoveItem=function(mode,idx){if(data[mode].items.length>1){data[mode].items.splice(idx,1);saveDocData(DT,data);_sliCalcTotals();renderForm();}};
+window._sliSwitchTab=function(tab){data.activeTab=tab;saveDocData(DT,data);renderForm();};
 window._sliRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function(x){return x.id===id;});if(s&&s.data){data=JSON.parse(JSON.stringify(s.data));saveDocData(DT,data);renderAll();}};
 window._sliDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._sliClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
-function esc(str){if(!str)return'';return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
+
+function _sliCalcTotals(){
+  var d=data;
+  // Sea totals
+  var sd=d.sea,sv=0,sw=0,sp=0,svo=0;
+  (sd.items||[]).forEach(function(it){
+    sv+=parseFloat(it.value)||0;sw+=parseFloat(it.weight)||0;
+    sp+=parseFloat(it.quantity)||0;svo+=parseFloat(it.volume)||0;
+  });
+  sd.totalValue=sv>0?sv.toFixed(2):'';sd.totalWeight=sw>0?sw.toFixed(2)+' KG':'';
+  sd.totalPkgs=sp>0?String(sp):'';sd.totalVolume=svo>0?svo.toFixed(2)+' CBM':'';
+  // Air totals
+  var ad=d.air,av=0,aw=0,ap=0,avo=0;
+  (ad.items||[]).forEach(function(it){
+    // Auto-calc volume from L/W/H if available
+    var l=parseFloat(it.length)||0,w=parseFloat(it.width)||0,h=parseFloat(it.height)||0,q=parseFloat(it.quantity)||0;
+    if(l&&w&&h&&q){it.volume=((l*w*h/1000000000)*q).toFixed(4);}
+    av+=parseFloat(it.value)||0;aw+=parseFloat(it.weight)||0;
+    ap+=parseFloat(it.quantity)||0;avo+=parseFloat(it.volume)||0;
+  });
+  ad.totalValue=av>0?av.toFixed(2)+' '+(ad.currency||''):'';ad.totalGrossWeight=aw>0?aw.toFixed(2)+' KG':'';
+  ad.totalPkgs=ap>0?String(ap):'';ad.totalVolume=avo>0?avo.toFixed(3)+' CBM':'';
+  // Volume weight = volume * 167, Chargeable weight = max(gross weight, volume weight)
+  if(avo>0){ad.volumeWeight=(avo*167).toFixed(2)+' KG';}
+  else{ad.volumeWeight='';}
+  var gw=parseFloat(aw)||0,vw=avo*167||0;
+  if(gw>0||vw>0){ad.chargeableWeight=Math.max(gw,vw).toFixed(2)+' KG';}
+  else{ad.chargeableWeight='';}
+  saveDocData(DT,data);
+}
+
 function lI(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._sliSet(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
 function lID(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._sliSet(\''+f+'\',this.value)"></div>';}
-function loadSample(){var s=getDefaultDoc(DT);s.shipperName='Shanghai Export Co., Ltd.';s.shipperPhone='+86 21 5555 0001';s.shipperEmail='export@shexport.com';
-s.shipperTaxId='91310000MA1K3XXX';s.shipperAddress='No.123 Zhangjiang Rd, Pudong, Shanghai, China';
-s.consigneeName='John Smith';s.consigneeCompany='ABC Trading LLC';s.consigneePhone='+1 212 555 0001';
-s.consigneeAddress='456 Fifth Ave, Suite 1200, New York, NY 10001, USA';
-s.notifyPartyName='XYZ Logistics Inc.';s.notifyPartyAddress='789 Port Blvd, Brooklyn, NY 11201, USA';
-s.forwarderName='Global Freight Forwarders';s.forwarderContact='Li Mei';s.shipmentDate='2026-05-15';
-s.vessel='COSCO SHANGHAI';s.portOfLoading='Shanghai';s.portOfDischarge='New York';s.blType='Telex Release';
-s.currency='USD';s.paymentTerms='T/T';s.insuranceRequired=true;s.insuranceValue='55000.00';
-s.items=[{description:'Stainless Steel Water Bottle',hsCode:'7323.93',quantity:'500',unitOfMeasure:'pcs',weight:'150.00',value:'1750.00'},
-{description:'Thermal Flask',hsCode:'7323.93',quantity:'200',unitOfMeasure:'pcs',weight:'85.00',value:'1160.00'}];
-s.totalValue='2910.00 USD';s.totalWeight='235.00 KG';s.totalPkgs='120';
-s.specialInstructions='Please handle with care. Keep away from direct sunlight.';
-s.shipperSignature='Zhang Wei';s.signatureDate='2026-05-10';
-data=s;saveDocData(DT,data);renderAll();}
+function lIS(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._sliSetSea(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
+function lIA(l,v,f,p){return '<div><div class="form-label">'+l+'</div><input class="input-field" value="'+esc(v)+'" onchange="window._sliSetAir(\''+f+'\',this.value)" placeholder="'+(p||'')+'"></div>';}
+function lIDS(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._sliSetSea(\''+f+'\',this.value)"></div>';}
+function lIDA(l,v,f){return '<div><div class="form-label">'+l+'</div><input class="input-field" type="date" value="'+esc(v)+'" onchange="window._sliSetAir(\''+f+'\',this.value)"></div>';}
+function _sliMigrateData(d){
+  if(d.sea)return d;
+  return {
+    activeTab:d.activeTab||'sea',
+    clientName:d.clientName||'',clientAddress:d.clientAddress||'',clientContact:d.clientContact||'',clientPhone:d.clientPhone||'',clientEmail:d.clientEmail||'',
+    shipperName:d.shipperName||'',shipperAddress:d.shipperAddress||'',shipperPhone:d.shipperPhone||'',shipperEmail:d.shipperEmail||'',shipperTaxId:d.shipperTaxId||'',
+    consigneeCompany:d.consigneeCompany||'',consigneeAddress:d.consigneeAddress||'',consigneeContact:d.consigneeContact||'',consigneePhone:d.consigneePhone||'',consigneeEmail:d.consigneeEmail||'',consigneeTaxId:d.consigneeTaxId||'',
+    notifyPartyCompany:d.notifyPartyCompany||'',notifyPartyAddress:d.notifyPartyAddress||'',notifyPartyContact:d.notifyPartyContact||'',notifyPartyPhone:d.notifyPartyPhone||'',notifyPartyEmail:d.notifyPartyEmail||'',notifyPartyTaxId:d.notifyPartyTaxId||'',
+    paymentTerms:d.paymentTerms||'T/T',
+    shipperSignature:d.shipperSignature||'',signatureDate:d.signatureDate||'',
+    specialInstructions:d.specialInstructions||'',
+    sea:{
+      portOfLoading:d.portOfLoading||'',portOfDischarge:d.portOfDischarge||'',placeOfDelivery:d.placeOfDelivery||'',
+      estSailingDate:d.estSailingDate||'',vessel:d.vessel||'',
+      tradeTerms:d.tradeTerms||'FOB',directVoyage:d.directVoyage||'N',freeDemurrage:d.freeDemurrage||'',shipmentMode:d.shipmentMode||'FCL',containerInfo:d.containerInfo||'',
+      blType:d.blType||'Original',
+      insuranceRequired:d.insuranceRequired||false,insuranceValue:d.insuranceValue||'',
+      items:d.items||[{marks:'',description:'',hsCode:'',quantity:'',unitOfMeasure:'',weight:'',volume:'',value:''}],
+      totalValue:d.totalValue||'',totalWeight:d.totalWeight||'',totalPkgs:d.totalPkgs||'',totalVolume:d.totalVolume||''
+    },
+    air:{
+      pol:'',pod:'',placeOfDelivery:'',etd:'',airline:'',flightNo:'',
+      masterHouse:'',randomDocs:'',tradeTerms:'FOB',
+      insuranceRequired:false,insuranceValue:'',currency:'USD',
+      hasBattery:false,hasMagnet:false,hasLiquidGas:false,
+      items:[{marks:'',description:'',hsCode:'',quantity:'',unitOfMeasure:'',weight:'',volume:'',value:'',length:'',width:'',height:''}],
+      totalPkgs:'',totalGrossWeight:'',totalVolume:'',totalValue:'',
+      volumeWeight:'',chargeableWeight:''
+    }
+  };
+}
+function loadSample(){
+  var s=getDefaultDoc(DT);
+  s.activeTab='sea';
+  s.clientName='ABC Trading Co., Ltd.';s.clientContact='Wang Fang';s.clientPhone='+86 21 5555 0002';s.clientEmail='wang@abctrading.com';s.clientAddress='456 Huaihai Rd, Shanghai, China';
+  s.shipperName='Shanghai Export Co., Ltd.';s.shipperPhone='+86 21 5555 0001';s.shipperEmail='export@shexport.com';s.shipperTaxId='91310000MA1K3XXX';s.shipperAddress='No.123 Zhangjiang Rd, Pudong, Shanghai, China';
+  s.consigneeCompany='ABC Trading LLC';s.consigneeContact='John Smith';s.consigneePhone='+1 212 555 0001';s.consigneeEmail='john@abctrading.com';s.consigneeTaxId='US12-3456789';s.consigneeAddress='456 Fifth Ave, Suite 1200, New York, NY 10001, USA';
+  s.notifyPartyCompany='XYZ Logistics Inc.';s.notifyPartyContact='Mike Johnson';s.notifyPartyPhone='+1 718 555 0001';s.notifyPartyEmail='mike@xyzlogistics.com';s.notifyPartyTaxId='US98-7654321';s.notifyPartyAddress='789 Port Blvd, Brooklyn, NY 11201, USA';
+  s.paymentTerms='T/T';s.shipperSignature='Zhang Wei';s.signatureDate='2026-05-10';s.specialInstructions='Please handle with care. Keep away from direct sunlight.';
+  s.sea.portOfLoading='Shanghai';s.sea.portOfDischarge='New York';s.sea.placeOfDelivery='Chicago, IL';s.sea.estSailingDate='2026-06-15';s.sea.vessel='COSCO SHANGHAI';
+  s.sea.tradeTerms='CIF';s.sea.directVoyage='Y';s.sea.freeDemurrage='7 days free';s.sea.shipmentMode='FCL';s.sea.containerInfo='1x20GP';s.sea.blType='Telex Release';
+  s.sea.insuranceRequired=true;s.sea.insuranceValue='55000.00';
+  s.sea.items=[{marks:'ABC',description:'Stainless Steel Water Bottle',hsCode:'7323.93',quantity:'500',unitOfMeasure:'pcs',weight:'150.00',volume:'2.50',value:'1750.00',length:'',width:'',height:''},{marks:'DEF',description:'Thermal Flask',hsCode:'7323.93',quantity:'200',unitOfMeasure:'pcs',weight:'85.00',volume:'1.20',value:'1160.00',length:'',width:'',height:''}];
+  // Air sample data
+  s.air.pol='PVG';s.air.pod='JFK';s.air.placeOfDelivery='New York, USA';s.air.etd='2026-06-20';s.air.airline='China Eastern Airlines';s.air.flightNo='MU587';
+  s.air.masterHouse='MAWB: 781-12345678 / HAWB: XYZ-001';s.air.randomDocs='Commercial Invoice, Packing List, COO';s.air.tradeTerms='CIF';
+  s.air.insuranceRequired=true;s.air.insuranceValue='55000.00';s.air.hasBattery=false;s.air.hasMagnet=false;s.air.hasLiquidGas=false;
+  s.air.items=[{marks:'ABC',description:'Electronic Components',hsCode:'8542.31',quantity:'1000',unitOfMeasure:'pcs',weight:'50.00',volume:'0.250',value:'12500.00',length:'300',width:'200',height:'150'},{marks:'DEF',description:'Circuit Boards',hsCode:'8534.00',quantity:'500',unitOfMeasure:'pcs',weight:'35.00',volume:'0.120',value:'8750.00',length:'250',width:'180',height:'100'}];
+  data=s;saveDocData(DT,data);_sliCalcTotals();renderAll();
+}
 init();
 </script>
 <!-- GoatCounter -->

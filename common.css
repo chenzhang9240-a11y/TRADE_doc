@@ -250,16 +250,328 @@ input[type="number"].input-field::-webkit-inner-spin-button, input[type="number"
 .dark .totals-summary .summary-label { color: #94a3b8; }
 .dark .totals-summary .summary-value { color: #c4b5fd; }
 
-/* ===== Invoice Preview ===== */
-.invoice-preview { font-family: 'Arial', 'Helvetica', sans-serif; font-size: 10px; color: #000; background: #fff; line-height: 1.3; padding: 24px; }
-.invoice-preview table { border-collapse: collapse; width: 100%; }
-.invoice-preview th, .invoice-preview td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; }
-.invoice-preview th { background-color: #f0f0f0; font-weight: bold; text-align: center; font-size: 9px; }
-.invoice-preview .section-label { font-size: 9px; color: #111827; font-weight: 700; margin-bottom: 1px; letter-spacing: 0.03em; text-transform: uppercase; }
-.section-label2 { font-size: 10px; color: #111827; font-weight: 700; margin-bottom: 5px; letter-spacing: 0.03em; text-transform: uppercase; }
-.invoice-preview .section-value { font-size: 10px; min-height: 18px; word-break: break-word; }
-.invoice-preview .header-title { font-size: 18px; font-weight: bold; text-align: center; margin: 8px 0; color: #4a0e4e; }
-.invoice-preview .header-subtitle { font-size: 10px; text-align: center; color: #666; margin-top: -4px; margin-bottom: 8px; }
+/* ===== Invoice Preview — Modern Professional Style ===== */
+.invoice-preview {
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 13px;
+  color: #222;
+  background: #fff;
+  line-height: 1.5;
+  padding: 24px 48px;
+}
+.invoice-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 20px;
+}
+.invoice-preview th,
+.invoice-preview td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border: none;
+  vertical-align: top;
+}
+.invoice-preview th {
+  background: #1d3557;
+  color: #fff;
+  font-weight: 500;
+  font-size: 12px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.invoice-preview td {
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+}
+
+/* Title */
+.invoice-preview .header-title,
+.invoice-preview .title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: normal;
+  letter-spacing: 3px;
+  color: #1d3557;
+  text-align: center;
+  border-bottom: 3px solid #1d3557;
+  padding-bottom: 18px;
+  margin-bottom: 28px;
+}
+.invoice-preview .header-subtitle {
+  font-size: 13px;
+  color: #457b9d;
+  text-align: center;
+  letter-spacing: 1px;
+  margin-top: -22px;
+  margin-bottom: 24px;
+}
+
+/* Section labels */
+.invoice-preview .section-label {
+  font-size: 14px;
+  color: #1d3557;
+  font-weight: 600;
+  border-bottom: 1px solid #a8dadc;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.section-label2 {
+  font-size: 10px;
+  color: #111827;
+  font-weight: 700;
+  margin-bottom: 5px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.invoice-preview .section-value {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #444;
+  word-break: break-word;
+  min-height: auto;
+}
+
+/* Two column layout */
+.invoice-preview .two-col {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 20px;
+}
+.invoice-preview .col { flex: 1; }
+
+/* Field rows (shipping details) */
+.invoice-preview .field-row {
+  display: flex;
+  margin-bottom: 6px;
+  line-height: 1.7;
+}
+.invoice-preview .field-label {
+  font-weight: 600;
+  min-width: 145px;
+  flex-shrink: 0;
+  color: #333;
+}
+.invoice-preview .field-value {
+  flex: 1;
+  color: #444;
+  word-break: break-word;
+}
+
+/* Address blocks (shipper/consignee) */
+.invoice-preview .address-block {
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+.invoice-preview .address-block .addr-label {
+  font-size: 14px;
+  color: #1d3557;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #a8dadc;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* Items table */
+.invoice-preview table.items {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+.invoice-preview table.items th {
+  background: #1d3557;
+  color: #fff;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 11px 10px;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.invoice-preview table.items td {
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+  text-align: center;
+  word-break: break-word;
+}
+.invoice-preview table.items td.text-left { text-align: left; }
+.invoice-preview table.items tbody tr:hover { background: #f1faee; }
+
+/* Total row */
+.invoice-preview .total-row td {
+  font-weight: 700;
+  border-top: 2px solid #1d3557;
+  padding: 10px;
+  font-size: 13px;
+}
+.invoice-preview .total-words {
+  margin-top: 14px;
+  font-weight: 600;
+  font-style: italic;
+  border-top: 1px solid #adb5bd;
+  padding-top: 8px;
+  font-size: 13px;
+  color: #444;
+}
+.invoice-preview .certify-text {
+  margin-top: 22px;
+  font-style: italic;
+  font-size: 13px;
+  color: #555;
+  line-height: 1.6;
+}
+.invoice-preview .signature-block {
+  margin-top: 36px;
+  text-align: right;
+  padding-right: 60px;
+  font-weight: 600;
+  color: #333;
+  line-height: 2;
+}
+
+/* ===== Certificate of Origin — 12-field Classic Layout ===== */
+.co-preview {
+  font-size: 12px;
+  padding: 30px 40px;
+  line-height: 1.5;
+}
+.co-preview .co-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 26px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  color: #1d3557;
+  text-align: center;
+  border-bottom: 3px double #1d3557;
+  padding-bottom: 10px;
+  margin-bottom: 0;
+}
+.co-row-top {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  grid-template-rows: 1fr 1px 1fr;
+  border: 1px solid #222;
+}
+.co-col-group {
+  display: flex;
+  flex-direction: column;
+}
+.co-col-group > .co-field {
+  border: none;
+  border-bottom: 1px solid #222;
+  flex: 1;
+  min-height: 32px;
+  padding: 6px 10px;
+}
+.co-col-group > .co-field:last-child {
+  border-bottom: none;
+}
+.co-divider-v {
+  grid-row: 1 / 4;
+  grid-column: 2;
+  background: #222;
+}
+.co-divider-h {
+  grid-row: 2;
+  grid-column: 1 / 4;
+  background: #222;
+}
+.co-field {
+  border-top: 1px solid #222;
+  padding: 6px 10px;
+  min-height: 32px;
+}
+.co-field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #222;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+.co-field-value {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #222;
+  word-break: break-word;
+}
+.co-field-dashed {
+  border: 2px dashed #aaa;
+  margin: 6px 8px;
+  background: #f9f9f9;
+  min-height: 90px;
+}
+.co-field-empty {
+  min-height: 80px;
+}
+.co-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+.co-table th {
+  background: #fff;
+  color: #222;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 6px 8px;
+  text-align: center;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+  border-right: 1px solid #222;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.co-table th:last-child { border-right: none; }
+.co-table td {
+  font-size: 12px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #222;
+  border-right: 1px solid #222;
+  color: #222;
+  vertical-align: top;
+}
+.co-table td:last-child { border-right: none; }
+.co-table tbody tr:last-child td { border-bottom: 1px solid #222; }
+.co-table-wrap {
+  border-left: 1px solid #222;
+  border-right: 1px solid #222;
+}
+.co-info-line {
+  padding: 8px 12px;
+  font-size: 12px;
+  border-bottom: 1px solid #222;
+  color: #222;
+}
+.co-info-label {
+  font-weight: 700;
+}
+.co-field-sign {
+  border-top: 1px solid #222;
+  border-left: 1px solid #222;
+  border-right: 1px solid #222;
+  padding: 8px 12px;
+}
+.co-field-sign:last-child {
+  border-bottom: 1px solid #222;
+}
+.co-signature {
+  margin-top: 12px;
+}
+.co-signature-line {
+  border-bottom: 1px solid #222;
+  height: 28px;
+  margin-bottom: 2px;
+}
+.co-signature-text {
+  font-size: 10px;
+  color: #555;
+  text-align: left;
+}
 
 /* ===== History ===== */
 .history-search { margin-bottom: 16px; }
@@ -335,6 +647,28 @@ input[type="number"].input-field::-webkit-inner-spin-button, input[type="number"
 .faq-item.open .faq-answer { max-height: 500px; padding: 0 16px 14px; }
 @media (max-width: 768px) { .faq-section { padding: 16px; margin-top: 24px; } .faq-section h2 { font-size: 16px; } }
 
+/* ===== Template Config Modal ===== */
+.tmpl-modal {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 1000; display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 60px;
+}
+.tmpl-modal-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); z-index: -1;
+}
+.tmpl-modal-content {
+  background: var(--card-bg); border-radius: 12px; padding: 24px;
+  max-width: 560px; width: 90%; max-height: 75vh; overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+.tmpl-modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+.tmpl-modal-header span { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.tmpl-modal-footer { margin-top: 16px; text-align: right; }
+
 /* ===== Template Toolbar ===== */
 .tmpl-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; padding: 10px 14px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; flex-wrap: wrap; }
 .tmpl-label { font-size: 13px; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
@@ -354,3 +688,316 @@ input[type="number"].input-field::-webkit-inner-spin-button, input[type="number"
 .tmpl-preview-lang { display: flex; align-items: center; gap: 16px; margin-top: 8px; padding: 8px 0; border-top: 1px solid var(--border-color); }
 .tmpl-preview-lang label { font-size: 12px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; }
 .tmpl-preview-lang input[type="radio"] { accent-color: var(--primary); }
+
+/* ===== Bill of Lading — Classic Layout ===== */
+.bl-preview {
+  font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+  font-size: 13px;
+  color: #222;
+  background: #fff;
+  line-height: 1.5;
+  padding: 24px 36px;
+}
+.bl-preview .bl-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: bold;
+  letter-spacing: 6px;
+  color: #111;
+  text-align: center;
+  padding-bottom: 4px;
+  margin-bottom: 0;
+}
+.bl-preview .bl-divider {
+  border: none;
+  border-top: 3px double #111;
+  margin-bottom: 14px;
+}
+/* Upper section: party boxes (left) + BL info (right) */
+.bl-preview .bl-upper {
+  display: flex;
+  margin-bottom: 10px;
+  border: 1.5px solid #111;
+}
+.bl-preview .bl-upper-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-right: 1.5px solid #111;
+}
+.bl-preview .bl-upper-right {
+  width: 280px;
+  padding: 8px 12px;
+}
+.bl-preview .bl-party-box {
+  padding: 8px 12px;
+  border-bottom: 1.5px solid #111;
+}
+.bl-preview .bl-party-box:last-child { border-bottom: none; }
+.bl-preview .bl-party-box .bl-party-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #111;
+  border-bottom: 1px solid #666;
+  padding-bottom: 3px;
+  margin-bottom: 6px;
+}
+.bl-preview .bl-party-box .bl-party-content {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #333;
+  min-height: 44px;
+}
+/* Right side: B/L No. + Carrier */
+.bl-preview .bl-no-field {
+  text-align: right;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ccc;
+}
+.bl-preview .bl-no-field .bl-lbl {
+  font-size: 10px;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: 0.3px;
+}
+.bl-preview .bl-no-field .bl-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+}
+.bl-preview .carrier-area {
+  text-align: center;
+  margin-top: 10px;
+}
+.bl-preview .carrier-area .carrier-name {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111;
+  letter-spacing: 1px;
+}
+.bl-preview .carrier-area .carrier-sub {
+  font-size: 9px;
+  color: #555;
+  line-height: 1.5;
+}
+.bl-preview .carrier-area .original-tag {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 14px;
+  font-weight: bold;
+  color: #c0392b;
+  margin-top: 10px;
+  letter-spacing: 3px;
+}
+.bl-preview .carrier-area .info-lines {
+  margin-top: 10px;
+  font-size: 10px;
+  line-height: 1.8;
+  color: #333;
+  text-align: left;
+}
+.bl-preview .carrier-area .info-lines .ilbl {
+  font-weight: 700;
+  color: #111;
+}
+/* Transport info (below party boxes) */
+.bl-preview .bl-transport {
+  border: 1.5px solid #111;
+  margin-bottom: 10px;
+}
+.bl-preview .bl-transport-row {
+  display: flex;
+  border-bottom: 1.5px solid #111;
+}
+.bl-preview .bl-transport-row:last-child { border-bottom: none; }
+.bl-preview .bl-transport-row > div {
+  flex: 1;
+  padding: 6px 10px;
+  border-right: 1.5px solid #111;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.bl-preview .bl-transport-row > div:last-child { border-right: none; }
+.bl-preview .bl-transport-row .tlbl {
+  font-weight: 700;
+  color: #111;
+  font-size: 9px;
+  letter-spacing: 0.3px;
+  display: block;
+}
+.bl-preview .bl-transport-row .tval {
+  font-size: 11px;
+  color: #333;
+}
+/* Goods table */
+.bl-preview .bl-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1.5px solid #111;
+  margin-bottom: 0;
+  font-size: 10.5px;
+}
+.bl-preview .bl-table th {
+  border: 1.5px solid #111;
+  padding: 7px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #111;
+  text-align: center;
+  letter-spacing: 0.3px;
+  background: #f5f5f5;
+}
+.bl-preview .bl-table td {
+  border: 1.5px solid #111;
+  padding: 6px;
+  color: #333;
+  vertical-align: top;
+}
+.bl-preview .bl-table .col-marks { width: 16%; }
+.bl-preview .bl-table .col-pkgs  { width: 12%; text-align: center; }
+.bl-preview .bl-table .col-desc  { width: 40%; }
+.bl-preview .bl-table .col-gw    { width: 16%; text-align: right; }
+.bl-preview .bl-table .col-meas  { width: 16%; text-align: right; }
+.bl-preview .total-row-bl td {
+  font-weight: 700;
+  border-top: 2.5px solid #111;
+}
+/* Container / Seal row */
+.bl-preview .bl-container-seal {
+  display: flex;
+  border: 1.5px solid #111;
+  border-top: none;
+}
+.bl-preview .bl-container-seal > div {
+  flex: 1;
+  padding: 6px 10px;
+  border-right: 1.5px solid #111;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.bl-preview .bl-container-seal > div:last-child { border-right: none; }
+.bl-preview .bl-container-seal .cslbl {
+  font-weight: 700;
+  color: #111;
+  font-size: 9px;
+  letter-spacing: 0.3px;
+}
+.bl-preview .bl-container-seal .csval {
+  font-size: 11px;
+  color: #333;
+}
+/* Total packages in words */
+.bl-preview .bl-words {
+  border: 1.5px solid #111;
+  border-top: none;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: #333;
+  line-height: 1.5;
+}
+.bl-preview .bl-words .wlbl {
+  font-weight: 700;
+  font-style: normal;
+  font-size: 9px;
+  color: #111;
+  letter-spacing: 0.3px;
+  display: block;
+  margin-bottom: 2px;
+}
+/* Freight section */
+.bl-preview .bl-freight {
+  border: 1.5px solid #111;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+}
+.bl-preview .bl-freight .flbl {
+  font-weight: 700;
+  font-size: 9px;
+  color: #111;
+  letter-spacing: 0.3px;
+}
+.bl-preview .bl-freight .frow {
+  display: flex;
+  gap: 24px;
+  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.bl-preview .bl-freight .frow > div .flbl2 {
+  font-weight: 700;
+  font-size: 9px;
+  color: #111;
+}
+/* Bottom: Issue & Signature */
+.bl-preview .bl-bottom {
+  display: flex;
+  border: 1.5px solid #111;
+}
+.bl-preview .bl-bottom > div {
+  padding: 8px 12px;
+  border-right: 1.5px solid #111;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.bl-preview .bl-bottom > div:last-child { border-right: none; }
+.bl-preview .bl-bottom .blbl {
+  font-weight: 700;
+  color: #111;
+  font-size: 9px;
+  letter-spacing: 0.3px;
+}
+.bl-preview .bl-bottom .bval {
+  font-size: 11px;
+  color: #333;
+  min-height: 18px;
+  margin-bottom: 6px;
+}
+.bl-preview .bl-bottom .sig-line {
+  border-bottom: 1.5px solid #111;
+  min-height: 28px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.bl-preview .bl-bottom .sig-label {
+  font-size: 9px;
+  color: #555;
+  font-style: italic;
+}
+.bl-preview .bl-bottom .col-issue { width: 28%; }
+.bl-preview .bl-bottom .col-original { width: 22%; }
+.bl-preview .bl-bottom .col-sign { flex: 1; }
+/* Container info section — one per row, bold, large */
+.bl-preview .bl-container-section {
+  border: 1.5px solid #111;
+  border-top: none;
+  padding: 4px 0;
+}
+.bl-preview .bl-container-row {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: normal;
+  line-height: 1.7;
+  color: #1a1a2e;
+  border-bottom: 1px solid #ccc;
+  letter-spacing: 0.3px;
+}
+.bl-preview .bl-container-row:last-child { border-bottom: none; }
+
+/* ===== Shipper's Letter of Instruction - Preview ===== */
+.sli-preview .bl-upper-right { padding: 10px 14px; font-size: 10.5px; }
+.sli-preview .bl-upper-right .ref-group { margin-bottom: 10px; }
+.sli-preview .bl-upper-right .ref-group-title { font-size: 10px; font-weight: bold; background: #e8e8e8; display: inline-block; padding: 2px 8px; margin-bottom: 5px; }
+.sli-preview .bl-upper-right .ref-row { margin-bottom: 3px; line-height: 1.5; }
+.sli-preview .bl-upper-right .ref-label { font-size: 9px; color: #666; font-weight: bold; display: block; }
+.sli-preview .bl-upper-right .ref-value { font-size: 10.5px; }
+.sli-preview .bl-upper-right .ref-divider { border-top: 1px solid #ddd; margin: 8px 0; }
+.sli-preview .sli-totals { border: 1.5px solid #111; margin-bottom: 10px; }
+.sli-preview .sli-totals .totals-row { display: flex; }
+.sli-preview .sli-totals .totals-cell { flex: 1; padding: 6px 10px; border-right: 1.5px solid #111; text-align: center; }
+.sli-preview .sli-totals .totals-cell:last-child { border-right: none; }
+.sli-preview .sli-totals .totals-lbl { font-size: 9px; color: #555; font-weight: bold; text-transform: uppercase; }
+.sli-preview .sli-totals .totals-val { font-size: 11px; font-weight: bold; }

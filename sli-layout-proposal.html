@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SLI 预览布局方案 V2</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #f0f2f5; display: flex; justify-content: center; padding: 40px; font-family: Arial, sans-serif; }
+.preview { width: 920px; background: #fff; padding: 36px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.title { text-align: center; font-size: 21px; font-weight: bold; letter-spacing: 2px; padding-bottom: 10px; border-bottom: 3px double #111; margin-bottom: 16px; }
+
+/* Two-column upper */
+.upper { display: flex; gap: 0; margin-bottom: 10px; }
+.upper-left { flex: 0 0 60%; display: flex; flex-direction: column; }
+.upper-right { flex: 0 0 40%; border: 1.5px solid #111; border-left: none; padding: 10px 14px; display: flex; flex-direction: column; justify-content: flex-start; }
+
+/* Party boxes (left) */
+.party-box { border: 1.5px solid #111; padding: 8px 12px; }
+.party-box + .party-box { border-top: none; }
+.party-label { font-size: 10px; font-weight: bold; margin-bottom: 3px; background: #e8e8e8; display: inline-block; padding: 2px 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+.party-content { font-size: 10.5px; line-height: 1.65; color: #222; }
+
+/* Right panel */
+.ref-group { margin-bottom: 10px; }
+.ref-group-title { font-size: 10px; font-weight: bold; background: #e8e8e8; display: inline-block; padding: 2px 8px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.ref-row { margin-bottom: 3px; font-size: 10.5px; line-height: 1.5; }
+.ref-label { font-size: 9px; color: #666; font-weight: bold; display: block; }
+.ref-value { font-size: 10.5px; }
+.ref-divider { border-top: 1px solid #ddd; margin: 8px 0; }
+
+/* Transport */
+.transport { border: 1.5px solid #111; margin-bottom: 10px; }
+.transport-row { display: flex; }
+.transport-row + .transport-row { border-top: 1.5px solid #111; }
+.t-item { flex: 1; padding: 6px 10px; font-size: 10.5px; border-right: 1px solid #ddd; }
+.t-item:last-child { border-right: none; }
+.t-lbl { font-size: 9px; color: #555; font-weight: bold; display: block; text-transform: uppercase; }
+
+/* Table */
+table.items { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+table.items th { border: 1.5px solid #111; padding: 5px 4px; font-size: 9px; font-weight: bold; text-align: center; background: #f5f5f5; }
+table.items td { border: 1px solid #111; padding: 4px; font-size: 10px; text-align: center; }
+table.items td.desc { text-align: left; }
+
+/* Totals */
+.totals { border: 1.5px solid #111; margin-bottom: 10px; }
+.totals-row { display: flex; }
+.totals-cell { flex: 1; padding: 6px 10px; border-right: 1.5px solid #111; text-align: center; }
+.totals-cell:last-child { border-right: none; }
+.totals-lbl { font-size: 9px; color: #555; font-weight: bold; display: block; text-transform: uppercase; }
+.totals-val { font-size: 11px; font-weight: bold; }
+
+/* Special instructions */
+.special-box { border: 1.5px solid #111; padding: 8px 12px; margin-bottom: 10px; }
+.special-box .party-label { margin-bottom: 4px; }
+.special-content { font-size: 10.5px; color: #333; min-height: 36px; line-height: 1.6; }
+
+/* Bottom signature */
+.bottom { display: flex; border: 1.5px solid #111; }
+.bottom-col { flex: 1; padding: 10px 14px; border-right: 1.5px solid #111; }
+.bottom-col:last-child { border-right: none; }
+.bottom-lbl { font-size: 10px; color: #555; font-weight: bold; margin-bottom: 3px; }
+.bottom-val { font-size: 11px; }
+.sig-line { border-bottom: 1.5px solid #111; height: 30px; margin-top: 4px; }
+
+/* Annotation */
+.annotation { margin-top: 24px; padding: 16px; background: #fef9e7; border: 1px solid #f9e79f; border-radius: 6px; font-size: 13px; line-height: 1.8; }
+.annotation h3 { font-size: 15px; margin-bottom: 8px; color: #b7950b; }
+.annotation ul { padding-left: 20px; }
+</style>
+</head>
+<body>
+<div class="preview">
+  <div class="title">SHIPPER'S LETTER OF INSTRUCTION</div>
+
+  <!-- Upper: three party boxes (left 60%) + client/ref info (right 40%) -->
+  <div class="upper">
+    <div class="upper-left">
+      <div class="party-box" style="min-height:82px;">
+        <div class="party-label">SHIPPER (发货人)</div>
+        <div class="party-content">
+          Shanghai Export Co., Ltd.<br>
+          Tel: +86 21 5555 0001 &nbsp;|&nbsp; Email: export@shexport.com<br>
+          Tax ID: 91310000MA1K3XXX<br>
+          No.123 Zhangjiang Rd, Pudong, Shanghai, China
+        </div>
+      </div>
+      <div class="party-box" style="min-height:70px;">
+        <div class="party-label">CONSIGNEE (收货人)</div>
+        <div class="party-content">
+          John Smith &nbsp;|&nbsp; ABC Trading LLC<br>
+          Tel: +1 212 555 0001<br>
+          456 Fifth Ave, Suite 1200, New York, NY 10001, USA
+        </div>
+      </div>
+      <div class="party-box" style="min-height:60px;">
+        <div class="party-label">NOTIFY PARTY (通知方)</div>
+        <div class="party-content">
+          XYZ Logistics Inc.<br>
+          789 Port Blvd, Brooklyn, NY 11201, USA
+        </div>
+      </div>
+    </div>
+    <div class="upper-right">
+      <!-- Client info -->
+      <div class="ref-group">
+        <div class="ref-group-title">CLIENT (委托人)</div>
+        <div class="ref-row"><span class="ref-label">Name</span><span class="ref-value">ABC Trading Co., Ltd.</span></div>
+        <div class="ref-row"><span class="ref-label">Contact</span><span class="ref-value">Wang Fang</span></div>
+        <div class="ref-row"><span class="ref-label">Phone</span><span class="ref-value">+86 21 5555 0002</span></div>
+        <div class="ref-row"><span class="ref-label">Email</span><span class="ref-value">wang@abctrading.com</span></div>
+        <div class="ref-row"><span class="ref-label">Address</span><span class="ref-value">456 Huaihai Rd, Shanghai</span></div>
+      </div>
+
+      <div class="ref-divider"></div>
+
+      <!-- Shipping terms -->
+      <div class="ref-group">
+        <div class="ref-row"><span class="ref-label">B/L Type</span><span class="ref-value">Telex Release</span></div>
+        <div class="ref-row"><span class="ref-label">Payment Terms</span><span class="ref-value">T/T</span></div>
+        <div class="ref-row"><span class="ref-label">Insurance</span><span class="ref-value">Yes — Value: USD 55,000.00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transport: POL / POD / Place of Delivery / Est. Sailing / Vessel -->
+  <div class="transport">
+    <div class="transport-row">
+      <div class="t-item"><span class="t-lbl">Port of Loading</span>Shanghai</div>
+      <div class="t-item"><span class="t-lbl">Port of Discharge</span>New York</div>
+      <div class="t-item"><span class="t-lbl">Place of Delivery</span>Chicago, IL</div>
+      <div class="t-item"><span class="t-lbl">Est. Sailing Date</span>2026-06-15</div>
+      <div class="t-item"><span class="t-lbl">Vessel/Voyage</span>COSCO SHANGHAI</div>
+    </div>
+    <div class="transport-row">
+      <div class="t-item"><span class="t-lbl">Trade Terms</span>CIF</div>
+      <div class="t-item"><span class="t-lbl">Direct Voyage</span>Yes</div>
+      <div class="t-item"><span class="t-lbl">Free Demurrage</span>7 days free</div>
+      <div class="t-item"><span class="t-lbl">Shipment Mode</span>FCL</div>
+      <div class="t-item"><span class="t-lbl">Container Info</span>1×20GP</div>
+    </div>
+  </div>
+
+  <!-- Goods items table -->
+  <table class="items">
+    <thead><tr>
+      <th style="width:4%">#</th>
+      <th style="width:10%">MARKS</th>
+      <th style="width:22%">DESCRIPTION</th>
+      <th style="width:10%">HS CODE</th>
+      <th style="width:6%">QTY</th>
+      <th style="width:6%">UOM</th>
+      <th style="width:8%">WEIGHT</th>
+      <th style="width:8%">VOLUME</th>
+      <th style="width:8%">VALUE</th>
+    </tr></thead>
+    <tbody>
+      <tr><td>1</td><td>ABC</td><td class="desc">Stainless Steel Water Bottle</td><td>7323.93</td><td>500</td><td>pcs</td><td>150.00</td><td>2.50</td><td>1,750.00</td></tr>
+      <tr><td>2</td><td>DEF</td><td class="desc">Thermal Flask</td><td>7323.93</td><td>200</td><td>pcs</td><td>85.00</td><td>1.20</td><td>1,160.00</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Totals -->
+  <div class="totals">
+    <div class="totals-row">
+      <div class="totals-cell"><span class="totals-lbl">Total Value</span><span class="totals-val">USD 2,910.00</span></div>
+      <div class="totals-cell"><span class="totals-lbl">Total Weight</span><span class="totals-val">235.00 KG</span></div>
+      <div class="totals-cell"><span class="totals-lbl">Total Packages</span><span class="totals-val">120</span></div>
+      <div class="totals-cell"><span class="totals-lbl">Total Volume</span><span class="totals-val">3.70 CBM</span></div>
+    </div>
+  </div>
+
+  <!-- Special Instructions (moved below totals) -->
+  <div class="special-box">
+    <div class="party-label">SPECIAL INSTRUCTIONS (特殊说明)</div>
+    <div class="special-content">Please handle with care. Keep away from direct sunlight.</div>
+  </div>
+
+  <!-- Signature -->
+  <div class="bottom">
+    <div class="bottom-col">
+      <div class="bottom-lbl">SHIPPER SIGNATURE (发货人签名)</div>
+      <div class="bottom-val">Zhang Wei</div>
+      <div class="sig-line"></div>
+    </div>
+    <div class="bottom-col">
+      <div class="bottom-lbl">SIGNATURE DATE (签名日期)</div>
+      <div class="bottom-val">2026-05-10</div>
+      <div class="sig-line"></div>
+    </div>
+  </div>
+
+  <div class="annotation">
+    <h3>📋 布局结构</h3>
+    <pre style="font-size: 12px; line-height: 1.5; background: #fff; padding: 12px; border-radius: 4px;">
+╔═══════════════════════════════════════════════════════════════════╗
+║                SHIPPER'S LETTER OF INSTRUCTION                   ║
+╠══════════════════╤═══════════════════════════════════════════════╣
+║  SHIPPER (方框)   │  CLIENT (委托人信息)                          ║
+║  名称/电话/邮箱   │  Name / Contact / Phone / Email / Address    ║
+║  税号/地址        │                                               ║
+║                  ├───────────────────────────────────────────────║
+║  CONSIGNEE (方框) │  B/L Type: Telex Release                     ║
+║  名称/公司/电话   │  Payment Terms: T/T                          ║
+║  地址            │  Insurance: Yes / USD 55,000                  ║
+║                  │                                                ║
+║  NOTIFY PARTY    │                                                ║
+║  (方框) 名称/地址 │                                                ║
+╠══════════════════╧═══════════════════════════════════════════════╣
+║  POL │ POD │ Place of Delivery │ Est. Sail Date │ Vessel/Voyage ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  Trade Terms │ Direct │ Free Demurrage │ Ship Mode │ Container  ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  # │ MARKS │ DESC │ HS │ QTY │ UOM │ WT │ VOL │ VAL             ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  TOTAL VALUE │ TOTAL WEIGHT │ TOTAL PKGS │ TOTAL VOLUME          ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  SPECIAL INSTRUCTIONS (全宽方框)                                  ║
+╠════════════════════════╤══════════════════════════════════════════╣
+║  SHIPPER SIGNATURE    │  SIGNATURE DATE                         ║
+║  ──────── 签名线 ──── │  ──────── 签名线 ────                   ║
+╚════════════════════════╧══════════════════════════════════════════╝</pre>
+    <p style="margin-top: 12px;">这个方案可以吗？有需要调整的地方请告诉我。</p>
+  </div>
+</div>
+</body>
+</html>
