@@ -1,0 +1,398 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Dashboard 布局详解 · 港口锈迹风格</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", "SF Pro Display", "Inter", system-ui, sans-serif;
+  background: #0e0a06;
+  color: #c8bfb0;
+  line-height: 1.5;
+}
+
+.header {
+  background: linear-gradient(180deg, #16100a 0%, #0e0a06 100%);
+  border-bottom: 1px solid #2a1e14;
+  padding: 28px 40px;
+}
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #e0d0b8;
+  letter-spacing: -0.01em;
+}
+.header p { font-size: 0.88rem; color: #8a7660; margin-top: 4px; }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 40px 60px;
+}
+
+.section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8a7660;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #1f1810;
+}
+
+/* ========== 方案 1: 完整 Dashboard ========== */
+
+.dashboard {
+  background: #141009;
+  border: 1px solid #1f1810;
+  border-radius: 10px;
+  padding: 28px;
+  margin-bottom: 42px;
+}
+
+/* 统计卡片行 */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: #1a130c;
+  border: 1px solid #252016;
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+.stat-card .stat-icon {
+  width: 34px; height: 34px;
+  background: rgba(212,132,58,0.12);
+  border: 1px solid rgba(212,132,58,0.2);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+}
+.stat-card .stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e0d0b8;
+  margin-bottom: 2px;
+}
+.stat-card .stat-label {
+  font-size: 0.72rem;
+  color: #8a7660;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 中段: 最近文档 + 快速操作 */
+.mid-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.panel {
+  background: #1a130c;
+  border: 1px solid #1f1810;
+  border-radius: 8px;
+  padding: 16px 18px;
+}
+.panel-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #a09080;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title .count {
+  font-size: 0.65rem;
+  color: #6b5740;
+  font-weight: 600;
+}
+
+.doc-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid #1a1510;
+}
+.doc-row:last-child { border-bottom: none; }
+.doc-row .doc-icon {
+  width: 28px; height: 28px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem;
+  flex-shrink: 0;
+}
+.doc-row .doc-icon.invoice { background: rgba(212,132,58,0.12); color: #d4843a; }
+.doc-row .doc-icon.packing { background: rgba(90,200,138,0.1); color: #5ac88a; }
+.doc-row .doc-icon.billoflading { background: rgba(59,143,212,0.12); color: #5b9bd5; }
+.doc-row .doc-info { flex: 1; min-width: 0; }
+.doc-row .doc-name { font-size: 0.82rem; color: #c8bfb0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-row .doc-meta { font-size: 0.68rem; color: #6b5740; margin-top: 1px; }
+.doc-row .doc-time { font-size: 0.68rem; color: #5a4a38; flex-shrink: 0; }
+
+/* 快速操作面板 */
+.quick-actions {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.quick-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  background: #1f1810;
+  border: 1px solid #2a1e14;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #c8bfb0;
+  font-size: 0.82rem;
+  transition: all 0.15s;
+}
+.quick-btn:hover { border-color: #3a2818; background: #261e14; }
+.quick-btn .qb-icon { font-size: 0.9rem; width: 20px; text-align: center; }
+
+/* 工具网格 */
+.tools-section { margin-top: 6px; }
+.tools-section .section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.tools-section .section-header .title {
+  font-size: 0.75rem; font-weight: 700; color: #a09080;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.tool-card {
+  background: #1a130c;
+  border: 1px solid #1f1810;
+  border-radius: 6px;
+  padding: 14px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tool-card:hover {
+  border-color: #3a2818;
+  background: #1f1710;
+}
+.tool-card .tc-icon {
+  width: 32px; height: 32px;
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+}
+.tool-card .tc-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #c8bfb0;
+  margin-bottom: 2px;
+}
+.tool-card .tc-desc {
+  font-size: 0.66rem;
+  color: #6b5740;
+  line-height: 1.3;
+}
+
+@media (max-width: 900px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .mid-row { grid-template-columns: 1fr; }
+  .tools-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .tools-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>布局详解 · 港口锈迹 + SaaS 驾驶舱</h1>
+  <p>一个完整的首页结构 —— 统计 → 最近文档 → 快速操作 → 全量工具网格</p>
+</div>
+
+<div class="container">
+
+  <div class="section-label">方案 1 的完整布局</div>
+
+  <div class="dashboard">
+
+    <!-- 统计卡片 -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">📄</div>
+        <div class="stat-value">12</div>
+        <div class="stat-label">本月生成单据</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">5</div>
+        <div class="stat-label">已保存模板</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">最近导出</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value">100%</div>
+        <div class="stat-label">数据本地存储</div>
+      </div>
+    </div>
+
+    <!-- 中段：最近文档 + 快速操作 -->
+    <div class="mid-row">
+      <div class="panel">
+        <div class="panel-title">
+          最近打开的文档
+          <span class="count">6 条记录</span>
+        </div>
+        <div class="doc-row">
+          <div class="doc-icon invoice">📄</div>
+          <div class="doc-info">
+            <div class="doc-name">Commercial Invoice — INV-2024-058</div>
+            <div class="doc-meta">ABC Trading Co. · USD 12,430.00</div>
+          </div>
+          <div class="doc-time">2 小时前</div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-icon packing">📦</div>
+          <div class="doc-info">
+            <div class="doc-name">Packing List — PL-2024-022</div>
+            <div class="doc-meta">Container MSKU9074321 · 120 CTNS</div>
+          </div>
+          <div class="doc-time">昨天</div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-icon billoflading">🚢</div>
+          <div class="doc-info">
+            <div class="doc-name">Bill of Lading — BL-2024-103</div>
+            <div class="doc-meta">Vessel: EVER FORTUNE · POL: Shanghai</div>
+          </div>
+          <div class="doc-time">周三</div>
+        </div>
+        <div class="doc-row">
+          <div class="doc-icon invoice">📄</div>
+          <div class="doc-info">
+            <div class="doc-name">Proforma Invoice — PI-2024-041</div>
+            <div class="doc-meta">XYZ Imports Ltd. · EUR 8,200.00</div>
+          </div>
+          <div class="doc-time">上周一</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">快速操作</div>
+        <div class="quick-actions">
+          <div class="quick-btn">
+            <span class="qb-icon">📄</span> 新建商业发票
+          </div>
+          <div class="quick-btn">
+            <span class="qb-icon">📦</span> 新建装箱单
+          </div>
+          <div class="quick-btn">
+            <span class="qb-icon">📥</span> 导入数据备份
+          </div>
+          <div class="quick-btn">
+            <span class="qb-icon">📤</span> 导出全部数据
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 全量工具网格 -->
+    <div class="tools-section">
+      <div class="section-header">
+        <span class="title">全部单据工具 · 19 种</span>
+        <span style="font-size:0.68rem;color:#5a4a38">点击进入 →</span>
+      </div>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(212,132,58,0.12)">📄</div>
+          <div class="tc-name">商业发票</div>
+          <div class="tc-desc">Commercial Invoice</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(90,200,138,0.1)">📦</div>
+          <div class="tc-name">装箱单</div>
+          <div class="tc-desc">Packing List</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(59,143,212,0.12)">🚢</div>
+          <div class="tc-name">提单</div>
+          <div class="tc-desc">Bill of Lading</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(180,130,80,0.12)">📝</div>
+          <div class="tc-name">外贸合同</div>
+          <div class="tc-desc">Trade Contract</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(212,132,58,0.1)">💰</div>
+          <div class="tc-name">商业报价单</div>
+          <div class="tc-desc">Commercial Quotation</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(90,200,138,0.08)">📋</div>
+          <div class="tc-name">详细装箱单</div>
+          <div class="tc-desc">Comm. Packing List</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(150,120,90,0.12)">📊</div>
+          <div class="tc-name">成本估算单</div>
+          <div class="tc-desc">Cost Estimation</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(59,143,212,0.1)">🏷️</div>
+          <div class="tc-name">原产地证明</div>
+          <div class="tc-desc">Cert. of Origin</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(212,132,58,0.08)">📑</div>
+          <div class="tc-name">形式发票</div>
+          <div class="tc-desc">Proforma Invoice</div>
+        </div>
+        <div class="tool-card">
+          <div class="tc-icon" style="background:rgba(90,200,138,0.08)">🛡️</div>
+          <div class="tc-name">受益人证明</div>
+          <div class="tc-desc">Beneficiary Cert</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 问题: 统计卡片的数据从哪来? -->
+  <div class="section-label" style="color:#d4843a;border-color:#2a1e14">需要讨论的问题</div>
+
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+    <div style="background:#1a130c;border:1px solid #1f1810;border-radius:8px;padding:18px 20px">
+      <div style="font-size:0.82rem;font-weight:700;color:#e0d0b8;margin-bottom:8px">📊 统计卡片的数据来源?</div>
+      <div style="font-size:0.78rem;color:#8a7660;line-height:1.6">
+        当前所有数据在 localStorage，没有全局文档索引。<br><br>
+        <strong>短期方案:</strong> 遍历 localStorage 所有 key，统计各文档类型的条数、最近修改时间。<br>
+        <strong>中期方案:</strong> 引入 IndexedDB + 统一文档索引表（"本月生成"需要时间维度）。
+      </div>
+    </div>
+    <div style="background:#1a130c;border:1px solid #1f1810;border-radius:8px;padding:18px 20px">
+      <div style="font-size:0.82rem;font-weight:700;color:#e0d0b8;margin-bottom:8px">🤖 AI 生成入口放在哪里?</div>
+      <div style="font-size:0.78rem;color:#8a7660;line-height:1.6">
+        你之前提到"AI 生成"是重构方向之一。<br><br>
+        <strong>选项:</strong> 可以在 Quick Actions 区或统计卡片上方增加一个 AI 命令输入框（"描述你的单证需求..."），AI 自动判断生成哪种单证并跳转。
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

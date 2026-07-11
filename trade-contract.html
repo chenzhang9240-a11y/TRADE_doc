@@ -193,12 +193,20 @@ function isFldR(key){return isFieldRequired(DT,key,TC_DEFAULT_FIELDS);}
 // ===== Init =====
 function init(){
   applyTheme();
-  var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);
+  var s=loadDocData(DT);
+  var aiPrefill = loadAiPrefill(DT);
+  if (aiPrefill && !saved) {
+    var defaults = getDefaultDoc(DT);
+    data = mergeAiFields(defaults, aiPrefill.fields);
+    saveDocData(DT, data);
+    localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
+    showAiSuggestion(aiPrefill.suggestion);
+  } else { data = saved ? saved : getDefaultDoc(DT); }
   autoCalcTC();
   ensureTmplData(DT,TC_DEFAULT_FIELDS);
   migrateTmplData(DT,TC_DEFAULT_FIELDS);
   setupTmplEvents();
-  renderAll();
+  renderAll();injectThreeColumnLayout(DT,PL_TMPL_SECTIONS,PL_TMPL_SECTION_LABELS);
 }
 injectSpaButton();injectBottomCta();injectPageFaq();
 

@@ -1,0 +1,472 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade OS · 打印方案</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Segoe UI","SF Pro Display","Inter",system-ui,sans-serif;
+  background: #fafaf8;
+  color: #2d3540;
+  line-height: 1.5;
+}
+
+.page {
+  max-width: 1100px; margin: 0 auto; padding: 32px 40px 60px;
+}
+
+.header {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 10px;
+  padding: 24px 32px; margin-bottom: 28px;
+}
+.header h1 { font-size: 1.35rem; font-weight: 700; color: #1a1814; letter-spacing: -0.01em; margin-bottom: 4px; }
+.header p { font-size: 0.85rem; color: #8a7a60; }
+
+/* ====== 方案对比 ====== */
+.compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; margin-bottom: 32px;
+}
+.option-card {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 10px;
+  overflow: hidden;
+}
+.option-card.current { border-color: #e8ddd0; }
+.option-card.recommended { border-color: #fde68a; box-shadow: 0 0 0 2px rgba(245,158,11,0.10); }
+.option-card .card-header {
+  padding: 16px 20px; border-bottom: 1px solid #f5f0e8;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.option-card .card-header h2 {
+  font-size: 0.9rem; font-weight: 700; color: #1a1814;
+}
+.option-card .card-header .badge {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.58rem; font-weight: 700; color: #b45309;
+  background: #fffbeb; border: 1px solid #fef3c7;
+  border-radius: 4px; padding: 3px 8px; text-transform: uppercase;
+}
+.option-card .card-header .badge.current {
+  color: #8a7a60; background: #f5f0e8; border-color: #ede8e0;
+}
+.option-card .card-header .badge.rec {
+  color: #059669; background: #ecfdf5; border-color: #d1fae5;
+}
+.option-card .card-body { padding: 20px; }
+
+/* 方案 A 的打印预览模拟 */
+.print-preview {
+  background: #f0f0ec; border: 1px solid #ddd; border-radius: 6px;
+  padding: 20px; min-height: 200px;
+}
+.print-preview.wrong {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.print-preview.wrong .nav-mock {
+  width: 100%; height: 28px; background: #e8e4dc;
+  border-radius: 3px; display: flex; align-items: center;
+  padding: 0 12px; font-size: 0.6rem; color: #b8a88a;
+}
+.print-preview.wrong .sidebar-mock {
+  width: 100%; height: 14px; background: #e8e4dc;
+  border-radius: 2px; margin-top: 4px;
+}
+.print-preview.wrong .form-mock {
+  width: 100%; height: 120px; background: #e8e4dc;
+  border-radius: 3px; display: flex; align-items: flex-start; flex-wrap: wrap;
+  padding: 10px; gap: 4px;
+}
+.print-preview.wrong .form-mock .cell {
+  width: 60px; height: 8px; background: #d5d0c4; border-radius: 2px;
+}
+.print-preview.wrong .overlay {
+  margin-top: 6px; font-family: "JetBrains Mono",monospace;
+  font-size: 0.58rem; color: #d4b0a0;
+}
+
+/* 方案 A 的侧边标注 */
+.waste-callout {
+  display: flex; gap: 10px; align-items: flex-start; margin-top: 12px;
+  padding: 10px 12px; background: #fef5f4; border: 1px solid #fecaca;
+  border-radius: 6px; font-size: 0.72rem; color: #b45309; line-height: 1.5;
+}
+.waste-callout .icon { font-size: 1rem; flex-shrink: 0; }
+
+/* 方案 B 的打印预览 */
+.print-preview.clean {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.print-preview.clean .doc-block {
+  background: #ffffff; border: 1px solid #e0dcd4;
+  border-radius: 3px; padding: 15px 18px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.print-preview.clean .doc-block .d-title {
+  font-family: "JetBrains Mono",monospace;
+  font-size: 0.56rem; color: #8a7a60; text-transform: uppercase;
+  letter-spacing: 0.05em; margin-bottom: 2px;
+}
+.print-preview.clean .doc-block .d-row {
+  display: flex; gap: 12px;
+}
+.print-preview.clean .doc-block .d-row .d-label {
+  font-size: 0.56rem; color: #8a7a60; width: 60px; flex-shrink: 0;
+}
+.print-preview.clean .doc-block .d-row .d-val {
+  height: 3px; background: #e0dcd4; border-radius: 1px; flex: 1; margin-top: 5px;
+}
+.print-preview.clean .doc-block .d-row .d-val.short { flex: 0.4; }
+.print-preview.clean .table-mock {
+  border: 1px solid #e0dcd4; border-radius: 2px;
+  padding: 8px;
+}
+.print-preview.clean .table-mock .t-head {
+  display: flex; gap: 4px; margin-bottom: 6px;
+}
+.print-preview.clean .table-mock .t-head div {
+  height: 4px; background: #e0dcd4; border-radius: 1px; flex: 1;
+}
+.print-preview.clean .table-mock .t-row {
+  display: flex; gap: 4px; margin-bottom: 4px;
+}
+.print-preview.clean .table-mock .t-row div {
+  height: 3px; background: #ece8e0; border-radius: 1px; flex: 1;
+}
+.print-preview.clean .total-bar {
+  height: 6px; background: #fef3c7; border-radius: 2px;
+  width: 30%; align-self: flex-end;
+}
+
+/* 打印按钮入口 mock */
+.print-entry {
+  display: flex; gap: 10px; margin-top: 14px; align-items: center;
+}
+.print-entry .pe-label { font-size: 0.72rem; color: #6b5e4e; }
+.print-entry .pe-btn {
+  font-family: "JetBrains Mono",monospace;
+  font-size: 0.64rem; font-weight: 600; color: #b45309;
+  background: #fffbeb; border: 1px solid #fde68a;
+  border-radius: 5px; padding: 6px 14px; cursor: pointer;
+  transition: all 0.12s;
+}
+.print-entry .pe-btn:hover { background: #fef3c7; }
+.print-entry .pe-btn.active {
+  background: #f59e0b; color: #fff; border-color: #f59e0b;
+}
+
+/* ====== 方案详情卡片 ====== */
+.detail-section {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 10px;
+  padding: 24px 28px; margin-bottom: 20px;
+}
+.detail-section h3 {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.64rem; font-weight: 700; color: #b8a88a;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px;
+}
+.flow-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+  font-size: 0.82rem; color: #4a4030;
+}
+.flow-row .flow-step {
+  background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px;
+  padding: 8px 14px; font-family: "JetBrains Mono",monospace;
+  font-size: 0.68rem; color: #b45309; font-weight: 600;
+}
+.flow-row .flow-arrow { color: #d4c8a8; font-size: 0.9rem; }
+.flow-row .flow-step.result {
+  background: #ecfdf5; border-color: #d1fae5; color: #059669;
+}
+
+.code-block {
+  background: #fdfcf9; border: 1px solid #f5f0e8; border-radius: 6px;
+  padding: 14px 18px; font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.72rem; color: #4a4030; line-height: 1.7;
+  overflow-x: auto; white-space: pre;
+}
+.code-block .cmt { color: #8a7a60; }
+.code-block .kw { color: #d97706; }
+.code-block .fn { color: #b45309; }
+.code-block .str { color: #059669; }
+
+.compact-list { font-size: 0.82rem; color: #4a4030; line-height: 1.8; }
+.compact-list li { margin-bottom: 4px; }
+.compact-list li::marker { color: #f59e0b; }
+
+@media (max-width: 800px) {
+  .compare-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <h1>打印方案 · 只打预览表单，不打整个页面</h1>
+    <p>当前 `window.print()` 打印的是完整页面（含导航/Tab/侧边栏）。目标：只打印预览区的纯单证内容。</p>
+  </div>
+
+  <!-- ====== 方案对比 ====== -->
+  <div class="compare-grid">
+
+    <!-- A: 当前行为 -->
+    <div class="option-card current">
+      <div class="card-header">
+        <h2>A · 当前行为</h2>
+        <span class="badge current">现状</span>
+      </div>
+      <div class="card-body">
+        <div class="print-preview wrong">
+          <div class="nav-mock">TRADE_OS · 商业发票 · 导出PDF</div>
+          <div class="sidebar-mock">SECTIONS · 发货人 · 收货人 · 商品明细</div>
+          <div class="form-mock">
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+            <div class="cell"></div><div class="cell"></div>
+          </div>
+          <div class="sidebar-mock">TEMPLATE · 完整版 · + 新建模板</div>
+          <div class="overlay">&larr; 导航/侧边栏/面板全部被打印</div>
+        </div>
+        <div class="waste-callout">
+          <span class="icon">&#9888;</span>
+          <div>打印输出包含导航栏、侧边导航、Tab 栏、模板面板、底部 CTA 等非单证内容。浪费纸张和墨水，且不像一份正式单证。</div>
+        </div>
+        <div class="print-entry">
+          <span class="pe-label">触发方式:</span>
+          <span class="pe-btn">Ctrl+P</span>
+          <span>→ 浏览器打印整个页面</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- B: 推荐方案 -->
+    <div class="option-card recommended">
+      <div class="card-header">
+        <h2>B · 推荐方案</h2>
+        <span class="badge rec">推荐</span>
+      </div>
+      <div class="card-body">
+        <div class="print-preview clean">
+          <div class="doc-block">
+            <div class="d-title">COMMERCIAL INVOICE</div>
+            <div class="d-row"><div class="d-label">Shipper</div><div class="d-val short"></div></div>
+            <div class="d-row"><div class="d-label">Consignee</div><div class="d-val short"></div></div>
+            <div class="d-row"><div class="d-label">Invoice No.</div><div class="d-val" style="flex:0.25"></div><div class="d-label">Date</div><div class="d-val" style="flex:0.25"></div></div>
+          </div>
+          <div class="table-mock">
+            <div class="t-head"><div></div><div></div><div></div><div></div><div></div></div>
+            <div class="t-row"><div></div><div></div><div></div><div></div><div></div></div>
+            <div class="t-row"><div></div><div></div><div></div><div></div><div></div></div>
+            <div class="t-row"><div></div><div></div><div></div><div></div><div></div></div>
+          </div>
+          <div class="total-bar"></div>
+        </div>
+        <div class="print-entry" style="margin-top:12px">
+          <span class="pe-label">触发方式:</span>
+          <span class="pe-btn active">打印按钮</span>
+          <span>→ 只打印 #preview-container 内容</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ====== 实现方案细节 ====== -->
+  <div class="detail-section">
+    <h3>// IMPLEMENTATION · 实现方案</h3>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:18px">
+      <strong>方案:</strong> CSS <span style="font-family:'JetBrains Mono',monospace;color:#b45309">@media print</span> 隐藏非内容元素 + JavaScript <span style="font-family:'JetBrains Mono',monospace;color:#b45309">printPreview()</span> 函数。<br>
+      思路：用户点击"打印"按钮 → 切换到 Preview Tab → 触发浏览器的打印对话框 → CSS media print 规则只显示预览区。
+    </div>
+
+    <div class="flow-row">
+      <span style="color:#8a7a60">用户操作流:</span>
+      <span class="flow-step">点击打印</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">切换到预览Tab</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">window.print()</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step result">仅预览区打印</span>
+    </div>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:14px">
+      <strong>CSS media print 规则（放在 common.css 末尾）:</strong>
+    </div>
+
+    <div class="code-block"><span class="cmt">/* ====== Print: 只打印预览区 · ONLY PREVIEW ====== */</span>
+<span class="kw">@media</span> print {
+  <span class="cmt">/* 隐藏所有 UI 元素 */</span>
+  <span class="fn">.global-nav</span>,
+  <span class="fn">.sidebar</span>,
+  <span class="fn">.tmpl-panel</span>,
+  <span class="fn">.tab-bar</span>,
+  <span class="fn">.doc-header</span>,
+  <span class="fn">.action-bar</span>,
+  <span class="fn">.tmpl-bar</span>,
+  <span class="fn">#panel-edit</span>,
+  <span class="fn">#panel-history</span>,
+  <span class="fn">.bottom-cta</span>,
+  <span class="fn">.page-footer</span>,
+  <span class="fn">.faq-section</span> {
+    <span class="kw">display</span>: <span class="str">none</span> <span class="kw">!important</span>;
+  }
+
+  <span class="cmt">/* 显示预览区 + 重置布局 */</span>
+  <span class="fn">#panel-preview</span> {
+    <span class="kw">display</span>: <span class="str">block</span> <span class="kw">!important</span>;
+  }
+  <span class="fn">.doc-page-content</span> {
+    <span class="kw">display</span>: <span class="str">block</span> <span class="kw">!important</span>;
+  }
+  <span class="fn">.main-content</span> {
+    <span class="kw">max-width</span>: <span class="str">100%</span> <span class="kw">!important</span>;
+    <span class="kw">padding</span>: 0 <span class="kw">!important</span>;
+  }
+
+  <span class="cmt">/* 背景强制白色 + 文字黑色 */</span>
+  <span class="fn">body</span> {
+    <span class="kw">background</span>: <span class="str">#ffffff</span> <span class="kw">!important</span>;
+    <span class="kw">color</span>: <span class="str">#000000</span> <span class="kw">!important</span>;
+  }
+  <span class="fn">#preview-container</span> {
+    <span class="kw">background</span>: <span class="str">#ffffff</span> <span class="kw">!important</span>;
+    <span class="kw">box-shadow</span>: <span class="str">none</span> <span class="kw">!important</span>;
+  }
+
+  <span class="cmt">/* A4 横版打印设置 */</span>
+  <span class="kw">@page</span> {
+    <span class="kw">size</span>: A4 landscape;
+    <span class="kw">margin</span>: 10mm;
+  }
+}</div>
+  </div>
+
+  <!-- ====== JS 打印函数 ====== -->
+  <div class="detail-section">
+    <h3>// PRINT FUNCTION · 打印函数</h3>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:14px">
+      在 <span style="font-family:'JetBrains Mono',monospace;color:#b45309">common.js</span> 中新增通用函数，所有 19 个页面共用：
+    </div>
+
+    <div class="code-block"><span class="cmt">/** 打印当前文档的预览区（仅预览内容） */</span>
+<span class="kw">function</span> <span class="fn">printDoc</span>(dt) {
+  <span class="kw">var</span> lang = getLang();
+  <span class="kw">var</span> label = DOC_META[dt].titleZh || <span class="str">'Document'</span>;
+
+  <span class="cmt">// 1. 确保 Preview tab 内容已渲染</span>
+  <span class="kw">if</span> (<span class="kw">typeof</span> renderPreview === <span class="str">'function'</span>) {
+    renderPreview();
+  }
+
+  <span class="cmt">// 2. 切换到 Preview tab</span>
+  <span class="kw">var</span> tabPreview = document.getElementById(<span class="str">'tab-preview'</span>);
+  <span class="kw">if</span> (tabPreview) tabPreview.click();
+
+  <span class="cmt">// 3. 短暂等待 DOM 刷新后调起打印</span>
+  setTimeout(<span class="kw">function</span>() {
+    <span class="kw">var</span> oldTitle = document.title;
+    document.title = label;
+
+    window.print();
+
+    document.title = oldTitle;
+  }, 200);
+}
+
+<span class="cmt">/** 打印纯预览 HTML（iframe 方式，不影响当前页面状态） */</span>
+<span class="kw">function</span> <span class="fn">printDocClean</span>(previewHTML, title) {
+  <span class="kw">var</span> iframe = document.createElement(<span class="str">'iframe'</span>);
+  iframe.style.position = <span class="str">'fixed'</span>;
+  iframe.style.right = <span class="str">'0'</span>;
+  iframe.style.bottom = <span class="str">'0'</span>;
+  iframe.style.width = <span class="str">'0'</span>;
+  iframe.style.height = <span class="str">'0'</span>;
+  iframe.style.border = <span class="str">'none'</span>;
+  document.body.appendChild(iframe);
+
+  <span class="kw">var</span> doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(<span class="str">'&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;meta charset="UTF-8"&gt;'</span> +
+    <span class="str">'&lt;title&gt;'</span> + (title || <span class="str">'Document'</span>) + <span class="str">'&lt;/title&gt;'</span> +
+    <span class="str">'&lt;style&gt;body{font-family:Arial,sans-serif;background:#fff;margin:0;padding:10mm}'</span> +
+    <span class="str">'@page{size:A4 landscape;margin:10mm}'</span> +
+    <span class="str">'table{border-collapse:collapse;width:100%}'</span> +
+    <span class="str">'th,td{border:1px solid #000;padding:4px 6px;font-size:11px}'</span> +
+    <span class="str">'&lt;/style&gt;&lt;/head&gt;&lt;body&gt;'</span> +
+    previewHTML +
+    <span class="str">'&lt;/body&gt;&lt;/html&gt;'</span>);
+  doc.close();
+
+  iframe.contentWindow.focus();
+  iframe.contentWindow.print();
+
+  setTimeout(<span class="kw">function</span>() {
+    document.body.removeChild(iframe);
+  }, 1000);
+}</div>
+  </div>
+
+  <!-- ====== 触发入口 ====== -->
+  <div class="detail-section">
+    <h3>// ENTRY POINTS · 打印入口</h3>
+
+    <ul class="compact-list">
+      <li><strong>Preview Tab 内:</strong> 在预览区的 action bar 中添加"打印"按钮，放在"导出 PDF"旁边</li>
+      <li><strong>全局导航:</strong> 右上角添加打印机图标按钮（仅当用户在 Preview Tab 时高亮）</li>
+      <li><strong>快捷键:</strong> 可选绑定 <span style="font-family:'JetBrains Mono',monospace;color:#b45309">Ctrl+Shift+P</span> → <span style="font-family:'JetBrains Mono',monospace;color:#b45309">printDoc(DT)</span>，避免与浏览器 Ctrl+P 冲突</li>
+    </ul>
+
+    <div class="flow-row" style="margin-top:12px">
+      <span style="color:#8a7a60">两种打印方式对比:</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px">
+      <div style="background:#fffdf7;border:1px solid #fef3c7;border-radius:7px;padding:14px 16px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.64rem;font-weight:700;color:#b45309;margin-bottom:6px">printDoc(dt) · 简单方式</div>
+        <div style="font-size:0.76rem;color:#6b5e4e;line-height:1.6">
+          切换 Tab → 触发浏览器 print → CSS media print 隐藏 UI。<br>
+          <strong>优点:</strong> 实现简单，复用了预览渲染。<br>
+          <strong>缺点:</strong> 短暂切换到 Preview Tab 再切回；暗色模式下打印可能有白色背景问题（CSS 解决）。
+        </div>
+      </div>
+      <div style="background:#ecfdf5;border:1px solid #d1fae5;border-radius:7px;padding:14px 16px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.64rem;font-weight:700;color:#059669;margin-bottom:6px">printDocClean(html, title) · iframe 方式</div>
+        <div style="font-size:0.76rem;color:#6b5e4e;line-height:1.6">
+          创建隐藏 iframe → 写入预览 HTML + @page CSS → iframe 内打印。<br>
+          <strong>优点:</strong> 不切换 Tab，不干扰编辑状态；完全干净的打印环境。<br>
+          <strong>缺点:</strong> 多一次 DOM 写入；iframe 中的字体可能需要单独指定。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 暗色模式处理 ====== -->
+  <div class="detail-section">
+    <h3>// DARK MODE HANDLING · 暗色模式</h3>
+    <ul class="compact-list">
+      <li>当前 `printDoc()` 的 CSS `@media print` 规则中强制 `body { background: #fff; color: #000 }`，所以暗色模式下打印也会是正常的白色文档</li>
+      <li>iframe 方案 (`printDocClean`) 天然不受页面暗色模式影响——iframe 内是一个独立的全新 document</li>
+    </ul>
+  </div>
+
+  <!-- ====== 改动总结 ====== -->
+  <div class="detail-section">
+    <h3>// CHANGES SUMMARY · 改动总结</h3>
+    <ul class="compact-list">
+      <li><strong>common.css:</strong> 末尾追加 `@media print` 规则块（约 40 行）</li>
+      <li><strong>common.js:</strong> 新增 `printDoc(dt)` + `printDocClean(previewHTML, title)` 两个函数（约 40 行）</li>
+      <li><strong>各单证页面:</strong> 在 Preview 区的 action bar 中已有"导出 PDF"和"打印"按钮的位置——只需将现有打印按钮的 `onclick` 从 `window.print()` 改为 `printDoc(DT)` 或 `printDocClean(previewHTML, title)`</li>
+      <li><strong>html2pdf.js:</strong> 不影响。PDF 导出走 html2pdf 路径，打印走浏览器原生 print 路径，两个独立。</li>
+    </ul>
+  </div>
+
+</div>
+
+</body>
+</html>

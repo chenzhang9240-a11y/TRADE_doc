@@ -222,7 +222,15 @@ function init(){
     applyTheme();
     ensureTmplData(DT,CQ_DEFAULT_FIELDS);
     migrateTmplData(DT,CQ_DEFAULT_FIELDS);
-    var s=loadDocData(DT);data=s?s:getDefaultDoc(DT);renderAll();
+    var s=loadDocData(DT);
+  var aiPrefill = loadAiPrefill(DT);
+  if (aiPrefill && !saved) {
+    var defaults = getDefaultDoc(DT);
+    data = mergeAiFields(defaults, aiPrefill.fields);
+    saveDocData(DT, data);
+    localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
+    showAiSuggestion(aiPrefill.suggestion);
+  } else { data = saved ? saved : getDefaultDoc(DT); }renderAll();injectThreeColumnLayout(DT,PL_TMPL_SECTIONS,PL_TMPL_SECTION_LABELS);
   }catch(e){document.body.innerHTML='<div style="padding:40px;text-align:center;color:red;">Error: '+e.message+'</div>';}
 }
 injectSpaButton();injectBottomCta();injectPageFaq();

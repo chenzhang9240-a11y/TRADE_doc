@@ -296,8 +296,17 @@ function init() {
   injectBottomCta();
   injectPageFaq();
   var saved = loadDocData(DT);
-  data = saved ? saved : getDefaultDoc(DT);
+  
+  var aiPrefill = loadAiPrefill(DT);
+  if (aiPrefill && !saved) {
+    var defaults = getDefaultDoc(DT);
+    data = mergeAiFields(defaults, aiPrefill.fields);
+    saveDocData(DT, data);
+    localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
+    showAiSuggestion(aiPrefill.suggestion);
+  } else { data = saved ? saved : getDefaultDoc(DT); }
   renderAll();
+  injectThreeColumnLayout(DT, CI_TMPL_SECTIONS, CI_TMPL_SECTION_LABELS);
   setupTmplEvents();
 }
 

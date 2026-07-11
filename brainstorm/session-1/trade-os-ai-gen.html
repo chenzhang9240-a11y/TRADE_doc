@@ -1,0 +1,488 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade OS · AI 生成方案</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Segoe UI","SF Pro Display","Inter","JetBrains Mono",system-ui,sans-serif;
+  background: #fafaf8;
+  color: #2d3540;
+  line-height: 1.5;
+}
+
+.page { max-width: 1100px; margin: 0 auto; padding: 32px 40px 60px; }
+
+.header {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 10px;
+  padding: 24px 32px; margin-bottom: 28px;
+}
+.header h1 { font-size: 1.35rem; font-weight: 700; color: #1a1814; letter-spacing: -0.01em; margin-bottom: 4px; }
+.header p { font-size: 0.85rem; color: #8a7a60; }
+
+/* ====== AI Bar 演进 ====== */
+.ai-stages {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px;
+}
+.stage-card {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 10px; overflow: hidden;
+}
+.stage-card.rec { border-color: #fde68a; box-shadow: 0 0 0 2px rgba(245,158,11,0.08); }
+.stage-card .st-header {
+  padding: 14px 18px; border-bottom: 1px solid #f5f0e8;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.stage-card .st-header h3 {
+  font-family: "JetBrains Mono",monospace; font-size: 0.62rem; font-weight: 700;
+  color: #b8a88a; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.stage-card .st-header .st-badge {
+  font-size: 0.58rem; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+}
+.stage-card .st-header .st-badge.v1 { color: #8a7a60; background: #f5f0e8; }
+.stage-card .st-header .st-badge.v2 { color: #b45309; background: #fffbeb; border:1px solid #fef3c7; }
+.stage-card .st-header .st-badge.v3 { color: #059669; background: #ecfdf5; border:1px solid #d1fae5; }
+.stage-card .st-body { padding: 18px; }
+.stage-card .st-body .desc { font-size: 0.76rem; color: #6b5e4e; line-height: 1.6; margin-bottom: 10px; }
+
+/* AI Bar 各种状态 */
+.ai-bar-mock {
+  border: 1px solid #ede8e0; border-radius: 8px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px; margin-top: 8px;
+}
+.ai-bar-mock .cursor {
+  font-family: "JetBrains Mono",monospace;
+  font-size: 0.65rem; font-weight: 700; color: #b45309; flex-shrink: 0;
+}
+.ai-bar-mock .placeholder {
+  font-size: 0.7rem; color: #c4b898; flex: 1;
+}
+.ai-bar-mock .hint {
+  font-family: "JetBrains Mono",monospace;
+  font-size: 0.56rem; color: #b8a88a; flex-shrink: 0;
+}
+.ai-bar-mock .hint.loading { color: #d97706; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ====== 方案 A 详情 ====== */
+.detail-section {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 10px;
+  padding: 24px 28px; margin-bottom: 20px;
+}
+.detail-section h3 {
+  font-family: "JetBrains Mono",monospace;
+  font-size: 0.64rem; font-weight: 700; color: #b8a88a;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px;
+}
+
+.flow-row {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+  font-size: 0.82rem; color: #4a4030; flex-wrap: wrap;
+}
+.flow-row .flow-step {
+  display: inline-block; padding: 6px 14px; border-radius: 6px;
+  font-family: "JetBrains Mono",monospace; font-size: 0.66rem; font-weight: 600;
+  background: #fffbeb; border: 1px solid #fef3c7; color: #b45309;
+}
+.flow-row .flow-step.api { background: #ecfdf5; border-color: #d1fae5; color: #059669; }
+.flow-row .flow-step.result { background: #eff6ff; border-color: #dbeafe; color: #2563eb; }
+.flow-row .flow-arrow { color: #d4c8a8; font-size: 0.9rem; }
+
+.code-block {
+  background: #fdfcf9; border: 1px solid #f5f0e8; border-radius: 6px;
+  padding: 14px 18px; font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.7rem; color: #4a4030; line-height: 1.7;
+  overflow-x: auto; white-space: pre; margin-bottom: 12px;
+}
+.code-block .cmt { color: #8a7a60; }
+.code-block .kw { color: #d97706; }
+.code-block .fn { color: #b45309; }
+.code-block .str { color: #059669; }
+
+.compact-list { font-size: 0.82rem; color: #4a4030; line-height: 1.8; }
+.compact-list li { margin-bottom: 4px; }
+.compact-list li::marker { color: #f59e0b; }
+
+/* 路由映射表 */
+.route-table {
+  width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.76rem;
+}
+.route-table th {
+  font-family: "JetBrains Mono",monospace; font-size: 0.6rem; font-weight: 700;
+  color: #b8a88a; text-transform: uppercase; letter-spacing: 0.05em;
+  text-align: left; padding: 6px 10px; border-bottom: 1px solid #ede8e0;
+}
+.route-table td {
+  padding: 5px 10px; border-bottom: 1px solid #f5f0e8; color: #4a4030;
+}
+.route-table td.keyword { font-family: "JetBrains Mono",monospace; font-size: 0.7rem; color: #b45309; }
+
+.note-box {
+  background: #fffdf7; border: 1px solid #fef3c7; border-radius: 7px;
+  padding: 14px 18px; font-size: 0.78rem; color: #6b5e4e; line-height: 1.7; margin-top: 12px;
+}
+.note-box strong { color: #b45309; }
+
+/* Tab 切换 */
+.tab-row {
+  display: flex; gap: 4px; margin-bottom: 20px;
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 8px; padding: 4px;
+}
+.tab-row .tab-chip {
+  flex: 1; padding: 8px 16px; border-radius: 6px; border: none;
+  font-size: 0.78rem; font-weight: 600; color: #8a7a60; cursor: pointer;
+  background: transparent; font-family: inherit; transition: all 0.12s; text-align: center;
+}
+.tab-row .tab-chip:hover { color: #b45309; }
+.tab-row .tab-chip.active { background: #fffbeb; color: #b45309; }
+
+@media (max-width: 800px) {
+  .ai-stages { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <h1>AI 生成功能 · 实现方案</h1>
+    <p>从关键词路由到 LLM 智能填表的渐进式演进</p>
+  </div>
+
+  <!-- ====== 三步演进 ====== -->
+  <div class="ai-stages">
+
+    <!-- v1 -->
+    <div class="stage-card">
+      <div class="st-header">
+        <h3>v1 · 即日可做</h3>
+        <span class="st-badge v1">已完成 DESIGN</span>
+      </div>
+      <div class="st-body">
+        <div class="desc"><strong>关键词路由</strong><br>用户输入自然语言 → 关键词匹配 → 跳转到对应页面。纯前端，零 API 调用。</div>
+        <div class="ai-bar-mock" style="background:#fdfcf9">
+          <span class="cursor">&gt;_</span>
+          <span class="placeholder">帮我做一张从上海发往洛杉矶的提单</span>
+          <span class="hint">&#9166; 生成</span>
+        </div>
+        <div style="font-size:0.64rem;color:#8a7a60;margin-top:6px">↓ 关键词 "提单" → 跳转 bill-of-lading.html</div>
+      </div>
+    </div>
+
+    <!-- v2 -->
+    <div class="stage-card rec">
+      <div class="st-header">
+        <h3>v2 · 核心目标</h3>
+        <span class="st-badge v2">推荐先做</span>
+      </div>
+      <div class="st-body">
+        <div class="desc"><strong>LLM 智能填表</strong><br>AI 理解自然语言 → 提取结构化字段 → 预填表单数据。调用 LLM API（OpenAI 兼容接口）。</div>
+        <div class="ai-bar-mock" style="background:#fffdf7">
+          <span class="cursor">&gt;_</span>
+          <span class="placeholder">发货人 ABC Trading, 地址上海浦东, 收货人 XYZ Inc, 旧金山, 发票号 INV-2024-058, 商品 100 件不锈钢法兰 单价 $8.5</span>
+          <span class="hint loading">解析中...</span>
+        </div>
+        <div style="font-size:0.64rem;color:#8a7a60;margin-top:6px">↓ AI 提取字段 → 跳转页面 → 自动填充 → 用户确认</div>
+      </div>
+    </div>
+
+    <!-- v3 -->
+    <div class="stage-card">
+      <div class="st-header">
+        <h3>v3 · 远期规划</h3>
+        <span class="st-badge v3">未来</span>
+      </div>
+      <div class="st-body">
+        <div class="desc"><strong>多模态 + 全流程</strong><br>上传扫描件/邮件截图 → OCR 识别 → AI 提取字段 → 自动生成单证。支持批量处理。</div>
+        <div class="ai-bar-mock" style="background:#ecfdf5;border-color:#d1fae5">
+          <span class="cursor" style="color:#059669">&gt;_</span>
+          <span class="placeholder">拖入邮件截图或 PO 文件...</span>
+          <span class="hint">&#128206; 上传</span>
+        </div>
+        <div style="font-size:0.64rem;color:#8a7a60;margin-top:6px">OCR + LLM 多模态 → 自动填表 → 批量导出</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ====== v1 关键词路由 ====== -->
+  <div class="detail-section">
+    <h3>// V1 · 关键词路由 · 0 依赖</h3>
+
+    <div class="flow-row">
+      <span style="color:#8a7a60">用户输入:</span>
+      <span class="flow-step">"做一个装箱单"</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">关键词匹配</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step result">打开 packing-list.html</span>
+    </div>
+
+    <div class="code-block"><span class="kw">var</span> AI_ROUTES = {
+  <span class="str">'发票'</span>:       <span class="str">'commercial-invoice.html'</span>,
+  <span class="str">'装箱单'</span>:     <span class="str">'packing-list.html'</span>,
+  <span class="str">'提单'</span>:       <span class="str">'bill-of-lading.html'</span>,
+  <span class="str">'合同'</span>:       <span class="str">'trade-contract.html'</span>,
+  <span class="str">'报价'</span>:       <span class="str">'commercial-quotation.html'</span>,
+  <span class="str">'原产地'</span>:     <span class="str">'certificate-of-origin.html'</span>,
+  <span class="str">'保险'</span>:       <span class="str">'insurance-policy.html'</span>,
+  <span class="str">'报关'</span>:       <span class="str">'customs-declaration.html'</span>,
+  <span class="str">'熏蒸'</span>:       <span class="str">'fumigation-certificate.html'</span>,
+  <span class="str">'成本'</span>:       <span class="str">'cost-estimation.html'</span>,
+  <span class="str">'检验'</span>:       <span class="str">'inspection-certificate.html'</span>,
+  <span class="str">'发货人委托'</span>: <span class="str">'shipper-letter-instruction.html'</span>,
+  <span class="cmt">// ... 英文版 + 更多同义词</span>
+};
+
+<span class="kw">function</span> <span class="fn">handleAiCommand</span>(input) {
+  <span class="kw">var</span> q = input.toLowerCase();
+  <span class="kw">for</span> (<span class="kw">var</span> key <span class="kw">in</span> AI_ROUTES) {
+    <span class="kw">if</span> (q.indexOf(key) !== -1) {
+      window.location.href = AI_ROUTES[key];
+      <span class="kw">return</span>;
+    }
+  }
+  <span class="cmt">// 无匹配: 显示提示</span>
+  showAiHint(<span class="str">'试试: 发票 / 提单 / 装箱单 / 合同 ...'</span>);
+}</div>
+
+    <div class="note-box">
+      <strong>v1 优劣:</strong> 零外部依赖，100% 纯前端，毫秒级响应。但只能做路由跳转，不能预填任何字段。<br>
+      <strong>适用:</strong> 作为 AI 命令栏的初始体验，覆盖 90% 的用户意图（"我要做X" → 跳转到 X 页面）。
+    </div>
+  </div>
+
+  <!-- ====== v2 LLM 智能填表 ====== -->
+  <div class="detail-section">
+    <h3>// V2 · LLM 智能填表 · 核心功能</h3>
+
+    <div class="flow-row">
+      <span style="color:#8a7a60">用户输入:</span>
+      <span class="flow-step">自然语言描述</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step api">LLM API</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">结构化 JSON</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">写入 data</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">跳转页面</span>
+    </div>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:14px">
+      <strong>核心思路:</strong> 在首页 AI 命令栏输入自然语言 → 调用 LLM API 提取字段 → 把结构化数据写入 localStorage → 跳转到对应页面 → 页面加载时读取预填数据 → 用户确认/修改。
+    </div>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:10px">
+      <strong>系统 Prompt 设计（关键）:</strong> 告诉 LLM 分析用户输入，判断文档类型，提取所有字段值，返回 JSON。
+    </div>
+
+    <div class="code-block"><span class="kw">var</span> AI_SYSTEM_PROMPT = <span class="str">`你是 Trade OS 的 AI 助手。分析用户输入，返回 JSON:
+{
+  "docType": "commercial_invoice|bill_of_lading|packing_list|...",
+  "confidence": 0.95,
+  "fields": {
+    "shipperCompany": "...",
+    "shipperAddress": "...",
+    "consigneeCompany": "...",
+    "invoiceNo": "...",
+    "currency": "USD",
+    "items": [
+      { "description": "...", "qty": "100", "unitValue": "8.50" }
+    ]
+  },
+  "suggestion": "已为您生成商业发票，请检查后确认"
+}
+
+规则:
+- docType 必须是以下之一: commercial_invoice, packing_list, bill_of_lading, trade_contract, ...
+- 如果用户没提字段，就不要猜，留空字符串 ""
+- currency 默认 USD，金额默认 2 位小数
+- 中文输入优先识别中文公司名和地址`</span>;</div>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:14px">
+      <strong>完整流程:</strong>
+    </div>
+
+    <div class="flow-row">
+      <span class="flow-step">1. 用户输入</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">2. 显示 loading 动画</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step api">3. fetch LLM API</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">4. 解析 JSON</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">5. 写入 localStorage</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step result">6. 跳转页面</span>
+    </div>
+
+    <div class="code-block"><span class="kw">function</span> <span class="fn">handleAiGenerate</span>(input) {
+  <span class="kw">var</span> bar = document.getElementById(<span class="str">'ai-bar'</span>);
+  bar.classList.add(<span class="str">'loading'</span>);
+
+  <span class="fn">callLLM</span>(input).then(<span class="kw">function</span>(result) {
+    bar.classList.remove(<span class="str">'loading'</span>);
+
+    <span class="kw">if</span> (!result.docType || !result.fields) {
+      <span class="fn">showAiHint</span>(<span class="str">'未能理解您的需求，请尝试更具体的描述'</span>);
+      <span class="kw">return</span>;
+    }
+
+    <span class="cmt">// 把 AI 提取的字段预存到 localStorage</span>
+    <span class="kw">var</span> aiData = {
+      fields: result.fields,
+      suggestion: result.suggestion || <span class="str">''</span>,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(userKey(<span class="str">'ai_prefill_'</span> + result.docType), JSON.stringify(aiData));
+
+    <span class="cmt">// 跳转到对应页面</span>
+    <span class="kw">var</span> page = DOC_META[result.docType].page;
+    window.location.href = page;
+  });
+}</div>
+  </div>
+
+  <!-- ====== LLM API 方案 ====== -->
+  <div class="detail-section">
+    <h3>// LLM API 接入方案</h3>
+
+    <div class="flow-row">
+      <span style="color:#8a7a60">推荐方案:</span>
+      <span class="flow-step api">用户自带 API Key</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">存 localStorage</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">fetch OpenAI 兼容接口</span>
+    </div>
+
+    <ul class="compact-list" style="margin-top:10px">
+      <li><strong>API 配置界面:</strong> 在首页或全局导航添加"设置"入口 → 简单的 API Key 输入框 + 端点 URL（默认 OpenAI） + 模型选择</li>
+      <li><strong>隐私保证:</strong> API Key 只存 localStorage，每次请求由浏览器直接发送，不经过任何中间服务器</li>
+      <li><strong>降级策略:</strong> 如果用户没配 API Key → 自动降级到 v1 关键词路由；API 调用失败 → 降级到 v1</li>
+      <li><strong>支持模型:</strong> 任何 OpenAI 兼容接口（GPT-4o, GPT-4o-mini, DeepSeek, 智谱 GLM 等）</li>
+      <li><strong>费用:</strong> 用户自付 API 费用。用 GPT-4o-mini 做单证字段提取，每次约 $0.001（几乎免费）</li>
+    </ul>
+
+    <div class="code-block"><span class="cmt">/** 调用 LLM API */</span>
+<span class="kw">function</span> <span class="fn">callLLM</span>(userInput) {
+  <span class="kw">var</span> config = <span class="fn">getAiConfig</span>(); <span class="cmt">// 从 localStorage 读 API Key + endpoint</span>
+  <span class="kw">if</span> (!config.apiKey) <span class="kw">return</span> <span class="fn">v1Fallback</span>(userInput);
+
+  <span class="kw">return</span> fetch(config.endpoint + <span class="str">'/v1/chat/completions'</span>, {
+    method: <span class="str">'POST'</span>,
+    headers: {
+      <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
+      <span class="str">'Authorization'</span>: <span class="str">'Bearer '</span> + config.apiKey
+    },
+    body: JSON.stringify({
+      model: config.model || <span class="str">'gpt-4o-mini'</span>,
+      messages: [
+        { role: <span class="str">'system'</span>, content: AI_SYSTEM_PROMPT },
+        { role: <span class="str">'user'</span>, content: userInput }
+      ],
+      response_format: { type: <span class="str">'json_object'</span> },
+      temperature: 0.1
+    })
+  }).then(<span class="kw">function</span>(r) { <span class="kw">return</span> r.json(); })
+    .then(<span class="kw">function</span>(d) {
+      <span class="kw">return</span> JSON.parse(d.choices[0].message.content);
+    });
+}</div>
+  </div>
+
+  <!-- ====== 页面端接收预填数据 ====== -->
+  <div class="detail-section">
+    <h3>// 目标页面 · 接收 AI 预填数据</h3>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:14px">
+      在每个单证页面的 <span style="font-family:'JetBrains Mono',monospace;color:#b45309">init()</span> 中，加载数据前先检查是否有 AI 预填数据：
+    </div>
+
+    <div class="code-block"><span class="cmt">/* 在 init() 中 loadDocData 之前插入 */</span>
+<span class="kw">function</span> <span class="fn">init</span>() {
+  applyTheme();
+  <span class="cmt">// ... 模板数据初始化 ...</span>
+
+  <span class="kw">var</span> saved = loadDocData(DT);
+  <span class="kw">var</span> aiPrefill = <span class="fn">loadAiPrefill</span>(DT);  <span class="cmt">// 检查 AI 预填</span>
+
+  <span class="kw">if</span> (aiPrefill && !saved) {
+    <span class="cmt">// 首次使用：合并 AI 预填到默认数据</span>
+    <span class="kw">var</span> defaults = getDefaultDoc(DT);
+    data = <span class="fn">mergeAiFields</span>(defaults, aiPrefill.fields);
+    saveDocData(DT, data);
+
+    <span class="cmt">// 清除预填标记（避免下次再覆盖）</span>
+    localStorage.removeItem(userKey(<span class="str">'ai_prefill_'</span> + DT));
+
+    <span class="cmt">// 显示 AI 提示 toast</span>
+    showAiSuggestion(aiPrefill.suggestion);
+  } <span class="kw">else</span> <span class="kw">if</span> (saved) {
+    data = saved;
+  } <span class="kw">else</span> {
+    data = defaults;
+  }
+  <span class="cmt">// ...</span>
+}</div>
+
+    <div class="note-box">
+      <strong>关键判断:</strong> 只当用户<strong>没有已有数据</strong>（saved 为空）时才应用 AI 预填。已有表单数据的页面不会被覆盖。<br>
+      <strong>AI Toast:</strong> 页面顶部显示一条琥珀色提示条："AI 已为您生成商业发票，请检查并修改。"
+    </div>
+  </div>
+
+  <!-- ====== v1+V2 混合方案 ====== -->
+  <div class="detail-section">
+    <h3>// 推荐实施策略 · V1+V2 混合</h3>
+
+    <div style="font-size:0.82rem;color:#4a4030;line-height:1.7;margin-bottom:14px">
+      <strong>先做 v1，再叠 v2。两个版本可以共存：</strong>
+    </div>
+
+    <div class="flow-row">
+      <span class="flow-step">用户输入</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">v1 关键词匹配</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step result">匹配到: 直接跳转</span>
+    </div>
+    <div class="flow-row">
+      <span class="flow-step">输入</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step">v1 未匹配</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step api">v2 LLM 分析</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-step result">预填跳转</span>
+    </div>
+
+    <div class="code-block"><span class="kw">function</span> <span class="fn">handleAiCommand</span>(input) {
+  <span class="cmt">// 第一步: 先走 v1 关键词路由（毫秒级、零成本）</span>
+  <span class="kw">var</span> route = <span class="fn">matchKeywordRoute</span>(input);
+  <span class="kw">if</span> (route) {
+    window.location.href = route;
+    <span class="kw">return</span>;
+  }
+
+  <span class="cmt">// 第二步: 如果配了 API Key，走 v2 LLM 智能填表</span>
+  <span class="kw">var</span> config = <span class="fn">getAiConfig</span>();
+  <span class="kw">if</span> (config.apiKey) {
+    <span class="fn">handleAiGenerate</span>(input);
+    <span class="kw">return</span>;
+  }
+
+  <span class="cmt">// 第三步: 都没匹配，给提示</span>
+  <span class="fn">showAiHint</span>(<span class="str">'试试: 发票 / 提单 / 装箱单 / 合同...'</span>);
+}</div>
+  </div>
+
+</div>
+
+</body>
+</html>

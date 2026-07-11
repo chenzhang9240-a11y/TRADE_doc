@@ -1,0 +1,606 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade OS · 表单页面风格</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: "Segoe UI", "SF Pro Display", "Inter", "JetBrains Mono", system-ui, sans-serif;
+  background: #fafaf8;
+  color: #2d3540;
+  line-height: 1.5;
+}
+
+/* ========== 导航 ========== */
+.global-nav {
+  background: #ffffff; border-bottom: 1px solid #ede8e0;
+  padding: 0 32px; display: flex; align-items: center; justify-content: space-between;
+  height: 52px; position: sticky; top: 0; z-index: 100;
+}
+.global-nav .nav-left { display: flex; align-items: center; gap: 20px; }
+.global-nav .logo {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.72rem; font-weight: 700; color: #b45309;
+  letter-spacing: 0.06em; text-decoration: none;
+}
+.global-nav .breadcrumb {
+  font-size: 0.78rem; color: #8a7a60;
+}
+.global-nav .breadcrumb span { color: #b45309; font-weight: 600; }
+.global-nav .nav-right { display: flex; align-items: center; gap: 14px; }
+.global-nav .nav-btn {
+  font-size: 0.78rem; color: #6b5e4e; cursor: pointer; background: none; border: none;
+  padding: 6px 12px; border-radius: 5px; font-family: inherit; transition: all 0.15s;
+}
+.global-nav .nav-btn:hover { background: #fffbeb; color: #b45309; }
+.global-nav .nav-btn.primary {
+  background: #fef3c7; border: 1px solid #fde68a; color: #92400e; font-weight: 600;
+}
+.global-nav .nav-btn.primary:hover { background: #fde68a; }
+
+/* ========== 页面容器 ========== */
+.page-layout {
+  display: flex; max-width: 1320px; margin: 0 auto; padding: 28px 32px 60px; gap: 28px;
+}
+
+/* ========== 侧边栏 ========== */
+.sidebar {
+  width: 220px; flex-shrink: 0;
+}
+.sidebar .sb-section {
+  margin-bottom: 24px;
+}
+.sidebar .sb-title {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.62rem; font-weight: 700; color: #b8a88a;
+  text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px;
+}
+.sidebar .sb-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 10px; border-radius: 5px;
+  font-size: 0.78rem; color: #6b5e4e; cursor: pointer;
+  transition: all 0.12s;
+}
+.sidebar .sb-item:hover { background: #fffbeb; color: #b45309; }
+.sidebar .sb-item.active { background: #fffbeb; color: #b45309; font-weight: 600; }
+.sidebar .sb-item .sb-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #d4c8a8; flex-shrink: 0;
+}
+.sidebar .sb-item.active .sb-dot { background: #d97706; }
+
+/* ========== 主内容区 ========== */
+.main-content { flex: 1; min-width: 0; }
+
+/* 页面标题 */
+.page-header {
+  margin-bottom: 24px;
+}
+.page-header h1 {
+  font-size: 1.35rem; font-weight: 700; color: #1a1814; letter-spacing: -0.01em;
+  margin-bottom: 4px;
+}
+.page-header .meta {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.66rem; color: #8a7a60;
+}
+.page-header .meta .dot { color: #d97706; }
+
+/* ========== Tab 栏 ========== */
+.tab-bar {
+  display: flex; gap: 4px; margin-bottom: 20px;
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 8px;
+  padding: 4px;
+}
+.tab-btn {
+  flex: 1; padding: 9px 16px; border-radius: 6px; border: none;
+  font-size: 0.78rem; font-weight: 600; color: #8a7a60; cursor: pointer;
+  background: transparent; font-family: inherit; transition: all 0.12s;
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+}
+.tab-btn:hover { color: #b45309; }
+.tab-btn.active { background: #fffbeb; color: #b45309; }
+.tab-btn .tab-mono {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.62rem; color: #b8a88a; font-weight: 500;
+}
+.tab-btn.active .tab-mono { color: #d97706; }
+
+/* ========== 表单区域 ========== */
+.form-section {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 10px;
+  padding: 24px 28px; margin-bottom: 16px;
+}
+.form-section .fs-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #f5f0e8;
+}
+.form-section .fs-title {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.64rem; font-weight: 700; color: #b8a88a;
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.form-section .fs-badge {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.58rem; color: #d97706; background: #fffbeb;
+  border: 1px solid #fef3c7; border-radius: 4px; padding: 2px 8px;
+}
+
+/* 表单字段 */
+.form-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  margin-bottom: 14px;
+}
+.form-row.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.form-row.cols-1 { grid-template-columns: 1fr; }
+
+.form-field { }
+.form-field .ff-label {
+  font-size: 0.7rem; font-weight: 600; color: #6b5e4e; margin-bottom: 5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.form-field .ff-label .ff-req {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.58rem; color: #d97706;
+}
+.form-field input, .form-field select, .form-field textarea {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid #ede8e0; border-radius: 6px;
+  font-size: 0.84rem; color: #1a1814; font-family: inherit;
+  background: #fdfcf9; transition: all 0.15s; outline: none;
+}
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus {
+  border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.08);
+  background: #ffffff;
+}
+.form-field input::placeholder { color: #c4b898; }
+.form-field textarea { resize: vertical; min-height: 72px; }
+.form-field .ff-hint {
+  font-size: 0.66rem; color: #b8a88a; margin-top: 4px;
+}
+
+/* ========== 商品表格 ========== */
+.item-table {
+  width: 100%; border-collapse: collapse; margin-top: 12px;
+}
+.item-table th {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.62rem; font-weight: 700; color: #8a7a60;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 10px 10px; text-align: left; border-bottom: 1px solid #ede8e0;
+  white-space: nowrap;
+}
+.item-table td {
+  padding: 8px 10px; border-bottom: 1px solid #f5f0e8; vertical-align: middle;
+}
+.item-table input, .item-table textarea {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid #ede8e0; border-radius: 5px;
+  font-size: 0.8rem; color: #1a1814; font-family: inherit;
+  background: #fdfcf9; outline: none; transition: all 0.15s;
+}
+.item-table input:focus, .item-table textarea:focus {
+  border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,0.08);
+  background: #ffffff;
+}
+.item-table .row-num {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.7rem; color: #b8a88a; width: 32px; text-align: center;
+}
+.item-table .btn-remove {
+  background: none; border: 1px solid #ede8e0; border-radius: 5px;
+  color: #d4b0a0; cursor: pointer; font-size: 0.75rem; padding: 6px 10px;
+  font-family: inherit; transition: all 0.12s;
+}
+.item-table .btn-remove:hover { border-color: #e0a090; color: #c0392b; background: #fef5f4; }
+
+/* 添加按钮 */
+.btn-add-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 16px; margin-top: 10px;
+  background: #fffdf7; border: 1px dashed #d4c8a8; border-radius: 6px;
+  font-size: 0.78rem; color: #b45309; cursor: pointer;
+  font-family: inherit; font-weight: 600; transition: all 0.15s;
+}
+.btn-add-item:hover { border-color: #f59e0b; background: #fffbeb; }
+
+/* ========== 汇总行 ========== */
+.totals-row {
+  display: flex; justify-content: flex-end; gap: 16px;
+  margin-top: 12px; padding: 12px 16px;
+  background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px;
+}
+.totals-row .total-item {
+  text-align: right;
+}
+.totals-row .total-item .total-label {
+  font-size: 0.66rem; color: #8a7a60; text-transform: uppercase;
+  letter-spacing: 0.04em; margin-bottom: 2px;
+}
+.totals-row .total-item .total-value {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 1rem; font-weight: 700; color: #b45309;
+}
+
+/* ========== Action bar ========== */
+.action-bar {
+  display: flex; justify-content: flex-end; gap: 10px;
+  margin-top: 20px;
+}
+.btn {
+  padding: 10px 20px; border-radius: 7px;
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: all 0.15s; border: 1px solid transparent;
+}
+.btn-outline {
+  background: #ffffff; border-color: #ede8e0; color: #6b5e4e;
+}
+.btn-outline:hover { border-color: #d4c8a8; background: #fdfcf9; }
+.btn-primary {
+  background: #f59e0b; color: #ffffff; border-color: #f59e0b;
+}
+.btn-primary:hover { background: #d97706; border-color: #d97706; }
+.btn-amber {
+  background: #fffbeb; border-color: #fde68a; color: #92400e;
+}
+.btn-amber:hover { background: #fef3c7; }
+
+/* ========== 侧边模板栏（表单右侧小面板） ========== */
+.tmpl-panel {
+  width: 200px; flex-shrink: 0;
+}
+.tmpl-panel .tp-card {
+  background: #ffffff; border: 1px solid #ede8e0; border-radius: 8px;
+  padding: 14px 16px; margin-bottom: 12px;
+}
+.tmpl-panel .tp-title {
+  font-family: "JetBrains Mono","Consolas",monospace;
+  font-size: 0.6rem; font-weight: 700; color: #b8a88a;
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+}
+.tmpl-panel select {
+  width: 100%; padding: 7px 10px; border: 1px solid #ede8e0; border-radius: 5px;
+  font-size: 0.76rem; color: #1a1814; background: #fdfcf9; font-family: inherit;
+  outline: none; margin-bottom: 8px;
+}
+.tmpl-panel select:focus { border-color: #f59e0b; }
+.tmpl-panel .tp-btn {
+  width: 100%; padding: 7px 12px; border-radius: 5px; border: 1px solid #ede8e0;
+  font-size: 0.72rem; color: #6b5e4e; cursor: pointer; background: #ffffff;
+  font-family: inherit; transition: all 0.12s; margin-bottom: 6px;
+  text-align: center;
+}
+.tmpl-panel .tp-btn:hover { border-color: #fde68a; background: #fffbeb; }
+.tmpl-panel .tp-btn.primary {
+  background: #fef3c7; border-color: #fde68a; color: #92400e; font-weight: 600;
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 1100px) {
+  .page-layout { flex-direction: column; padding: 20px 16px; }
+  .sidebar { width: 100%; display: flex; gap: 16px; overflow-x: auto; }
+  .sidebar .sb-section { margin-bottom: 0; white-space: nowrap; display: flex; gap: 4px; align-items: center; }
+  .tmpl-panel { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .form-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .form-row { grid-template-columns: 1fr; }
+  .item-table { font-size: 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ====== 导航 ====== -->
+<nav class="global-nav">
+  <div class="nav-left">
+    <a href="index.html" class="logo">TRADE_OS v1.0</a>
+    <div class="breadcrumb">/ <span>商业发票</span> · Commercial Invoice</div>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn">&#127774; 语言</button>
+    <button class="nav-btn">&#9728; 主题</button>
+    <button class="nav-btn primary">&#128196; 导出 PDF</button>
+  </div>
+</nav>
+
+<div class="page-layout">
+
+  <!-- ====== 左侧导航 ====== -->
+  <aside class="sidebar">
+    <div class="sb-section">
+      <div class="sb-title">// SECTIONS</div>
+      <div class="sb-item active"><span class="sb-dot"></span> 发货人信息</div>
+      <div class="sb-item"><span class="sb-dot"></span> 收货人信息</div>
+      <div class="sb-item"><span class="sb-dot"></span> 发票信息</div>
+      <div class="sb-item"><span class="sb-dot"></span> 商品明细</div>
+      <div class="sb-item"><span class="sb-dot"></span> 汇总 &amp; 声明</div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-title">// TOOLS</div>
+      <div class="sb-item">&#128230; 装箱单</div>
+      <div class="sb-item">&#128674; 提单</div>
+      <div class="sb-item">&#128221; 外贸合同</div>
+    </div>
+  </aside>
+
+  <!-- ====== 主内容 ====== -->
+  <div class="main-content">
+
+    <div class="page-header">
+      <h1>商业发票 · Commercial Invoice</h1>
+      <div class="meta">DT: COMMERCIAL_INVOICE <span class="dot">&middot;</span> 模板: 完整版 (默认) <span class="dot">&middot;</span> 上次保存: 2 分钟前</div>
+    </div>
+
+    <!-- Tab 栏 -->
+    <div class="tab-bar">
+      <button class="tab-btn active">
+        &#9998; 编辑
+        <span class="tab-mono">EDIT</span>
+      </button>
+      <button class="tab-btn">
+        &#128065; 预览
+        <span class="tab-mono">PREVIEW</span>
+      </button>
+      <button class="tab-btn">
+        &#128337; 历史
+        <span class="tab-mono">HISTORY</span>
+      </button>
+    </div>
+
+    <!-- ====== 发货人 ====== -->
+    <div class="form-section">
+      <div class="fs-header">
+        <span class="fs-title">// SHIPPER · 发货人</span>
+        <span class="fs-badge">REQUIRED</span>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="ff-label">公司名称 <span class="ff-req">*</span></div>
+          <input type="text" value="ABC Trading Co., Ltd." placeholder="Shipper company name">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">联系人 <span class="ff-req">*</span></div>
+          <input type="text" value="张三" placeholder="Contact person">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">电话</div>
+          <input type="text" value="+86 21 6123 4567" placeholder="Phone number">
+        </div>
+      </div>
+      <div class="form-row cols-1">
+        <div class="form-field">
+          <div class="ff-label">地址 <span class="ff-req">*</span></div>
+          <textarea>上海市浦东新区陆家嘴金融贸易区世纪大道 100 号</textarea>
+          <div class="ff-hint">详细地址，将显示在发票预览顶部</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 收货人 ====== -->
+    <div class="form-section">
+      <div class="fs-header">
+        <span class="fs-title">// CONSIGNEE · 收货人</span>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="ff-label">公司名称 <span class="ff-req">*</span></div>
+          <input type="text" value="XYZ International Inc." placeholder="Consignee company">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">联系人</div>
+          <input type="text" value="John Smith" placeholder="Contact person">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">电话</div>
+          <input type="text" value="+1 415 555 0199" placeholder="Phone">
+        </div>
+      </div>
+      <div class="form-row cols-1">
+        <div class="form-field">
+          <div class="ff-label">地址</div>
+          <textarea>123 Market Street, Suite 400, San Francisco, CA 94105, USA</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 发票信息 ====== -->
+    <div class="form-section">
+      <div class="fs-header">
+        <span class="fs-title">// INVOICE INFO · 发票信息</span>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="ff-label">发票号码 <span class="ff-req">*</span></div>
+          <input type="text" value="INV-2024-058" placeholder="Invoice number" style="font-family:'JetBrains Mono','Consolas',monospace">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">日期 <span class="ff-req">*</span></div>
+          <input type="date" value="2024-07-11">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">货币</div>
+          <select>
+            <option>USD</option><option>CNY</option><option selected>EUR</option>
+            <option>GBP</option><option>JPY</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="ff-label">贸易条款</div>
+          <select>
+            <option selected>FOB</option><option>CIF</option><option>EXW</option><option>DDP</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <div class="ff-label">PO 编号</div>
+          <input type="text" value="PO-2408-112" placeholder="Purchase order" style="font-family:'JetBrains Mono','Consolas',monospace">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">信用证号</div>
+          <input type="text" placeholder="L/C number" style="font-family:'JetBrains Mono','Consolas',monospace">
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 商品明细 ====== -->
+    <div class="form-section">
+      <div class="fs-header">
+        <span class="fs-title">// ITEMS · 商品明细</span>
+        <span class="fs-badge">3 ITEMS</span>
+      </div>
+
+      <div style="overflow-x:auto">
+        <table class="item-table">
+          <thead>
+            <tr>
+              <th class="row-num">#</th>
+              <th>唛头/Marks</th>
+              <th style="width:60px">件数</th>
+              <th>包装类型</th>
+              <th>原产国</th>
+              <th style="min-width:160px">商品描述</th>
+              <th style="width:80px">HS编码</th>
+              <th style="width:60px">数量</th>
+              <th style="width:50px">单位</th>
+              <th style="width:70px">单价</th>
+              <th style="width:80px">总价</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-num">001</td>
+              <td><input type="text" value="XYZ-SF"></td>
+              <td><input type="text" value="50" style="text-align:center"></td>
+              <td><input type="text" value="纸箱"></td>
+              <td><input type="text" value="中国/CN"></td>
+              <td><textarea rows="2">不锈钢法兰 DN50 PN16</textarea></td>
+              <td><input type="text" value="7307.21" style="font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="500" style="text-align:center;font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="PCS" style="text-align:center"></td>
+              <td><input type="text" value="8.50" style="text-align:right;font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="4,250.00" style="text-align:right;font-family:'JetBrains Mono',monospace;color:#b45309;font-weight:600" readonly></td>
+              <td><button class="btn-remove">&#10005;</button></td>
+            </tr>
+            <tr>
+              <td class="row-num">002</td>
+              <td><input type="text" value="XYZ-SF"></td>
+              <td><input type="text" value="30" style="text-align:center"></td>
+              <td><input type="text" value="纸箱"></td>
+              <td><input type="text" value="中国/CN"></td>
+              <td><textarea rows="2">不锈钢弯头 90&deg; DN50</textarea></td>
+              <td><input type="text" value="7307.23" style="font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="300" style="text-align:center;font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="PCS" style="text-align:center"></td>
+              <td><input type="text" value="3.20" style="text-align:right;font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="960.00" style="text-align:right;font-family:'JetBrains Mono',monospace;color:#b45309;font-weight:600" readonly></td>
+              <td><button class="btn-remove">&#10005;</button></td>
+            </tr>
+            <tr>
+              <td class="row-num">003</td>
+              <td><input type="text" value="XYZ-SF"></td>
+              <td><input type="text" value="40" style="text-align:center"></td>
+              <td><input type="text" value="纸箱"></td>
+              <td><input type="text" value="中国/CN"></td>
+              <td><textarea rows="2">不锈钢垫片 DN50</textarea></td>
+              <td><input type="text" value="7318.22" style="font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="2000" style="text-align:center;font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="PCS" style="text-align:center"></td>
+              <td><input type="text" value="0.45" style="text-align:right;font-family:'JetBrains Mono',monospace"></td>
+              <td><input type="text" value="900.00" style="text-align:right;font-family:'JetBrains Mono',monospace;color:#b45309;font-weight:600" readonly></td>
+              <td><button class="btn-remove">&#10005;</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <button class="btn-add-item">+ 添加商品行</button>
+
+      <div class="totals-row">
+        <div class="total-item">
+          <div class="total-label">总件数</div>
+          <div class="total-value">120</div>
+        </div>
+        <div class="total-item">
+          <div class="total-label">总数量</div>
+          <div class="total-value">2,800</div>
+        </div>
+        <div class="total-item">
+          <div class="total-label">发票总额</div>
+          <div class="total-value">€6,110.00</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 声明 ====== -->
+    <div class="form-section">
+      <div class="fs-header">
+        <span class="fs-title">// DECLARATION · 声明</span>
+      </div>
+      <div class="form-row cols-1">
+        <div class="form-field">
+          <textarea rows="3">We hereby certify that the goods are of Chinese origin and the information contained in this invoice is true and correct.</textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <div class="ff-label">签署人</div>
+          <input type="text" value="张三" placeholder="Signature name">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">职务</div>
+          <input type="text" value="Export Manager" placeholder="Title">
+        </div>
+        <div class="form-field">
+          <div class="ff-label">签署日期</div>
+          <input type="date" value="2024-07-11">
+        </div>
+      </div>
+    </div>
+
+    <!-- Action -->
+    <div class="action-bar">
+      <button class="btn btn-outline">清空表单</button>
+      <button class="btn btn-outline">加载示例</button>
+      <button class="btn btn-amber">Excel 导出</button>
+      <button class="btn btn-primary">PDF 导出</button>
+    </div>
+
+  </div>
+
+  <!-- ====== 右侧模板面板 ====== -->
+  <aside class="tmpl-panel">
+    <div class="tp-card">
+      <div class="tp-title">// TEMPLATE</div>
+      <select>
+        <option selected>完整版 (默认)</option>
+        <option>简化版</option>
+        <option>仅商品明细</option>
+      </select>
+      <button class="tp-btn primary">+ 新建模板</button>
+      <button class="tp-btn">&#9881; 字段配置</button>
+    </div>
+    <div class="tp-card">
+      <div class="tp-title">// PREVIEW LANG</div>
+      <select>
+        <option selected>中文预览</option>
+        <option>English Preview</option>
+      </select>
+    </div>
+    <div class="tp-card">
+      <div class="tp-title">// QUICK STATS</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.66rem;color:#6b5e4e;line-height:1.8">
+        字段: <span style="color:#d97706">24</span> active<br>
+        模板: <span style="color:#d97706">3</span> saved<br>
+        历史: <span style="color:#d97706">12</span> snapshots
+      </div>
+    </div>
+  </aside>
+
+</div>
+
+</body>
+</html>
