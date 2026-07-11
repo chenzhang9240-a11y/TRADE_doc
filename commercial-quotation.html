@@ -230,7 +230,7 @@ function init(){
     saveDocData(DT, data);
     localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
     showAiSuggestion(aiPrefill.suggestion);
-  } else { data = s ? s : getDefaultDoc(DT); }renderAll();injectThreeColumnLayout(DT,CQ_TMPL_SECTIONS,CQ_TMPL_SECTION_LABELS);
+  } else { data = s ? s : getDefaultDoc(DT); }renderAll();
   }catch(e){document.body.innerHTML='<div style="padding:40px;text-align:center;color:red;">Error: '+e.message+'</div>';}
 }
 injectSpaButton();injectBottomCta();injectPageFaq();
