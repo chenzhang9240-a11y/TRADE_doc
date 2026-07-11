@@ -1023,7 +1023,7 @@ function renderTopBar() {
   } else {
     h += '<button class="nav-btn" id="lang-btn" onclick="toggleLang()">' + tr.toggleLang + '</button>';
     h += '<button class="nav-btn" id="theme-btn" onclick="toggleTheme()">' + (dark ? 'Light' : 'Dark') + '</button>';
-    h += '<button class="nav-btn primary" onclick="window._exportPdf && _exportPdf()">' + tr.exportPdf + '</button>';
+    h += '<button class="nav-btn primary" onclick="var b=document.getElementById('btn-pdf');if(b)b.click()">' + tr.exportPdf + '</button>';
   }
   h += '</div></nav>';
   var existing = document.querySelector('.top-bar');
@@ -1658,5 +1658,11 @@ function showAiSuggestion(msg) {
 function toggleTheme() {
   var current = localStorage.getItem('app_theme');
   localStorage.setItem('app_theme', current === 'dark' ? 'light' : 'dark');
+  location.reload();
+}
+
+function toggleLang() {
+  var l = localStorage.getItem('app_lang');
+  localStorage.setItem('app_lang', l === 'en' ? 'zh' : 'en');
   location.reload();
 }
