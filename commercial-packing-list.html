@@ -173,7 +173,7 @@ function init(){try{applyTheme();ensureTmplData(DT,CPL_DEFAULT_FIELDS);var s=loa
     saveDocData(DT, data);
     localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
     showAiSuggestion(aiPrefill.suggestion);
-  } else { data = s ? s : getDefaultDoc(DT); }migrateTmplData(DT,CPL_DEFAULT_FIELDS);renderAll();injectThreeColumnLayout(DT,PL_TMPL_SECTIONS,PL_TMPL_SECTION_LABELS);}catch(e){console.error('init error:',e);document.getElementById('form-container').innerHTML='<div style="color:red;padding:20px;">Error: '+esc(e.message)+'</div>';}}
+  } else { data = s ? s : getDefaultDoc(DT); }migrateTmplData(DT,CPL_DEFAULT_FIELDS);renderAll();injectThreeColumnLayout(DT,CPL_TMPL_SECTIONS,CPL_TMPL_SECTION_LABELS);}catch(e){console.error('init error:',e);document.getElementById('form-container').innerHTML='<div style="color:red;padding:20px;">Error: '+esc(e.message)+'</div>';}}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();
