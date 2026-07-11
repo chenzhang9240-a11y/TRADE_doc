@@ -1022,7 +1022,7 @@ function renderTopBar() {
     h += '<span class="nav-status">SYS OK</span>';
   } else {
     h += '<button class="nav-btn" id="lang-btn" onclick="toggleLang()">' + tr.toggleLang + '</button>';
-    h += '<button class="nav-btn" id="theme-btn" onclick="toggleTheme()">' + tr.toggleLang + '</button>';
+    h += '<button class="nav-btn" id="theme-btn" onclick="toggleTheme()">' + (dark ? 'Light' : 'Dark') + '</button>';
     h += '<button class="nav-btn primary" onclick="window._exportPdf && _exportPdf()">' + tr.exportPdf + '</button>';
   }
   h += '</div></nav>';
