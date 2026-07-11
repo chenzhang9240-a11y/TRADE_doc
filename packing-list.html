@@ -153,13 +153,13 @@ function isFld(key){return isFieldVisible(DT,key,PL_DEFAULT_FIELDS);}
 function isFldR(key){return isFieldRequired(DT,key,PL_DEFAULT_FIELDS);}
 function init(){try{applyTheme();ensureTmplData(DT,PL_DEFAULT_FIELDS);var s=loadDocData(DT);
   var aiPrefill = loadAiPrefill(DT);
-  if (aiPrefill && !saved) {
+  if (aiPrefill && !s) {
     var defaults = getDefaultDoc(DT);
     data = mergeAiFields(defaults, aiPrefill.fields);
     saveDocData(DT, data);
     localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
     showAiSuggestion(aiPrefill.suggestion);
-  } else { data = saved ? saved : getDefaultDoc(DT); }migrateTmplData(DT,PL_DEFAULT_FIELDS);renderAll();injectThreeColumnLayout(DT,PL_TMPL_SECTIONS,PL_TMPL_SECTION_LABELS);}catch(e){console.error('init error:',e);document.getElementById('form-container').innerHTML='<div style="color:red;padding:20px;">Error: '+esc(e.message)+'</div>';}}
+  } else { data = s ? s : getDefaultDoc(DT); }migrateTmplData(DT,PL_DEFAULT_FIELDS);renderAll();injectThreeColumnLayout(DT,PL_TMPL_SECTIONS,PL_TMPL_SECTION_LABELS);}catch(e){console.error('init error:',e);document.getElementById('form-container').innerHTML='<div style="color:red;padding:20px;">Error: '+esc(e.message)+'</div>';}}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();

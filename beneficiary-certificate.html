@@ -96,13 +96,13 @@
 var DT='beneficiary_certificate',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
 function init(){applyTheme();var s=loadDocData(DT);
   var aiPrefill = loadAiPrefill(DT);
-  if (aiPrefill && !saved) {
+  if (aiPrefill && !s) {
     var defaults = getDefaultDoc(DT);
     data = mergeAiFields(defaults, aiPrefill.fields);
     saveDocData(DT, data);
     localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
     showAiSuggestion(aiPrefill.suggestion);
-  } else { data = saved ? saved : getDefaultDoc(DT); }renderAll();}
+  } else { data = s ? s : getDefaultDoc(DT); }renderAll();}
   injectSpaButton();
   injectBottomCta();
   injectPageFaq();

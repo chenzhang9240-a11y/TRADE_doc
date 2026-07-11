@@ -121,13 +121,13 @@ var TAB_NAMES={'sea':{zh:'海运 FCL',en:'Sea FCL'},'lcl':{zh:'海运 LCL',en:'S
 
 function init(){applyTheme();var s=loadDocData(DT);
   var aiPrefill = loadAiPrefill(DT);
-  if (aiPrefill && !saved) {
+  if (aiPrefill && !s) {
     var defaults = getDefaultDoc(DT);
     data = mergeAiFields(defaults, aiPrefill.fields);
     saveDocData(DT, data);
     localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
     showAiSuggestion(aiPrefill.suggestion);
-  } else { data = saved ? saved : getDefaultDoc(DT); }renderAll();}
+  } else { data = s ? s : getDefaultDoc(DT); }renderAll();}
 function migrateData(d){
   if(!d.lcl)d.lcl={sections:[{name:'一、国内段（起运港）', items:[]},{name:'二、主运费（海运）', items:[]},{name:'三、目的港段', items:[]},{name:'四、隐性费用', items:[]}]};
   // Migrate old containerType/containerQty to containerSpec

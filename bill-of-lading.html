@@ -687,13 +687,13 @@ function init(){
   var s=loadDocData(DT);
   
   var aiPrefill = loadAiPrefill(DT);
-  if (aiPrefill && !saved) {
-    var defaults = getDefaultDoc(DT);
-    data = mergeAiFields(defaults, aiPrefill.fields);
-    saveDocData(DT, data);
-    localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
-    showAiSuggestion(aiPrefill.suggestion);
-  } else { data = saved ? saved : getDefaultDoc(DT); }
+  if (aiPrefill && !s) {
+   var defaults = getDefaultDoc(DT);
+   data = mergeAiFields(defaults, aiPrefill.fields);
+   saveDocData(DT, data);
+   localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
+   showAiSuggestion(aiPrefill.suggestion);
+  } else { data = s ? s : getDefaultDoc(DT); }
   ensureTmplData(DT,BL_DEFAULT_FIELDS);
   // Migrate: ensure new fields exist + convert signature fields to optional
   migrateTmplData(DT,BL_DEFAULT_FIELDS,function(t){
