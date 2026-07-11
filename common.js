@@ -1451,7 +1451,7 @@ function restoreTradeKitData(file) {
 // ===== Trade OS Dashboard =====
 function getDashboardStats() {
   var uid = getUserId();
-  var now = Date.now();
+  var now = new Date();
   var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
   var docCount = 0, monthDocCount = 0, templateCount = 0, monthExportCount = 0;
   for (var i = 0; i < localStorage.length; i++) {
