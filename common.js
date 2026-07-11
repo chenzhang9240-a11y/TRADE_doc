@@ -1003,14 +1003,33 @@ function esc(str) {
 }
 
 function renderTopBar() {
+  var isHome = window.location.pathname.indexOf('index.html') !== -1
+               || window.location.pathname === '/' || window.location.pathname.endsWith('/');
   var tr = I18N[lang];
   document.documentElement.lang = lang;
-  document.getElementById('back-icon').innerHTML = svg('ArrowLeft', 16);
-  document.getElementById('back-text').textContent = tr.backHome;
-  document.getElementById('lang-icon').innerHTML = svg('Languages', 16);
-  document.getElementById('lang-label').textContent = lang === 'zh' ? 'EN' : '中文';
-  document.getElementById('theme-icon').innerHTML = svg(dark ? 'Sun' : 'Moon', 16);
-  document.getElementById('theme-label').textContent = dark ? 'Light' : 'Dark';
+  var h = '<nav class="global-nav">';
+  h += '<div class="nav-left">';
+  h += '<a href="index.html" class="logo">TRADE_OS v1.0</a>';
+  if (!isHome && typeof DT !== 'undefined' && DOC_META[DT]) {
+    h += '<div class="breadcrumb">/ <span>' + esc(DOC_META[DT].titleZh) + '</span> &middot; ' + esc(DOC_META[DT].title) + '</div>';
+  }
+  h += '</div><div class="nav-right">';
+  if (isHome) {
+    h += '<a href="#" class="nav-item">Documents</a>';
+    h += '<a href="#" class="nav-item">Tools</a>';
+    h += '<span class="nav-status">SYS OK</span>';
+  } else {
+    h += '<button class="nav-btn" id="lang-btn" onclick="toggleLang()">' + tr.toggleLang + '</button>';
+    h += '<button class="nav-btn" id="theme-btn" onclick="toggleTheme()">' + tr.toggleLang + '</button>';
+    h += '<button class="nav-btn primary" onclick="window._exportPdf && _exportPdf()">' + tr.exportPdf + '</button>';
+  }
+  h += '</div></nav>';
+  var existing = document.querySelector('.top-bar');
+  if (existing) {
+    existing.outerHTML = h;
+  } else {
+    document.body.insertAdjacentHTML('afterbegin', h);
+  }
 }
 
 function renderHeader() {
