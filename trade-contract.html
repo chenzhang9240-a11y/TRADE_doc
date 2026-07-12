@@ -3,14 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>外贸合同生成器 - TradeKit Trade Contract</title>
+<title>外贸合同生成器 - TRADE_doc Trade Contract</title>
 <meta name="description" content="免费生成正式外贸合同，涵盖商业条款、法律条款、双方签署信息，条款完整。">
 <meta name="keywords" content="外贸合同,trade contract,国际贸易合同,international trade contract,合同模板,contract template,商业条款,legal clauses">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<link rel="canonical" href="http://tradekit.treedeep.cn/trade-contract.html">
-<link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/trade-contract.html">
-<link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/trade-contract.html?lang=en">
-<link rel="alternate" hreflang="x-default" href="http://tradekit.treedeep.cn/trade-contract.html">
 <meta name="geo.region" content="CN">
 <meta name="geo.placename" content="China">
 <meta name="geo.position" content="35.8617;104.1954">
@@ -19,32 +15,29 @@
 <meta name="content-language" content="zh-CN">
 <meta name="distribution" content="global">
 <meta property="og:type" content="article">
-<meta property="og:title" content="外贸合同生成器 - TradeKit Trade Contract">
+<meta property="og:title" content="外贸合同生成器 - TRADE_doc Trade Contract">
 <meta property="og:description" content="免费生成正式外贸合同，涵盖商业条款、法律条款、双方签署信息，条款完整。">
-<meta property="og:url" content="http://tradekit.treedeep.cn/trade-contract.html">
-<meta property="og:site_name" content="TradeKit">
+<meta property="og:site_name" content="TRADE_doc">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:locale:alternate" content="en_US">
 <meta property="article:section" content="Trade Documents">
 <meta property="article:tag" content="外贸单证">
 <meta property="article:tag" content="trade document">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="外贸合同生成器 - TradeKit Trade Contract">
+<meta name="twitter:title" content="外贸合同生成器 - TRADE_doc Trade Contract">
 <meta name="twitter:description" content="免费生成正式外贸合同，涵盖商业条款、法律条款、双方签署信息，条款完整。">
 <meta name="twitter:label:1" content="文档类型">
-<meta name="twitter:data:1" content="外贸合同生成器 - TradeKit Trade Contract">
+<meta name="twitter:data:1" content="外贸合同生成器 - TRADE_doc Trade Contract">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
 <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "外贸合同生成器 - TradeKit Trade Contract",
-  "alternateName": "Trade Contract Generator - TradeKit",
+  "name": "外贸合同生成器 - TRADE_doc Trade Contract",
+  "alternateName": "Trade Contract Generator - TRADE_doc",
   "description": "免费生成正式外贸合同，涵盖商业条款、法律条款、双方签署信息，条款完整。",
-  "url": "http://tradekit.treedeep.cn/trade-contract.html",
   "isPartOf": {
     "@type": "SoftwareApplication",
-    "name": "TradeKit",
-    "url": "http://tradekit.treedeep.cn"
+    "name": "TRADE_doc",
   },
   "inLanguage": [
     "zh-CN",
@@ -52,18 +45,17 @@
   ],
   "about": {
     "@type": "Thing",
-    "name": "外贸合同生成器 - TradeKit Trade Contract",
+    "name": "外贸合同生成器 - TRADE_doc Trade Contract",
     "description": "免费生成正式外贸合同，涵盖商业条款、法律条款、双方签署信息，条款完整。"
   },
   "mainEntity": {
     "@type": "Service",
-    "name": "外贸合同生成器 - TradeKit Trade Contract",
+    "name": "外贸合同生成器 - TRADE_doc Trade Contract",
     "description": "免费生成正式外贸合同，涵盖商业条款、法律条款、双方签署信息，条款完整。",
     "serviceType": "Trade Document Generation",
     "provider": {
       "@type": "Organization",
-      "name": "TradeKit",
-      "url": "http://tradekit.treedeep.cn"
+      "name": "TRADE_doc",
     },
     "areaServed": "Worldwide",
     "availableLanguage": [
@@ -208,7 +200,7 @@ function init(){
   setupTmplEvents();
   renderAll();
 }
-injectSpaButton();injectBottomCta();injectPageFaq();
+injectPageFaq();
 
 // ===== renderForm =====
 function renderForm(){
@@ -221,7 +213,7 @@ function renderForm(){
   document.getElementById('btn-load-sample').onclick=loadSample;document.getElementById('btn-clear').onclick=function(){showClearConfirm=true;renderClearModal();};
   document.getElementById('btn-switch-preview').onclick=function(){switchTab('preview');renderPreview();};document.getElementById('btn-back-edit').onclick=function(){switchTab('edit');};
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
-  document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
+  document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window._exportPdf();};
   renderTmplBar();
   var h='';
   // Seller Info
@@ -594,7 +586,7 @@ function renderHistory(){
 }
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
-injectSpaButton();injectBottomCta();injectPageFaq();
+injectPageFaq();
 document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
 document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
 window._tcSet=function(f,v){data[f]=v;saveDocData(DT,data);};
@@ -620,6 +612,5 @@ data=s;autoCalcTC();saveDocData(DT,data);renderAll();}
 init();
 </script>
 <!-- GoatCounter -->
-<script data-goatcounter="https://tradekit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

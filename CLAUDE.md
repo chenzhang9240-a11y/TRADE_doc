@@ -1,4 +1,4 @@
-# TradeKit (forward_kit) — CLAUDE.md
+# TRADE_doc (forward_kit) — CLAUDE.md
 
 **任何代码更改前必须检查本文件**，了解项目架构和约定，避免改动破坏整体。
 
@@ -6,9 +6,9 @@
 
 ## 项目概述
 
-TradeKit 是免费开源的外贸单证生成工具，支持 19 种国际贸易单证，中英双语，A4 横版 PDF 一键导出。
+TRADE_doc 是免费开源的外贸单证生成工具，支持 19 种国际贸易单证，中英双语，A4 横版 PDF 一键导出。
 
-- **线上地址：** http://tradekit.treedeep.cn/
+- **线上地址：** （待申请新域名后补充）
 - **技术栈：** 原生 HTML/CSS/JavaScript — **纯前端、无构建工具、无框架、无后端**
 - **PDF 导出：** html2pdf.js（CDN 加载）→ `html2pdf.bundle.min.js`
 - **数据存储：** 浏览器 `localStorage`，不上传服务器。Key 使用 `getUserId()` 前缀（如 `'user_xxx_'`）
@@ -143,9 +143,7 @@ function init() {
   applyTheme();
   ensureTmplData(DT, CI_DEFAULT_FIELDS);        // 1. 确保模板数据存在
   migrateTmplData(DT, CI_DEFAULT_FIELDS);        // 2. 数据迁移（新字段补充）
-  injectSpaButton();                              // 3. SPA 推广按钮
-  injectBottomCta();                              // 4. 底部 CTA
-  injectPageFaq();                                // 5. FAQ
+  injectPageFaq();                                // 3. FAQ
   var saved = loadDocData(DT);
   data = saved ? saved : getDefaultDoc(DT);
   renderAll();
@@ -586,6 +584,14 @@ function esc(str) {
 - 在已有页面中新增功能时，通过条件判断来控制渲染
 - 回退时只需删除新增代码，原有功能完全不受影响
 
+### 变更流程（必须遵守）
+**所有代码修改必须按以下顺序进行，不得跳过任何一步：**
+1. **分析问题原因** — 定位根因（Root Cause），而非表面现象
+2. **给出解决方案** — 提出具体的代码修改方案
+3. **评估方案风险** — 分析影响范围、回归风险、回退难度
+4. **等待用户确认后实施** — 未经用户明确同意，不得实施修改
+5. **实施后更新本文件** — 如有必要，更新 CLAUDE.md 反映新的项目知识
+
 ### 修改检查清单
 1. **了解该页面属于哪个类别**（模板系统 / 独立架构 / 简单页面）
 2. **检查 `init()` 模式** — 确保修改与初始化流程一致
@@ -660,3 +666,12 @@ function esc(str) {
 | 2026-06-23 | 排版采用方案 A（智能自动布局），不引入布局模板选择 |
 | 2026-06-23 | 功能在 `feature/field-template` 分支开发 |
 | 2026-07-03 | 建立 `forward-kit-e2e/` E2E 测试项目，83 测试全量回归 |
+| 2026-07-12 | 打印导出改用 `_exportPdf`（新窗口打印），解决 40s 打印延迟 |
+| 2026-07-12 | 修复打印取消后对话框重新弹出的竞态问题（删除 300ms 后备定时器） |
+| 2026-07-12 | 打印默认方向从横版改为竖版，添加 CSS 溢出保护 |
+| 2026-07-12 | 在 tab-bar 左侧添加「返回主页」按钮（后改为 action-bar-left 位置） |
+| 2026-07-12 | 确认变更流程：分析→方案→评估→确认→实施→更新文档 |
+| 2026-07-12 | 修复 PDF 导出顶部留白：_exportPdf padding 8mm→5mm；doExportPdf 临时重置 padding + jspdf margin 归零 |
+| 2026-07-12 | 添加打印 CSS 保护：thead header-group、tr break-inside:avoid |
+| 2026-07-12 | 为 CQ 商品表添加 colgroup 固定列宽、page-break-inside |
+| 2026-07-12 | doExportPdf 自动缩放内容至一页：测量高度→计算缩放比→动态字号缩小→html2pdf 单页导出 |

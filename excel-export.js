@@ -323,7 +323,7 @@ function _renderCommercialInvoice(wb, data) {
 function doExportExcel(dt, data) {
   ensureExcelJs().then(function() {
     var wb = new ExcelJS.Workbook();
-    wb.creator = 'TradeKit';
+    wb.creator = 'TRADE_doc';
     wb.created = new Date();
 
     switch(dt) {

@@ -1,4 +1,4 @@
-/* ===== TradeKit - Shared JavaScript Utilities ===== */
+/* ===== TRADE_doc - Shared JavaScript Utilities ===== */
 
 // ===== Constants =====
 const CURRENCIES = ['USD','CNY','EUR','GBP','JPY','HKD','AUD','CAD','KRW','SGD','THB','INR','BRL','RUB','MXN'];
@@ -18,8 +18,8 @@ const UTILITY_TOOLS = new Set(['invoice_number','shipping_mark','currency_conver
 // ===== i18n =====
 const I18N = {
   zh: {
-    heroTitle: 'TradeKit 外贸单证工具箱',
-    heroTitleEn: 'TradeKit — Trade Document Generator',
+    heroTitle: 'TRADE_doc 外贸单证工具箱',
+    heroTitleEn: 'TRADE_doc — Trade Document Generator',
     heroDesc: '涵盖商业发票、装箱单、提单、合同等 19 种外贸单证，支持中英双语切换、A4 横版 PDF 一键导出。',
     heroDescEn: 'Generate 19 trade documents — invoices, packing lists, bills of lading, contracts and more. Bilingual support, one-click A4 PDF export.',
     badge: '免费开源 · 数据本地 · 无需注册',
@@ -64,8 +64,8 @@ const I18N = {
     invalidBackupFile: '无效的备份文件格式！',
   },
   en: {
-    heroTitle: 'TradeKit — Trade Document Generator',
-    heroTitleEn: 'TradeKit — Trade Document Generator',
+    heroTitle: 'TRADE_doc — Trade Document Generator',
+    heroTitleEn: 'TRADE_doc — Trade Document Generator',
     heroDesc: 'Generate 19 trade documents — invoices, packing lists, bills of lading, contracts and more. Bilingual support, one-click A4 PDF export.',
     heroDescEn: 'Generate 19 trade documents — invoices, packing lists, bills of lading, contracts and more. Bilingual support, one-click A4 PDF export.',
     badge: 'Free & Open Source · Local Data · No Signup',
@@ -264,7 +264,7 @@ function loadSnapshots(dt) {
 }
 function saveSnapshots(dt, snaps) {
   try { localStorage.setItem(userKey('doc_snapshots_' + dt), JSON.stringify(snaps.slice(0, 50))); } catch(e) {
-    console.warn('[TradeKit] Failed to save snapshots for', dt, e.message);
+    console.warn('[TRADE_doc] Failed to save snapshots for', dt, e.message);
   }
 }
 function addSnapshot(dt, ref, data) {
@@ -326,45 +326,16 @@ function applyTheme() {
   return dark;
 }
 
-function injectSpaButton() {
-  if (document.getElementById('spa-top-btn')) return;
-  var topBarRight = document.querySelector('.top-bar-right');
-  if (!topBarRight) return;
-  var lang = getLang();
-  var isZh = lang === 'zh';
-  var text = isZh ? '访问优化版 →' : 'Visit Optimized →';
-  var btn = document.createElement('a');
-  btn.id = 'spa-top-btn';
-  btn.href = 'https://trade.treedeep.cn';
-  btn.textContent = text;
-  btn.style.cssText = 'display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:linear-gradient(to right,#7c3aed,#a855f7,#ec4899);color:#fff;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer;transition:transform 0.15s ease,box-shadow 0.15s ease;';
-  btn.onmouseenter = function() { btn.style.transform = 'scale(1.04)'; btn.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)'; };
-  btn.onmouseleave = function() { btn.style.transform = ''; btn.style.boxShadow = ''; };
-  topBarRight.insertBefore(btn, topBarRight.firstChild);
-}
-
-function injectBottomCta() {
-  if (document.getElementById('bottom-cta-bar')) return;
-  var main = document.querySelector('main');
-  if (!main) return;
-  var lang = getLang();
-  var isZh = lang === 'zh';
-  var bar = document.createElement('div');
-  bar.id = 'bottom-cta-bar';
-  bar.className = 'bottom-cta';
-  bar.innerHTML = '<span style="font-size:13px;color:var(--text-secondary);">' + (isZh ? '想使用更好的交互体验？' : 'Looking for a better experience?') + '</span><a class="cta-btn" href="https://trade.treedeep.cn">' + (isZh ? '访问优化版 →' : 'Visit Optimized →') + '</a>';
-  main.parentNode.insertBefore(bar, main.nextSibling);
-}
 
 // ===== FAQ Data =====
 const FAQ_GENERAL = {
   zh: [
-    { q: 'TradeKit是什么？需要付费吗？', a: 'TradeKit是免费开源的外贸单证生成工具，支持19种外贸单证类型。完全免费，无需注册或登录，打开网页即可使用。' },
+    { q: 'TRADE_doc是什么？需要付费吗？', a: 'TRADE_doc是免费开源的外贸单证生成工具，支持19种外贸单证类型。完全免费，无需注册或登录，打开网页即可使用。' },
     { q: '数据会上传到服务器吗？', a: '所有数据仅存储在浏览器 localStorage 中，不会上传至任何服务器。数据完全本地化，不会被第三方访问。' },
     { q: '导出的PDF是什么格式？', a: '导出的PDF为A4横版格式，采用专业的商业单证排版，适合打印和电子传输。' }
   ],
   en: [
-    { q: 'What is TradeKit? Is it free?', a: 'TradeKit is a free, open-source trade document generator supporting 19 document types. No signup or login required — just open the page and start using it.' },
+    { q: 'What is TRADE_doc? Is it free?', a: 'TRADE_doc is a free, open-source trade document generator supporting 19 document types. No signup or login required — just open the page and start using it.' },
     { q: 'Is my data uploaded to a server?', a: 'All data is stored in your browser\'s localStorage and never uploaded to any server. Your data stays completely local and cannot be accessed by third parties.' },
     { q: 'What format is the exported PDF?', a: 'The exported PDF uses A4 landscape format with professional trade document layout, suitable for both printing and electronic transmission.' }
   ]
@@ -897,22 +868,93 @@ function doExportPdf(dt, data, previewElId) {
   const btn = document.querySelector('[data-pdf-btn]');
   if (btn) { btn.disabled = true; btn.textContent = genText; }
 
+  // Switch to preview tab so html2canvas captures visible content
+  // (html2canvas has known issues with elements inside display:none parents)
+  if (typeof switchTab === 'function') switchTab('preview');
+
+  // Temporarily reset preview padding so content captures edge-to-edge
+  var origPad = el.style.padding;
+  el.style.padding = '0';
+
   const opt = {
-    margin: [5, 5, 5, 5],
+    margin: 6,
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: 'avoid-all' },
   };
 
-  html2pdf().set(opt).from(el).save().then(() => {
-    // Save snapshot after export
+  html2pdf().set(opt).from(el).save().then(function() {
+    el.style.padding = origPad || '';
     addSnapshot(dt, ref, data);
-    if (btn) { btn.disabled = false; const tr = I18N[lang]; btn.textContent = tr.exportPdf; }
-  }).catch(() => {
-    if (btn) { btn.disabled = false; const tr = I18N[lang]; btn.textContent = tr.exportPdf; }
+    if (btn) { btn.disabled = false; var tr = I18N[lang]; btn.textContent = tr.exportPdf; }
+  }).catch(function() {
+    el.style.padding = origPad || '';
+    if (btn) { btn.disabled = false; var tr = I18N[lang]; btn.textContent = tr.exportPdf; }
   });
 }
+
+// Global nav print handler (called by onclick="window._exportPdf()" in renderTopBar)
+// Opens a clean new window with only the preview content for instant printing.
+// Avoids slow browser print-preview layout on the complex main page.
+window._exportPdf = function() {
+  if (typeof DT === 'undefined' || !data) return;
+
+  // Ensure preview content is rendered
+  if (typeof switchTab === 'function') switchTab('preview');
+  if (typeof renderPreview === 'function') renderPreview();
+
+  var previewEl = document.getElementById('preview-container');
+  if (!previewEl || !previewEl.innerHTML) return;
+
+  var isZh = getLang && getLang() === 'zh';
+  var title = (DOC_META && DOC_META[DT]) ? (isZh ? DOC_META[DT].titleZh : DOC_META[DT].title) : 'Document';
+
+  // Build a clean print page — just the preview content, no page chrome
+  var baseHref = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+  var printHtml = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    + '<title>' + title + '</title>'
+    + '<link rel="stylesheet" href="' + baseHref + 'common.css">'
+    + '<style>'
+    + 'body { margin: 0; padding: 5mm; font-size: 10pt; }'
+    + '.global-nav, .top-bar, .tab-bar, .action-bar, .sidebar, .tmpl-panel, .bottom-cta, .page-footer, .faq-section { display: none !important; }'
+    + '.doc-page-content { max-width: none; padding: 0; margin: 0; }'
+    + '#panel-edit, #panel-history { display: none !important; }'
+    + '#panel-preview { display: block !important; }'
+    + '.preview-content, .invoice-preview { padding: 0 !important; }'
+    + 'table { width: 100%; border-collapse: collapse; }'
+    + 'thead { display: table-header-group; }'
+    + 'tr { page-break-inside: avoid; break-inside: avoid; }'
+    + 'td, th { word-break: break-word; }'
+    + '@page { size: A4 portrait; margin: 5mm; }'
+    + '</style></head><body>'
+    + previewEl.innerHTML
+    + '</body></html>';
+
+  var printWin = window.open('', '_blank', 'width=800,height=600');
+  if (!printWin) {
+    // Popup blocked — fall back to window.print on main page
+    window.print();
+    return;
+  }
+  printWin.document.write(printHtml);
+  printWin.document.close();
+
+  // Print after the stylesheet has loaded (prevents flash of unstyled content)
+  printWin.onload = function() {
+    printWin.focus();
+    // Close the window when the print dialog is dismissed (Print or Cancel)
+    printWin.onafterprint = function() {
+      if (!printWin.closed) printWin.close();
+    };
+    printWin.print();
+    // Safety net: close after 30s if onafterprint doesn't fire (e.g. headless)
+    setTimeout(function() {
+      if (!printWin.closed) printWin.close();
+    }, 30000);
+  };
+};
 
 function getDocRef(dt, data) {
   switch(dt) {
@@ -946,12 +988,12 @@ function saveDocData(dt, data) {
   data._updatedAt = Date.now();
   data._updatedAt = Date.now();
   try { localStorage.setItem(userKey('doc_data_' + dt), JSON.stringify(data)); } catch(e) {
-    console.warn('[TradeKit] Failed to save data for', dt, e.message);
+    console.warn('[TRADE_doc] Failed to save data for', dt, e.message);
   }
 }
 function clearDocData(dt) {
   try { localStorage.removeItem(userKey('doc_data_' + dt)); } catch(e) {
-    console.warn('[TradeKit] Failed to clear data for', dt, e.message);
+    console.warn('[TRADE_doc] Failed to clear data for', dt, e.message);
   }
 }
 
@@ -988,7 +1030,7 @@ function checkStorageQuota() {
     localStorage.removeItem(testKey);
   } catch(e) {
     if (e.name === 'QuotaExceededError' || e.code === 22) {
-      console.warn('[TradeKit] localStorage is nearly full! Data may not be saved correctly.');
+      console.warn('[TRADE_doc] localStorage is nearly full! Data may not be saved correctly.');
     }
   }
 }
@@ -1023,7 +1065,7 @@ function renderTopBar() {
   } else {
     h += '<button class="nav-btn" id="lang-btn" onclick="toggleLang()">' + tr.toggleLang + '</button>';
     h += '<button class="nav-btn" id="theme-btn" onclick="toggleTheme()">' + (dark ? 'Light' : 'Dark') + '</button>';
-    h += '<button class="nav-btn primary" onclick="window._exportPdf()">' + tr.exportPdf + '</button>';
+    h += '<button class="nav-btn primary" onclick="doExportPdf(DT,data,\'preview-content\')">' + tr.exportPdf + '</button>';
   }
   h += '</div></nav>';
   var existing = document.querySelector('.top-bar');
@@ -1062,6 +1104,15 @@ function switchTab(tab) {
   });
 }
 
+function injectBackButton() {
+  var bar = document.querySelector('#panel-edit .action-bar-left');
+  if (bar && !document.getElementById('btn-back-home')) {
+    bar.insertAdjacentHTML('afterbegin',
+      '<a href="index.html" class="btn btn-sm" id="btn-back-home">← '
+      + (lang === 'zh' ? '返回主页' : 'Back to Home') + '</a>');
+  }
+}
+
 function renderClearModal() {
   var tr = I18N[lang];
   var modal = document.getElementById('clear-modal');
@@ -1080,6 +1131,7 @@ function renderAll() {
   renderTopBar();
   renderHeader();
   renderTabs();
+  injectBackButton();
   if (typeof renderTmplBar === 'function') renderTmplBar();
   renderForm();
   renderPreview();
@@ -1099,7 +1151,7 @@ function loadTmplData(dt) {
 
 function saveTmplData(dt, data) {
   try { localStorage.setItem(getTmplKey(dt), JSON.stringify(data)); } catch(e) {
-    console.warn('[TradeKit] Failed to save template for', dt, e.message);
+    console.warn('[TRADE_doc] Failed to save template for', dt, e.message);
   }
 }
 
@@ -1395,7 +1447,7 @@ function tmplSetupEvents(dt, defaultFields, tmplConfig) {
 function fB(t,s){return t+(s?' <span style="font-size:12px;color:var(--text-muted);font-weight:400;">'+s+'</span>':'');}
 
 // ===== Global Data Backup & Restore =====
-function backupTradeKitData() {
+function backupTRADE_docData() {
   try {
     var data = {};
     for (var i = 0; i < localStorage.length; i++) {
@@ -1417,7 +1469,7 @@ function backupTradeKitData() {
   }
 }
 
-function restoreTradeKitData(file) {
+function restoreTRADE_docData(file) {
   if (!file) return;
   var lang = getLang();
   var tr = I18N[lang];

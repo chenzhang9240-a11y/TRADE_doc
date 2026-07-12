@@ -3,14 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>发票编号生成器 - TradeKit Invoice Number Generator</title>
+<title>发票编号生成器 - TRADE_doc Invoice Number Generator</title>
 <meta name="description" content="按规则自动生成和管理发票编号，支持批量生成、自定义前缀和重置规则。">
 <meta name="keywords" content="发票编号,invoice number,编号生成,number generator,发票管理,invoice management,自动编号,auto number,编号规则,numbering rule">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<link rel="canonical" href="http://tradekit.treedeep.cn/invoice-number.html">
-<link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/invoice-number.html">
-<link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/invoice-number.html?lang=en">
-<link rel="alternate" hreflang="x-default" href="http://tradekit.treedeep.cn/invoice-number.html">
 <meta name="geo.region" content="CN">
 <meta name="geo.placename" content="China">
 <meta name="geo.position" content="35.8617;104.1954">
@@ -19,32 +15,29 @@
 <meta name="content-language" content="zh-CN">
 <meta name="distribution" content="global">
 <meta property="og:type" content="article">
-<meta property="og:title" content="发票编号生成器 - TradeKit Invoice Number Generator">
+<meta property="og:title" content="发票编号生成器 - TRADE_doc Invoice Number Generator">
 <meta property="og:description" content="按规则自动生成和管理发票编号，支持批量生成、自定义前缀和重置规则。">
-<meta property="og:url" content="http://tradekit.treedeep.cn/invoice-number.html">
-<meta property="og:site_name" content="TradeKit">
+<meta property="og:site_name" content="TRADE_doc">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:locale:alternate" content="en_US">
 <meta property="article:section" content="Trade Documents">
 <meta property="article:tag" content="外贸单证">
 <meta property="article:tag" content="trade document">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="发票编号生成器 - TradeKit Invoice Number Generator">
+<meta name="twitter:title" content="发票编号生成器 - TRADE_doc Invoice Number Generator">
 <meta name="twitter:description" content="按规则自动生成和管理发票编号，支持批量生成、自定义前缀和重置规则。">
 <meta name="twitter:label:1" content="文档类型">
-<meta name="twitter:data:1" content="发票编号生成器 - TradeKit Invoice Number Generator">
+<meta name="twitter:data:1" content="发票编号生成器 - TRADE_doc Invoice Number Generator">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
 <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "发票编号生成器 - TradeKit Invoice Number Generator",
-  "alternateName": "Invoice Number Generator - TradeKit",
+  "name": "发票编号生成器 - TRADE_doc Invoice Number Generator",
+  "alternateName": "Invoice Number Generator - TRADE_doc",
   "description": "按规则自动生成和管理发票编号，支持批量生成、自定义前缀和重置规则。",
-  "url": "http://tradekit.treedeep.cn/invoice-number.html",
   "isPartOf": {
     "@type": "SoftwareApplication",
-    "name": "TradeKit",
-    "url": "http://tradekit.treedeep.cn"
+    "name": "TRADE_doc",
   },
   "inLanguage": [
     "zh-CN",
@@ -52,18 +45,17 @@
   ],
   "about": {
     "@type": "Thing",
-    "name": "发票编号生成器 - TradeKit Invoice Number Generator",
+    "name": "发票编号生成器 - TRADE_doc Invoice Number Generator",
     "description": "按规则自动生成和管理发票编号，支持批量生成、自定义前缀和重置规则。"
   },
   "mainEntity": {
     "@type": "Service",
-    "name": "发票编号生成器 - TradeKit Invoice Number Generator",
+    "name": "发票编号生成器 - TRADE_doc Invoice Number Generator",
     "description": "按规则自动生成和管理发票编号，支持批量生成、自定义前缀和重置规则。",
     "serviceType": "Trade Document Generation",
     "provider": {
       "@type": "Organization",
-      "name": "TradeKit",
-      "url": "http://tradekit.treedeep.cn"
+      "name": "TRADE_doc",
     },
     "areaServed": "Worldwide",
     "availableLanguage": [
@@ -103,8 +95,6 @@ function init(){applyTheme();var s=loadDocData(DT);
     localStorage.removeItem(getUserId() + '_ai_prefill_' + DT);
     showAiSuggestion(aiPrefill.suggestion);
   } else { data = s ? s : getDefaultDoc(DT); }renderAll();}
-  injectSpaButton();
-  injectBottomCta();
   injectPageFaq();
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data;
@@ -213,8 +203,6 @@ window._inRestore=function(id){var snaps=loadSnapshots(DT),s=snaps.find(function
 window._inDeleteSnap=function(id){deleteSnapshot(DT,id);renderHistory();};window._inClearAllHistory=function(){clearAllSnapshots(DT);renderHistory();};
 document.getElementById('lang-btn').onclick=function(){lang=lang==='zh'?'en':'zh';setLang(lang);renderAll();};
 document.getElementById('theme-btn').onclick=function(){dark=!dark;setTheme(dark);applyTheme();renderAll();};
-  injectSpaButton();
-  injectBottomCta();
   injectPageFaq();
 document.getElementById('btn-cancel-clear').onclick=function(){showClearConfirm=false;renderClearModal();};
 document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultDoc(DT);saveDocData(DT,data);showClearConfirm=false;renderClearModal();renderForm();renderPreview();};
@@ -228,6 +216,5 @@ data=s;saveDocData(DT,data);renderAll();}
 init();
 </script>
 <!-- GoatCounter -->
-<script data-goatcounter="https://tradekit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

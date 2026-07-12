@@ -3,14 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>商业发票生成器 - TradeKit Commercial Invoice</title>
+<title>商业发票生成器 - TRADE_doc Commercial Invoice</title>
 <meta name="description" content="免费生成符合国际贸易规范的商业发票，包含买卖双方信息、商品明细、HS编码与金额汇总，支持中英双语，A4横版PDF导出。">
 <meta name="keywords" content="商业发票,commercial invoice,外贸发票,invoice generator,HS编码,海关清关,customs clearance,贸易单证,export invoice,trade document">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<link rel="canonical" href="http://tradekit.treedeep.cn/commercial-invoice.html">
-<link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/commercial-invoice.html">
-<link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/commercial-invoice.html?lang=en">
-<link rel="alternate" hreflang="x-default" href="http://tradekit.treedeep.cn/commercial-invoice.html">
 <meta name="geo.region" content="CN">
 <meta name="geo.placename" content="China">
 <meta name="geo.position" content="35.8617;104.1954">
@@ -19,32 +15,29 @@
 <meta name="content-language" content="zh-CN">
 <meta name="distribution" content="global">
 <meta property="og:type" content="article">
-<meta property="og:title" content="商业发票生成器 - TradeKit Commercial Invoice">
+<meta property="og:title" content="商业发票生成器 - TRADE_doc Commercial Invoice">
 <meta property="og:description" content="免费生成符合国际贸易规范的商业发票，包含买卖双方信息、商品明细、HS编码与金额汇总，支持中英双语，A4横版PDF导出。">
-<meta property="og:url" content="http://tradekit.treedeep.cn/commercial-invoice.html">
-<meta property="og:site_name" content="TradeKit">
+<meta property="og:site_name" content="TRADE_doc">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:locale:alternate" content="en_US">
 <meta property="article:section" content="Trade Documents">
 <meta property="article:tag" content="外贸单证">
 <meta property="article:tag" content="trade document">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="商业发票生成器 - TradeKit Commercial Invoice">
+<meta name="twitter:title" content="商业发票生成器 - TRADE_doc Commercial Invoice">
 <meta name="twitter:description" content="免费生成符合国际贸易规范的商业发票，包含买卖双方信息、商品明细、HS编码与金额汇总，支持中英双语，A4横版PDF导出。">
 <meta name="twitter:label:1" content="文档类型">
-<meta name="twitter:data:1" content="商业发票生成器 - TradeKit Commercial Invoice">
+<meta name="twitter:data:1" content="商业发票生成器 - TRADE_doc Commercial Invoice">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
 <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "商业发票生成器 - TradeKit Commercial Invoice",
-  "alternateName": "Commercial Invoice Generator - TradeKit",
+  "name": "商业发票生成器 - TRADE_doc Commercial Invoice",
+  "alternateName": "Commercial Invoice Generator - TRADE_doc",
   "description": "免费生成符合国际贸易规范的商业发票，包含买卖双方信息、商品明细、HS编码与金额汇总，支持中英双语，A4横版PDF导出。",
-  "url": "http://tradekit.treedeep.cn/commercial-invoice.html",
   "isPartOf": {
     "@type": "SoftwareApplication",
-    "name": "TradeKit",
-    "url": "http://tradekit.treedeep.cn"
+    "name": "TRADE_doc",
   },
   "inLanguage": [
     "zh-CN",
@@ -52,18 +45,17 @@
   ],
   "about": {
     "@type": "Thing",
-    "name": "商业发票生成器 - TradeKit Commercial Invoice",
+    "name": "商业发票生成器 - TRADE_doc Commercial Invoice",
     "description": "免费生成符合国际贸易规范的商业发票，包含买卖双方信息、商品明细、HS编码与金额汇总，支持中英双语，A4横版PDF导出。"
   },
   "mainEntity": {
     "@type": "Service",
-    "name": "商业发票生成器 - TradeKit Commercial Invoice",
+    "name": "商业发票生成器 - TRADE_doc Commercial Invoice",
     "description": "免费生成符合国际贸易规范的商业发票，包含买卖双方信息、商品明细、HS编码与金额汇总，支持中英双语，A4横版PDF导出。",
     "serviceType": "Trade Document Generation",
     "provider": {
       "@type": "Organization",
-      "name": "TradeKit",
-      "url": "http://tradekit.treedeep.cn"
+      "name": "TRADE_doc",
     },
     "areaServed": "Worldwide",
     "availableLanguage": [
@@ -292,8 +284,6 @@ function init() {
   applyTheme();
   ensureTmplData(DT, CI_DEFAULT_FIELDS);
   migrateTmplData(DT, CI_DEFAULT_FIELDS);
-  injectSpaButton();
-  injectBottomCta();
   injectPageFaq();
   var saved = loadDocData(DT);
   
@@ -335,12 +325,12 @@ function renderForm() {
   document.getElementById('btn-clear').onclick = function() { showClearConfirm = true; renderClearModal(); };
   document.getElementById('btn-switch-preview').onclick = function() { switchTab('preview'); renderPreview(); };
   document.getElementById('btn-back-edit').onclick = function() { switchTab('edit'); };
-  document.getElementById('btn-pdf').onclick = function() { doExportPdf(DT, data, 'preview-content'); };
+  document.getElementById('btn-pdf').onclick = function() { doExportPdf(DT,data,'preview-content'); };
   document.getElementById('btn-excel').onclick = function() { doExportExcel(DT, data); };
-  document.getElementById('btn-pdf-preview').onclick = function() { doExportPdf(DT, data, 'preview-content'); };
+  document.getElementById('btn-pdf-preview').onclick = function() { doExportPdf(DT,data,'preview-content'); };
   document.getElementById('btn-excel-preview').onclick = function() { doExportExcel(DT, data); };
   document.getElementById('btn-preview-lang').onclick = function() { previewLang = previewLang === 'en' ? 'zh' : 'en'; renderPreview(); };
-  document.getElementById('btn-print').onclick = function() { window.print(); };
+  document.getElementById('btn-print').onclick = function() { window._exportPdf(); };
 
   var isZh = lang === 'zh';
   var d = data;
@@ -1019,6 +1009,5 @@ function loadSample() {
 init();
 </script>
 <!-- GoatCounter -->
-<script data-goatcounter="https://tradekit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>

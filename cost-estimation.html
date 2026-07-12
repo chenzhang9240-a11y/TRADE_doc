@@ -3,14 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>成本估算单生成器 - TradeKit Cost Estimation</title>
+<title>成本估算单生成器 - TRADE_doc Cost Estimation</title>
 <meta name="description" content="面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。">
 <meta name="keywords" content="成本估算,cost estimation,出口报价,export pricing,成本核算,cost breakdown,利润计算,profit margin,多币种,multi-currency">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-<link rel="canonical" href="http://tradekit.treedeep.cn/cost-estimation.html">
-<link rel="alternate" hreflang="zh" href="http://tradekit.treedeep.cn/cost-estimation.html">
-<link rel="alternate" hreflang="en" href="http://tradekit.treedeep.cn/cost-estimation.html?lang=en">
-<link rel="alternate" hreflang="x-default" href="http://tradekit.treedeep.cn/cost-estimation.html">
 <meta name="geo.region" content="CN">
 <meta name="geo.placename" content="China">
 <meta name="geo.position" content="35.8617;104.1954">
@@ -19,32 +15,29 @@
 <meta name="content-language" content="zh-CN">
 <meta name="distribution" content="global">
 <meta property="og:type" content="article">
-<meta property="og:title" content="成本估算单生成器 - TradeKit Cost Estimation">
+<meta property="og:title" content="成本估算单生成器 - TRADE_doc Cost Estimation">
 <meta property="og:description" content="面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。">
-<meta property="og:url" content="http://tradekit.treedeep.cn/cost-estimation.html">
-<meta property="og:site_name" content="TradeKit">
+<meta property="og:site_name" content="TRADE_doc">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:locale:alternate" content="en_US">
 <meta property="article:section" content="Trade Documents">
 <meta property="article:tag" content="外贸单证">
 <meta property="article:tag" content="trade document">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="成本估算单生成器 - TradeKit Cost Estimation">
+<meta name="twitter:title" content="成本估算单生成器 - TRADE_doc Cost Estimation">
 <meta name="twitter:description" content="面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。">
 <meta name="twitter:label:1" content="文档类型">
-<meta name="twitter:data:1" content="成本估算单生成器 - TradeKit Cost Estimation">
+<meta name="twitter:data:1" content="成本估算单生成器 - TRADE_doc Cost Estimation">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
 <script type="application/ld+json">{
   "@context": "https://schema.org",
   "@type": "WebPage",
-  "name": "成本估算单生成器 - TradeKit Cost Estimation",
-  "alternateName": "Cost Estimation Generator - TradeKit",
+  "name": "成本估算单生成器 - TRADE_doc Cost Estimation",
+  "alternateName": "Cost Estimation Generator - TRADE_doc",
   "description": "面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。",
-  "url": "http://tradekit.treedeep.cn/cost-estimation.html",
   "isPartOf": {
     "@type": "SoftwareApplication",
-    "name": "TradeKit",
-    "url": "http://tradekit.treedeep.cn"
+    "name": "TRADE_doc",
   },
   "inLanguage": [
     "zh-CN",
@@ -52,18 +45,17 @@
   ],
   "about": {
     "@type": "Thing",
-    "name": "成本估算单生成器 - TradeKit Cost Estimation",
+    "name": "成本估算单生成器 - TRADE_doc Cost Estimation",
     "description": "面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。"
   },
   "mainEntity": {
     "@type": "Service",
-    "name": "成本估算单生成器 - TradeKit Cost Estimation",
+    "name": "成本估算单生成器 - TRADE_doc Cost Estimation",
     "description": "面向出口报价的详细成本分解工具，支持多运输模式、多币种核算。",
     "serviceType": "Trade Document Generation",
     "provider": {
       "@type": "Organization",
-      "name": "TradeKit",
-      "url": "http://tradekit.treedeep.cn"
+      "name": "TRADE_doc",
     },
     "areaServed": "Worldwide",
     "availableLanguage": [
@@ -137,7 +129,7 @@ function migrateData(d){
   return d;
 }
 function init(){applyTheme();var s=loadDocData(DT);data=s?migrateData(s):getDefaultDoc(DT);renderAll();}
-injectSpaButton();injectBottomCta();injectPageFaq();
+injectPageFaq();
 
 function renderForm(){
   var tr=I18N[lang],isZh=lang==='zh',d=data,esc2=esc;
@@ -149,7 +141,7 @@ function renderForm(){
   document.getElementById('btn-load-sample').onclick=loadSample;document.getElementById('btn-clear').onclick=function(){showClearConfirm=true;renderClearModal();};
   document.getElementById('btn-switch-preview').onclick=function(){switchTab('preview');renderPreview();};document.getElementById('btn-back-edit').onclick=function(){switchTab('edit');};
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
-  document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window.print();};
+  document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window._exportPdf();};
 
   var h='';
 
@@ -444,8 +436,6 @@ document.getElementById('btn-confirm-clear').onclick=function(){data=getDefaultD
 
 // ===== Data manipulation functions =====
 window._ceSetField=function(f,v){data[f]=v;saveDocData(DT,data);renderForm();renderPreview();};
-  injectSpaButton();
-  injectBottomCta();
   injectPageFaq();
 window._ceItem=function(tabKey,secIdx,itemIdx,f,v){
   if(!data[tabKey]||!data[tabKey].sections||!data[tabKey].sections[secIdx])return;
@@ -559,6 +549,5 @@ function loadSample(){
 init();
 </script>
 <!-- GoatCounter -->
-<script data-goatcounter="https://tradekit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
