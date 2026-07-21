@@ -496,6 +496,206 @@ function _renderTradeContract(wb, data) {
   _excSetPage(ws);
 }
 
+function _renderBillOfLading(wb, data) {
+  var ws = wb.addWorksheet('Bill of Lading');
+  ws.columns = [{width:2},{width:20},{width:20},{width:20},{width:2},{width:2},{width:16},{width:16},{width:2},{width:2},{width:2},{width:2}];
+  var C = 12, d = data, R = 1;
+
+  // Title
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = 'OCEAN BILL OF LADING / 提单';
+  ws.getCell(R, 1).font = { size:18, bold:true, color:{argb:DEEP_BLUE}, name:'Arial' };
+  ws.getCell(R, 1).alignment = _excCtr;
+  ws.getRow(R).height = 38;
+  R += 2;
+
+  // Helper for BL party/ref cells
+  function _blLabel(ws, R, c1, c2, text) {
+    ws.mergeCells(R, c1, R, c2);
+    ws.getCell(R, c1).value = text;
+    ws.getCell(R, c1).font = { bold:true, size:9, color:{argb:DEEP_BLUE}, name:'Arial' };
+    ws.getCell(R, c1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF0F4FA'} };
+    ws.getCell(R, c1).border = { bottom:{style:'thin'} };
+    ws.getRow(R).height = 20;
+  }
+  function _blVal(ws, R, c1, c2, text, opts) {
+    ws.mergeCells(R, c1, R, c2);
+    ws.getCell(R, c1).value = text || '';
+    ws.getCell(R, c1).font = opts && opts.font ? opts.font : { size:9, name:'Arial' };
+    ws.getCell(R, c1).alignment = opts && opts.align ? opts.align : _excLft;
+    ws.getRow(R).height = opts && opts.height ? opts.height : 16;
+  }
+
+  // Shipper (left) + BL No (right)
+  _blLabel(ws, R, 1, 7, 'SHIPPER / 发货人');
+  _blLabel(ws, R, 8, C, 'B/L NO. / 提单号');
+  R++;
+  _blVal(ws, R, 1, 7, (d.shipperName||'') + '  Contact: ' + (d.shipperContact||'') + '  Tel: ' + (d.shipperPhone||''), {height:18});
+  _blVal(ws, R, 8, C, d.blNo || '—', {font:{size:11,bold:true,name:'Arial'}});
+  R++;
+  _blVal(ws, R, 1, 7, d.shipperAddress || '');
+  R++;
+  _blVal(ws, R, 1, 7, 'Email: ' + (d.shipperEmail||''));
+  _blVal(ws, R, 8, C, 'BOOKING NO.: ' + (d.bookingNo||''));
+  R++;
+
+  // Consignee (left) + Carrier (right)
+  _blLabel(ws, R, 1, 7, 'CONSIGNEE / 收货人');
+  _blLabel(ws, R, 8, C, 'CARRIER / 承运人');
+  R++;
+  _blVal(ws, R, 1, 7, (d.consigneeName||'') + '  Contact: ' + (d.consigneeContact||'') + '  Tel: ' + (d.consigneePhone||''), {height:18});
+  _blVal(ws, R, 8, C, 'ORIGINAL', {font:{size:14,bold:true,color:{argb:'FFCC0000'},name:'Arial'},align:_excCtr,height:20});
+  R++;
+  _blVal(ws, R, 1, 7, (d.consigneeAddress||'') + '  Email: ' + (d.consigneeEmail||''));
+  R++;
+
+  // Notify Party (left) + Contract info (right)
+  _blLabel(ws, R, 1, 7, 'NOTIFY PARTY / 通知方');
+  _blVal(ws, R, 8, C, 'Contract No.: ' + (d.contractNo||'') + '    Issue: ' + (d.issueType||''), {font:{size:9,name:'Arial'}});
+  R++;
+  _blVal(ws, R, 1, 7, (d.notifyPartyName||'') + '  Contact: ' + (d.notifyPartyContact||'') + '  Tel: ' + (d.notifyPartyPhone||''), {height:18});
+  R++;
+  _blVal(ws, R, 1, 7, d.notifyPartyAddress || '');
+  R++;
+  R++; // blank
+
+  // Transport info
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = 'TRANSPORT INFO / 运输信息';
+  ws.getCell(R, 1).font = _excSecFont;
+  ws.getCell(R, 1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF0F4FA'} };
+  ws.getRow(R).height = 20;
+  R++;
+
+  function _blTransport(text, c1, c2) {
+    ws.mergeCells(R, c1, R, c2);
+    ws.getCell(R, c1).value = text;
+    ws.getCell(R, c1).font = { size:9, name:'Arial' };
+    ws.getRow(R).height = 18;
+  }
+  _blTransport('Vessel: ' + (d.vessel||''), 1, 4);
+  _blTransport('Voyage: ' + (d.voyageNo||''), 5, 8);
+  _blTransport('Pre-carriage: ' + (d.preCarriageBy||''), 9, C);
+  R++;
+  _blTransport('Port of Loading: ' + (d.portOfLoading||''), 1, 4);
+  _blTransport('Port of Discharge: ' + (d.portOfDischarge||''), 5, 8);
+  _blTransport('Place of Delivery: ' + (d.placeOfDelivery||''), 9, C);
+  R++;
+  R++; // blank
+
+  // Goods table
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = 'GOODS / 货物';
+  ws.getCell(R, 1).font = _excSecFont;
+  ws.getCell(R, 1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFF0F4FA'} };
+  ws.getRow(R).height = 20;
+  R++;
+
+  var BL_COL_GROUPS = [
+    { label:'MARKS & NUMBERS\n唛头', c1:1, c2:4 },
+    { label:'QTY & KIND OF PKGS\n件数', c1:5, c2:6 },
+    { label:'DESCRIPTION OF GOODS\n货品描述', c1:7, c2:9 },
+    { label:'GROSS WEIGHT\n毛重(KGS)', c1:10, c2:11 },
+    { label:'MEASUREMENT\n体积(CBM)', c1:C, c2:C }
+  ];
+  var hr = ws.getRow(R);
+  BL_COL_GROUPS.forEach(function(g) {
+    ws.mergeCells(R, g.c1, R, g.c2);
+    var c = hr.getCell(g.c1);
+    c.value = g.label;
+    c.fill = _excHeaderFill;
+    c.font = _excWhiteFont;
+    c.border = _excThinWhiteBorder;
+    c.alignment = _excCtr;
+  });
+  hr.height = 36;
+  R++;
+
+  (d.items||[]).forEach(function(it) {
+    var blData = [
+      { v:it.marks||'—', c1:1, c2:4 },
+      { v:(it.numberOfPkgs||'—') + ' ' + (it.packagingType||''), c1:5, c2:6 },
+      { v:it.description||'', c1:7, c2:9 },
+      { v:it.grossWeight||'', c1:10, c2:11 },
+      { v:it.measurement||'', c1:C, c2:C }
+    ];
+    var dr = ws.getRow(R);
+    blData.forEach(function(col) {
+      ws.mergeCells(R, col.c1, R, col.c2);
+      var c = dr.getCell(col.c1);
+      c.value = col.v;
+      c.border = _excThinBlackBorder;
+      c.font = { size:9, name:'Arial' };
+      c.alignment = (col.c1 >= 10) ? _excRgt : _excLft;
+    });
+    dr.height = 30;
+    R++;
+  });
+
+  // Total row
+  var tr = ws.getRow(R);
+  [ { c1:1, c2:4, v:'TOTAL / 合计:', a:_excRgt, b:true },
+    { c1:5, c2:6, v:(d.totalPkgs||'') + ' ' + ((d.items&&d.items[0]&&d.items[0].packagingType)||'PKGS'), a:_excCtr, b:true },
+    { c1:7, c2:9, v:'', a:_excCtr, b:false },
+    { c1:10, c2:11, v:d.totalGrossWeight||'', a:_excRgt, b:true },
+    { c1:C, c2:C, v:d.totalMeasurement||'', a:_excRgt, b:true }
+  ].forEach(function(g) {
+    ws.mergeCells(R, g.c1, R, g.c2);
+    var c = tr.getCell(g.c1);
+    c.value = g.v;
+    c.border = _excThinBlackBorder;
+    c.font = { bold:g.b, size:10, name:'Arial' };
+    c.alignment = g.a;
+  });
+  tr.height = 22;
+  R += 2;
+
+  // Container info
+  var containers = d.containers || [];
+  if (containers.length) {
+    ws.mergeCells(R, 1, R, C);
+    var cInfo = containers.map(function(c) {
+      return (c.containerNo||'') + '/' + (c.sealNo||'') + ' ' + (c.containerType||'');
+    }).join('  ');
+    ws.getCell(R, 1).value = 'CONTAINER / 集装箱:  ' + cInfo;
+    ws.getCell(R, 1).font = { size:9, name:'Arial' };
+    R++;
+  }
+
+  // Total packages in words
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = 'Total Packages (in words) / 大写件数:  ' + (d.totalPkgsWords||'SAY _____ ONLY');
+  ws.getCell(R, 1).font = { size:10, bold:true, name:'Arial' };
+  ws.getCell(R, 1).border = { top:{style:'thin'} };
+  ws.getRow(R).height = 22;
+  R++;
+
+  // Freight
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = 'FREIGHT / 运费:  ' + (d.freightTerms||'') + '  Payable at: ' + (d.freightPayableAt||'') + '  ' + (d.declaration||'');
+  ws.getCell(R, 1).font = { size:9, name:'Arial' };
+  ws.getRow(R).height = 18;
+  R += 2;
+
+  // Bottom: Originals | Place+Date | Shipped on Board
+  var bR = ws.getRow(R);
+  ws.mergeCells(R, 1, R, 4);
+  bR.getCell(1).value = 'No. of Original B(s)/L\n正本份数:\n' + (d.noOfOriginals||'THREE (3)');
+  bR.getCell(1).font = { size:9, name:'Arial' };
+  bR.getCell(1).alignment = _excCtr;
+  ws.mergeCells(R, 5, R, 8);
+  bR.getCell(5).value = 'Place of Issue / 签发地点:\n' + (d.placeOfIssue||'') + '\nDate of Issue / 签发日期:\n' + (d.carrierSignatureDate||'');
+  bR.getCell(5).font = { size:9, name:'Arial' };
+  bR.getCell(5).alignment = _excCtr;
+  ws.mergeCells(R, 9, R, C);
+  bR.getCell(9).value = 'Shipped on Board / 已装船:\n' + (d.shippedOnBoardDate||'') + '\nSigned for the Carrier / 承运人签章:\n' + (d.carrierName||'');
+  bR.getCell(9).font = { size:9, name:'Arial' };
+  bR.getCell(9).alignment = _excCtr;
+  ws.getRow(R).height = 64;
+
+  _excSetPage(ws);
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -519,6 +719,9 @@ function doExportExcel(dt, data) {
         break;
       case 'trade_contract':
         _renderTradeContract(wb, data);
+        break;
+      case 'bill_of_lading':
+        _renderBillOfLading(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
