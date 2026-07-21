@@ -56,6 +56,104 @@ function _excBox(ws, r1, c1, r2, c2) {
   }
 }
 
+// ===== Shared Rendering Framework =====
+
+var _excSecFont = { bold:true, size:10, color:{argb:'FF203764'}, name:'Arial' };
+
+function _excTitle(ws, colCount, text, textCn) {
+  ws.mergeCells(1, 1, 1, colCount);
+  var c = ws.getCell(1, 1);
+  c.value = text + (textCn ? ' / ' + textCn : '');
+  c.font = { size:18, bold:true, color:{argb:DEEP_BLUE}, name:'Arial' };
+  c.alignment = _excCtr;
+  ws.getRow(1).height = 38;
+  return 2; // next available row
+}
+
+function _excSplitHeader(ws, R, colCount, leftText, rightText) {
+  var mid = Math.floor(colCount / 2);
+  ws.mergeCells(R, 1, R, mid);
+  ws.getCell(R, 1).value = leftText;
+  ws.getCell(R, 1).font = _excSecFont;
+  ws.mergeCells(R, mid + 1, R, colCount);
+  ws.getCell(R, mid + 1).value = rightText;
+  ws.getCell(R, mid + 1).font = _excSecFont;
+  ws.getRow(R).height = 22;
+  return R + 1;
+}
+
+function _excInfoRow(ws, R, colCount, leftVal, rightVal) {
+  var mid = Math.floor(colCount / 2);
+  ws.mergeCells(R, 1, R, mid);
+  ws.getCell(R, 1).value = leftVal || '';
+  ws.getCell(R, 1).font = { size:10, name:'Arial' };
+  ws.getCell(R, 1).alignment = _excLft;
+  ws.mergeCells(R, mid + 1, R, colCount);
+  ws.getCell(R, mid + 1).value = rightVal || '';
+  ws.getCell(R, mid + 1).font = { size:10, name:'Arial' };
+  ws.getCell(R, mid + 1).alignment = _excLft;
+  return R + 1;
+}
+
+function _excTableHeader(ws, R, headers) {
+  var hr = ws.getRow(R);
+  headers.forEach(function(h, i) {
+    var c = hr.getCell(i + 1);
+    c.value = h;
+    c.fill = _excHeaderFill;
+    c.font = _excWhiteFont;
+    c.border = _excThinWhiteBorder;
+    c.alignment = _excCtr;
+  });
+  hr.height = 40;
+  return R + 1;
+}
+
+function _excDataRow(ws, R, colDefs, dataItem, idx) {
+  var dr = ws.getRow(R);
+  colDefs.forEach(function(cd, i) {
+    var c = dr.getCell(i + 1);
+    var rawVal = (i === 0 && idx !== undefined) ? idx + 1 : dataItem[cd.field];
+    c.value = (rawVal !== undefined && rawVal !== null) ? rawVal : '';
+    c.border = _excThinBlackBorder;
+    c.font = { size:10, name:'Arial' };
+    c.alignment = cd.align === 'right' ? _excRgt : (cd.align === 'center' ? _excCtr : _excLft);
+    if (cd.numFmt && typeof rawVal === 'number') c.numFmt = cd.numFmt;
+  });
+  dr.height = 26;
+  return R + 1;
+}
+
+function _excTotalRow(ws, R, colCount, label, labelCol, valCol) {
+  var tr = ws.getRow(R);
+  for (var i = 1; i <= colCount; i++) {
+    tr.getCell(i).border = { top:{style:'thin'}, bottom:{style:'double'}, left:{style:'thin'}, right:{style:'thin'} };
+    tr.getCell(i).font = { bold:true, size:11, name:'Arial' };
+    tr.getCell(i).alignment = _excCtr;
+  }
+  if (label) { tr.getCell(labelCol).value = label; tr.getCell(labelCol).alignment = _excRgt; }
+  if (valCol) { tr.getCell(valCol).alignment = _excRgt; tr.getCell(valCol).numFmt = '#,##0.00'; }
+  tr.height = 26;
+  return R + 1;
+}
+
+function _excSignatureBlock(ws, R, colCount, fields) {
+  var sigStart = Math.ceil(colCount * 0.6);
+  fields.forEach(function(f) {
+    ws.mergeCells(R, sigStart, R, colCount);
+    ws.getCell(R, sigStart).value = f;
+    ws.getCell(R, sigStart).font = { size:10, name:'Arial' };
+    ws.getCell(R, sigStart).alignment = _excRgt;
+    if (f.indexOf(':') > 0) ws.getCell(R, sigStart).border = { bottom:{style:'thin'} };
+    R++;
+  });
+  return R;
+}
+
+function _excSetPage(ws) {
+  ws.pageSetup = { orientation:'landscape', paperSize:9, fitToPage:true, margins:{left:0.4,right:0.4,top:0.4,bottom:0.4} };
+}
+
 // ===== Document Type Renderers =====
 
 var DEEP_BLUE = 'FF203764';
