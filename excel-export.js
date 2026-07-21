@@ -334,6 +334,44 @@ function _renderCommercialQuotation(wb, data) {
   _excSetPage(ws);
 }
 
+function _renderPackingList(wb, data) {
+  var ws = wb.addWorksheet('Packing List');
+  ws.columns = [{width:4},{width:16},{width:28},{width:8},{width:7},{width:12},{width:12},{width:10}];
+  var C = 8, d = data, R = _excTitle(ws, C, 'PACKING LIST', '装箱单');
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'SHIPPER / 发货人', 'SHIPMENT / 装运信息');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.shipperCompany||''), 'Invoice: ' + (d.invoiceNo||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.shipperAddress||''), 'Date: ' + (d.dateOfExport||''));
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'CONSIGNEE / 收货人', '');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.consigneeCompany||''), 'Port of Loading: ' + (d.portOfLoading||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.consigneeAddress||''), 'Port of Discharge: ' + (d.portOfDischarge||''));
+  R = _excInfoRow(ws, R, C, '', 'Vessel: ' + (d.vessel||''));
+  R++;
+
+  var PL_COL_DEFS = [
+    { field:'_idx', align:'center' },
+    { field:'marks', align:'center' },
+    { field:'description', align:'left' },
+    { field:'qty', align:'center' },
+    { field:'unitOfMeasure', align:'center' },
+    { field:'grossWeight', align:'right', numFmt:'#,##0.00' },
+    { field:'netWeight', align:'right', numFmt:'#,##0.00' },
+    { field:'measurement', align:'right', numFmt:'#,##0.00' }
+  ];
+  var PL_HEADERS = [
+    '#\n项号','MARKS\n唛头','DESCRIPTION\n货品描述','QTY\n数量','UNIT\n单位',
+    'GROSS WT\n毛重(KG)','NET WT\n净重(KG)','MEAS.\n体积(CBM)'
+  ];
+  R = _excTableHeader(ws, R, PL_HEADERS);
+  (d.items||[]).forEach(function(it, idx) {
+    R = _excDataRow(ws, R, PL_COL_DEFS, it, idx);
+  });
+  _excSetPage(ws);
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -348,6 +386,9 @@ function doExportExcel(dt, data) {
         break;
       case 'commercial_quotation':
         _renderCommercialQuotation(wb, data);
+        break;
+      case 'packing_list':
+        _renderPackingList(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
