@@ -928,6 +928,209 @@ function _renderShipperLetterInstruction(wb, data) {
   }
 }
 
+function _renderProformaInvoice(wb, data) {
+  var ws = wb.addWorksheet('Proforma Invoice');
+  ws.columns = [{width:4},{width:14},{width:30},{width:10},{width:8},{width:8},{width:12},{width:14}];
+  var C = 8, d = data, R = _excTitle(ws, C, 'PROFORMA INVOICE', '形式发票');
+  R++;
+  R = _excSplitHeader(ws, R, C, 'SELLER / 卖方', 'INVOICE INFO / 发票信息');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.sellerCompany||''), 'Invoice No.: ' + (d.proformaInvoiceNo||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Date: ' + (d.dateOfIssue||''));
+  R++;
+  R = _excSplitHeader(ws, R, C, 'BUYER / 买方', 'TERMS / 条款');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.buyerCompany||''), 'Currency: ' + (d.currency||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.buyerAddress||''), 'Payment: ' + (d.paymentTerms||''));
+  R++;
+  var PI_COL_DEFS = [
+    { field:'_idx', align:'center' }, { field:'itemNo', align:'center' },
+    { field:'description', align:'left' }, { field:'hsCode', align:'center' },
+    { field:'qty', align:'center' }, { field:'unitOfMeasure', align:'center' },
+    { field:'unitPrice', align:'right', numFmt:'#,##0.00' }, { field:'totalAmount', align:'right', numFmt:'#,##0.00' }
+  ];
+  var PI_HEADERS = ['#\n项号','ITEM NO.\n编号','DESCRIPTION\n货品描述','HS CODE\nHS编码','QTY\n数量','UNIT\n单位','UNIT PRICE\n单价','AMOUNT\n金额'];
+  R = _excTableHeader(ws, R, PI_HEADERS);
+  (d.items||[]).forEach(function(it, idx) { R = _excDataRow(ws, R, PI_COL_DEFS, it, idx); });
+  _excSetPage(ws);
+}
+
+function _renderCertificateOfOrigin(wb, data) {
+  var ws = wb.addWorksheet('Certificate of Origin');
+  ws.columns = [{width:4},{width:30},{width:30},{width:30}];
+  var C = 4, d = data, R = _excTitle(ws, C, 'CERTIFICATE OF ORIGIN', '原产地证明');
+  R++;
+  var fields = [
+    ['Exporter / 出口商:', d.exporterName||''],
+    ['Address / 地址:', d.exporterAddress||''],
+    ['Consignee / 收货人:', d.consigneeName||''],
+    ['Address:', d.consigneeAddress||''],
+    ['Country of Origin / 原产国:', d.countryOfOrigin||''],
+    ['Destination Country / 目的国:', d.destinationCountry||''],
+    ['Invoice No.:', d.invoiceNo||''],
+    ['Date of Export:', d.dateOfExport||''],
+    ['Transport / 运输方式:', d.transportMode||'']
+  ];
+  fields.forEach(function(f) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = f[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 20; R++;
+  });
+  _excSetPage(ws);
+}
+
+function _renderInsurancePolicy(wb, data) {
+  var ws = wb.addWorksheet('Insurance Policy');
+  ws.columns = [{width:4},{width:30},{width:30},{width:30}];
+  var C = 4, d = data, R = _excTitle(ws, C, 'INSURANCE POLICY', '保险单');
+  R++;
+  var fields = [
+    ['Policy No. / 保单号:', d.policyNo||''], ['Invoice No.:', d.invoiceNo||''],
+    ['Insured / 投保人:', d.insuredName||''], ['Address / 地址:', d.insuredAddress||''],
+    ['Conditions / 险别:', d.insuranceConditions||''],
+    ['Total Insured / 投保金额:', d.totalInsuredAmount||''],
+    ['Premium Rate / 保费率:', (d.premiumRate||'') + '%'], ['Premium Amount:', d.premiumAmount||''],
+    ['Date / 日期:', d.dateOfInsurance||'']
+  ];
+  fields.forEach(function(f) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = f[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 20; R++;
+  });
+  _excSetPage(ws);
+}
+
+function _renderCustomsDeclaration(wb, data) {
+  var ws = wb.addWorksheet('Customs Declaration');
+  ws.columns = [{width:4},{width:30},{width:30},{width:30}];
+  var C = 4, d = data, R = _excTitle(ws, C, 'CUSTOMS DECLARATION', '报关单');
+  R++;
+  var fields = [
+    ['Declarant / 申报人:', d.declarantName||''], ['Code / 代码:', d.declarantCode||''],
+    ['Phone / 电话:', d.declarantPhone||''], ['Shipper / 发货人:', d.shipperName||''],
+    ['Consignee / 收货人:', d.consigneeName||''], ['Trade Mode / 贸易方式:', d.tradeMode||''],
+    ['Customs Port / 口岸:', d.customsPort||''], ['Transport / 运输:', d.transportMode||''],
+    ['Invoice No.:', d.invoiceNo||''], ['Date / 日期:', d.dateOfDeclaration||'']
+  ];
+  fields.forEach(function(f) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = f[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 20; R++;
+  });
+  _excSetPage(ws);
+}
+
+function _renderInspectionCertificate(wb, data) {
+  var ws = wb.addWorksheet('Inspection Certificate');
+  ws.columns = [{width:4},{width:30},{width:30},{width:30}];
+  var C = 4, d = data, R = _excTitle(ws, C, 'INSPECTION CERTIFICATE', '检验证书');
+  R++;
+  var fields = [
+    ['Certificate No. / 证书号:', d.certificateNo||''],
+    ['Invoice No.:', d.invoiceNo||''], ['Contract No.:', d.contractNo||''],
+    ['Inspector / 检验人:', d.inspectorName||''],
+    ['Authority / 认证机构:', d.certifyingAuthority||'']
+  ];
+  fields.forEach(function(f) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = f[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 20; R++;
+  });
+  _excSetPage(ws);
+}
+
+function _renderFumigationCertificate(wb, data) {
+  var ws = wb.addWorksheet('Fumigation Certificate');
+  ws.columns = [{width:4},{width:30},{width:30},{width:30}];
+  var C = 4, d = data, R = _excTitle(ws, C, 'FUMIGATION CERTIFICATE', '熏蒸证书');
+  R++;
+  var fields = [
+    ['Certificate No. / 证书号:', d.certificateNo||''], ['Invoice No.:', d.invoiceNo||''],
+    ['Date of Issue / 签发日期:', d.dateOfIssue||''], ['Shipper / 发货人:', d.shipperName||''],
+    ['Consignee / 收货人:', d.consigneeName||''], ['Fumigant / 熏蒸剂:', d.fumigant||''],
+    ['Method / 方法:', d.fumigationMethod||''], ['Temperature / 温度:', d.fumigationTemperature||''],
+    ['Duration / 时间:', d.fumigationDuration||''], ['Date / 日期:', d.fumigationDate||''],
+    ['Location / 地点:', d.fumigationLocation||''], ['Remarks / 备注:', d.remarks||'']
+  ];
+  fields.forEach(function(f) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = f[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 20; R++;
+  });
+  _excSetPage(ws);
+}
+
+function _renderBeneficiaryCertificate(wb, data) {
+  var ws = wb.addWorksheet('Beneficiary Certificate');
+  ws.columns = [{width:4},{width:30},{width:30}];
+  var C = 3, d = data, R = _excTitle(ws, C, 'BENEFICIARY CERTIFICATE', '受益人证明');
+  R++;
+  [ ['Beneficiary / 受益人:', d.beneficiaryName||''], ['Address / 地址:', d.beneficiaryAddress||''] ].forEach(function(f) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = f[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 20; R++;
+  });
+  R++; ws.mergeCells(R, 1, R, C); ws.getCell(R, 1).value = 'Declaration / 声明:'; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' }; R++;
+  ws.mergeCells(R, 1, R+2, C); ws.getCell(R, 1).value = d.declaration || ''; ws.getCell(R, 1).font = { size:10, name:'Arial' }; ws.getCell(R, 1).alignment = { wrapText:true };
+  _excSetPage(ws);
+}
+
+function _renderCurrencyConverter(wb, data) {
+  var ws = wb.addWorksheet('Currency Converter');
+  ws.columns = [{width:16},{width:16},{width:16}];
+  var C = 3, d = data, R = _excTitle(ws, C, 'CURRENCY CONVERTER', '汇率换算');
+  R++; ws.mergeCells(R, 1, R, C); ws.getCell(R, 1).value = 'Base Currency / 基准货币: ' + (d.baseCurrency||'CNY'); ws.getCell(R, 1).font = { size:11, name:'Arial' }; R++;
+  ws.mergeCells(R, 1, R, C); ws.getCell(R, 1).value = 'Target Currency / 目标货币: ' + (d.targetCurrency||''); ws.getCell(R, 1).font = { size:10, name:'Arial' }; R++;
+  ws.mergeCells(R, 1, R, C); ws.getCell(R, 1).value = 'Rate / 汇率: ' + (d.exchangeRate||''); ws.getCell(R, 1).font = { size:10, name:'Arial' }; R++;
+  ws.mergeCells(R, 1, R, C); ws.getCell(R, 1).value = 'Amount / 金额: ' + (d.amount||''); ws.getCell(R, 1).font = { size:10, name:'Arial' };
+  _excSetPage(ws);
+}
+
+function _renderInvoiceNumber(wb, data) {
+  var ws = wb.addWorksheet('Invoice Number');
+  ws.columns = [{width:20},{width:20},{width:20}];
+  var C = 3, d = data, R = _excTitle(ws, C, 'INVOICE NUMBER', '发票编号');
+  R += 2;
+  var rows = [ ['Prefix / 前缀:', d.prefix||'INV'], ['Separator / 分隔符:', d.separator||'-'], ['Date Format / 日期格式:', d.dateFormat||'YYYYMMDD'], ['Sequence Digits / 序号位数:', String(d.sequenceDigits||'4')], ['Reset Rule / 重置规则:', d.resetRule||'monthly'] ];
+  rows.forEach(function(r) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = r[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = r[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 22; R++;
+  });
+  _excSetPage(ws);
+}
+
+function _renderPaymentCalculator(wb, data) {
+  var ws = wb.addWorksheet('Payment Calculator');
+  ws.columns = [{width:20},{width:16},{width:16},{width:16}];
+  var C = 4, d = data, R = _excTitle(ws, C, 'PAYMENT CALCULATOR', '付款条款计算器');
+  R++; ws.mergeCells(R, 1, R, C); ws.getCell(R, 1).value = 'Contract Value / 合同金额: ' + (d.contractValue||'') + '  Currency: ' + (d.currency||'USD'); ws.getCell(R, 1).font = { size:11, name:'Arial' }; R += 2;
+  var PC_HEADERS = ['STAGE\n阶段','PERCENTAGE\n比例','AMOUNT\n金额','DUE DATE\n到期'];
+  R = _excTableHeader(ws, R, PC_HEADERS);
+  var stages = [ { name:'Advance / 预付款', pct:d.advancePct||'0', amt:d.advanceAmount||'0.00', due:'Upon signing / 签订后' }, { name:'Shipment / 发货款', pct:d.shipmentPct||'0', amt:d.shipmentAmount||'0.00', due:'Before shipment / 发货前' }, { name:'Balance / 尾款', pct:d.balancePct||'0', amt:d.balanceAmount||'0.00', due:'After arrival / 到货后' } ];
+  stages.forEach(function(s) {
+    var dr = ws.getRow(R);
+    dr.getCell(1).value = s.name; dr.getCell(1).font = { size:10, name:'Arial' }; dr.getCell(1).border = _excThinBlackBorder; dr.getCell(1).alignment = _excCtr;
+    dr.getCell(2).value = s.pct + '%'; dr.getCell(2).font = { size:10, name:'Arial' }; dr.getCell(2).border = _excThinBlackBorder; dr.getCell(2).alignment = _excCtr;
+    dr.getCell(3).value = parseFloat(s.amt); dr.getCell(3).font = { size:10, name:'Arial' }; dr.getCell(3).border = _excThinBlackBorder; dr.getCell(3).alignment = _excRgt; dr.getCell(3).numFmt = '#,##0.00';
+    dr.getCell(4).value = s.due; dr.getCell(4).font = { size:10, name:'Arial' }; dr.getCell(4).border = _excThinBlackBorder; dr.getCell(4).alignment = _excCtr;
+    dr.height = 22; R++;
+  });
+  _excSetPage(ws);
+}
+
+function _renderShippingMark(wb, data) {
+  var ws = wb.addWorksheet('Shipping Mark');
+  ws.columns = [{width:30},{width:30}];
+  var C = 2, d = data, R = _excTitle(ws, C, 'SHIPPING MARK', '唛头');
+  R += 2;
+  var fields = [ ['Consignee / 收货人:', d.consigneeName||''], ['Destination / 目的港:', d.destinationPort||''], ['PO / 订单号:', d.poNumber||''], ['Package / 件号:', (d.packageNumberStart||'') + ' - ' + (d.packageNumberEnd||'')] ];
+  fields.forEach(function(f) {
+    ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    ws.mergeCells(R, 2, R, C); ws.getCell(R, 2).value = f[1]; ws.getCell(R, 2).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 22; R++;
+  });
+  _excSetPage(ws);
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -960,6 +1163,39 @@ function doExportExcel(dt, data) {
         break;
       case 'shipper_letter_instruction':
         _renderShipperLetterInstruction(wb, data);
+        break;
+      case 'proforma_invoice':
+        _renderProformaInvoice(wb, data);
+        break;
+      case 'certificate_of_origin':
+        _renderCertificateOfOrigin(wb, data);
+        break;
+      case 'insurance_policy':
+        _renderInsurancePolicy(wb, data);
+        break;
+      case 'customs_declaration':
+        _renderCustomsDeclaration(wb, data);
+        break;
+      case 'inspection_certificate':
+        _renderInspectionCertificate(wb, data);
+        break;
+      case 'fumigation_certificate':
+        _renderFumigationCertificate(wb, data);
+        break;
+      case 'beneficiary_certificate':
+        _renderBeneficiaryCertificate(wb, data);
+        break;
+      case 'currency_converter':
+        _renderCurrencyConverter(wb, data);
+        break;
+      case 'invoice_number':
+        _renderInvoiceNumber(wb, data);
+        break;
+      case 'payment_calculator':
+        _renderPaymentCalculator(wb, data);
+        break;
+      case 'shipping_mark':
+        _renderShippingMark(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
