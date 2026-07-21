@@ -372,6 +372,46 @@ function _renderPackingList(wb, data) {
   _excSetPage(ws);
 }
 
+function _renderCommercialPackingList(wb, data) {
+  var ws = wb.addWorksheet('Packing List');
+  ws.columns = [{width:4},{width:28},{width:7},{width:9},{width:8},{width:10},{width:7},{width:12},{width:12},{width:10}];
+  var C = 10, d = data, R = _excTitle(ws, C, 'COMMERCIAL PACKING LIST', '详细装箱单');
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'SHIPPER / 发货人', 'INVOICE INFO / 发票信息');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.shipperCompany||''), 'Invoice: ' + (d.invoiceNo||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.shipperAddress||''), 'Date: ' + (d.dateOfExport||''));
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'CONSIGNEE / 收货人', 'SHIPMENT / 装运');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.consigneeCompany||''), 'Port of Loading: ' + (d.portOfLoading||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.consigneeAddress||''), 'Port of Dest.: ' + (d.portOfDestination||d.portOfDischarge||''));
+  R = _excInfoRow(ws, R, C, '', 'Vessel: ' + (d.vessel||''));
+  R++;
+
+  var CPL_COL_DEFS = [
+    { field:'_idx', align:'center' },
+    { field:'description', align:'left' },
+    { field:'numberOfPkgs', align:'center' },
+    { field:'typeOfPackaging', align:'center' },
+    { field:'qtyPerPkg', align:'center' },
+    { field:'totalQty', align:'center' },
+    { field:'unitOfMeasure', align:'center' },
+    { field:'netWeightPerPkg', align:'right', numFmt:'#,##0.00' },
+    { field:'grossWeightPerPkg', align:'right', numFmt:'#,##0.00' },
+    { field:'measurementCBM', align:'right', numFmt:'#,##0.00' }
+  ];
+  var CPL_HEADERS = [
+    '#\n项号','DESCRIPTION\n货品描述','PKGS\n件数','PACKING\n包装','QTY/PKG\n每箱数量',
+    'TOTAL QTY\n总数量','UNIT\n单位','N.W/PKG\n单件净重','G.W/PKG\n单件毛重','CBM\n体积'
+  ];
+  R = _excTableHeader(ws, R, CPL_HEADERS);
+  (d.items||[]).forEach(function(it, idx) {
+    R = _excDataRow(ws, R, CPL_COL_DEFS, it, idx);
+  });
+  _excSetPage(ws);
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -389,6 +429,9 @@ function doExportExcel(dt, data) {
         break;
       case 'packing_list':
         _renderPackingList(wb, data);
+        break;
+      case 'commercial_packing_list':
+        _renderCommercialPackingList(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
