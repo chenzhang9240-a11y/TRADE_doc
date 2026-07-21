@@ -967,7 +967,7 @@ function _renderCertificateOfOrigin(wb, data) {
     ['Destination Country / 目的国:', d.destinationCountry||''],
     ['Invoice No.:', d.invoiceNo||''],
     ['Date of Export:', d.dateOfExport||''],
-    ['Transport / 运输方式:', d.transportMode||'']
+    ['Transport / 运输方式:', d.meansOfTransport||'']
   ];
   fields.forEach(function(f) {
     ws.mergeCells(R, 1, R, 1); ws.getCell(R, 1).value = f[0]; ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
