@@ -696,6 +696,150 @@ function _renderBillOfLading(wb, data) {
   _excSetPage(ws);
 }
 
+function _renderCostEstimation(wb, data) {
+  var ws = wb.addWorksheet('Cost Estimation');
+  ws.columns = [{width:5},{width:22},{width:16},{width:12},{width:7},{width:12},{width:14},{width:12},{width:14},{width:10}];
+  var C = 10, d = data, R = _excTitle(ws, C, 'COST ESTIMATION', '成本估算单');
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'PROJECT / 项目信息', 'ROUTE / 运输路线');
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.projectName||''), 'Origin: ' + (d.origin||''));
+  R = _excInfoRow(ws, R, C, 'Client: ' + (d.client||''), 'Destination: ' + (d.destination||''));
+  R = _excInfoRow(ws, R, C, 'Date: ' + (d.preparationDate||''), 'Trade Terms: ' + (d.tradeTerms||''));
+  R = _excInfoRow(ws, R, C, 'Prepared By: ' + (d.preparedBy||''), 'Validity: ' + (d.priceValidity||''));
+  R++;
+
+  // Exchange rate line
+  var rates = d.exchangeRates || [];
+  if (rates.length) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'Exchange Rates / 汇率: ' + rates.map(function(r){ return '1 ' + r.currency + ' = ' + r.rate + ' CNY'; }).join(' | ');
+    ws.getCell(R, 1).font = { size:9, italic:true, color:{argb:'FF516272'}, name:'Arial' };
+    R++;
+  }
+  R++;
+
+  // Process each transport mode
+  var MODES = ['sea', 'lcl', 'air', 'courier', 'parcel'];
+  var MODE_LABELS = { sea:'Sea Freight / 海运', lcl:'LCL / 拼箱', air:'Air Freight / 空运', courier:'Courier / 快递', parcel:'Parcel / 包裹' };
+  var grandCost = 0, grandSell = 0, modeCount = 0;
+
+  MODES.forEach(function(modeKey) {
+    var modeData = d[modeKey];
+    if (!modeData || !modeData.sections || !modeData.sections.length) return;
+    modeCount++;
+
+    // Mode badge
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = '  ' + MODE_LABELS[modeKey];
+    ws.getCell(R, 1).font = { size:10, bold:true, color:{argb:'FF004c99'}, name:'Arial' };
+    ws.getCell(R, 1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDCEAFF'} };
+    ws.getRow(R).height = 22;
+    R++;
+
+    var CE_HEADERS = [
+      '#\n项号','COST ITEM\n成本科目','SUPPLIER\n供应商','BASE PRICE\n底价','QTY\n数量',
+      'OUR COST\n我司成本','TOTAL COST\n成本合计','SELL PRICE\n卖价','TOTAL SELL\n卖价合计','NOTE\n备注'
+    ];
+    R = _excTableHeader(ws, R, CE_HEADERS);
+
+    modeData.sections.forEach(function(sec) {
+      // Section header
+      ws.mergeCells(R, 1, R, C);
+      ws.getCell(R, 1).value = sec.name;
+      ws.getCell(R, 1).font = { bold:true, size:10, color:{argb:'FF003366'}, name:'Arial' };
+      ws.getCell(R, 1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFEEF3FC'} };
+      ws.getRow(R).height = 22;
+      R++;
+
+      var secCost = 0, secSell = 0;
+      (sec.items||[]).forEach(function(it, idx) {
+        var vals = [
+          idx + 1,
+          it.costItem || '',
+          it.supplier || '',
+          (it.basePrice||'') + ' ' + (it.currency||''),
+          it.qty || '1',
+          parseFloat(it.ourCost) || 0,
+          parseFloat(it.totalCost) || 0,
+          parseFloat(it.sellPrice) || 0,
+          parseFloat(it.totalSell) || 0,
+          it.note || ''
+        ];
+        var dr = ws.getRow(R);
+        vals.forEach(function(v, i) {
+          var c = dr.getCell(i + 1);
+          c.value = v;
+          c.border = _excThinBlackBorder;
+          c.font = { size:9, name:'Arial' };
+          if (i === 0 || i === 3 || i === 4) c.alignment = _excCtr;
+          else if (i >= 5) { c.alignment = _excRgt; if (typeof v === 'number') c.numFmt = '#,##0.00'; }
+          else c.alignment = _excLft;
+        });
+        ws.getRow(R).height = 22;
+        secCost += parseFloat(it.totalCost) || 0;
+        secSell += parseFloat(it.totalSell) || 0;
+        R++;
+      });
+
+      // Section subtotal
+      ws.mergeCells(R, 1, R, 4);
+      ws.getCell(R, 1).value = 'Subtotal / 小计';
+      ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+      ws.getCell(R, 1).alignment = _excRgt;
+      ws.getCell(R, 7).value = secCost.toFixed(2);
+      ws.getCell(R, 7).font = { bold:true, size:10, name:'Arial' };
+      ws.getCell(R, 7).alignment = _excRgt;
+      ws.getCell(R, 7).numFmt = '#,##0.00';
+      ws.getCell(R, 9).value = secSell.toFixed(2);
+      ws.getCell(R, 9).font = { bold:true, size:10, name:'Arial' };
+      ws.getCell(R, 9).alignment = _excRgt;
+      ws.getCell(R, 9).numFmt = '#,##0.00';
+      ws.getRow(R).height = 22;
+      R++;
+
+      grandCost += secCost;
+      grandSell += secSell;
+    });
+    R++; // blank after each mode
+  });
+
+  // Grand total
+  if (modeCount > 0) {
+    ws.mergeCells(R, 1, R, 6);
+    ws.getCell(R, 1).value = 'GRAND TOTAL (CNY) / 总合计（人民币）';
+    ws.getCell(R, 1).font = { bold:true, size:12, name:'Arial' };
+    ws.getCell(R, 1).alignment = _excRgt;
+    ws.getCell(R, 7).value = grandCost.toFixed(2);
+    ws.getCell(R, 7).font = { bold:true, size:12, name:'Arial' };
+    ws.getCell(R, 7).alignment = _excRgt;
+    ws.getCell(R, 7).numFmt = '#,##0.00';
+    ws.getCell(R, 9).value = grandSell.toFixed(2);
+    ws.getCell(R, 9).font = { bold:true, size:12, name:'Arial' };
+    ws.getCell(R, 9).alignment = _excRgt;
+    ws.getCell(R, 9).numFmt = '#,##0.00';
+    ws.getRow(R).height = 26;
+    R++;
+
+    // Margin
+    var margin = grandSell > 0 ? (grandSell - grandCost) / grandSell * 100 : 0;
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'Gross Margin / 毛利率: ' + margin.toFixed(1) + '%';
+    ws.getCell(R, 1).font = { size:10, italic:true, name:'Arial' };
+    ws.getCell(R, 1).alignment = _excRgt;
+    R += 2;
+  }
+
+  // Notes
+  if (d.notes) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'NOTES / 备注: ' + d.notes;
+    ws.getCell(R, 1).font = { size:9, italic:true, color:{argb:'FF516272'}, name:'Arial' };
+  }
+
+  _excSetPage(ws);
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -722,6 +866,9 @@ function doExportExcel(dt, data) {
         break;
       case 'bill_of_lading':
         _renderBillOfLading(wb, data);
+        break;
+      case 'cost_estimation':
+        _renderCostEstimation(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
