@@ -840,6 +840,94 @@ function _renderCostEstimation(wb, data) {
   _excSetPage(ws);
 }
 
+function _renderShipperLetterInstruction(wb, data) {
+  var d = data, C = 10;
+
+  function renderSLIMode(ws, modeData, modeLabel) {
+    var R = _excTitle(ws, C, "SHIPPER'S LETTER INSTRUCTION", '发货人委托书');
+
+    R = _excSplitHeader(ws, R, C, 'SHIPPER / 发货人', modeLabel + ' INFO / ' + modeLabel + '信息');
+    R = _excInfoRow(ws, R, C, 'Company: ' + (d.shipperName||''), 'Date: ' + (d.signatureDate||''));
+    R = _excInfoRow(ws, R, C, 'Address: ' + (d.shipperAddress||''), 'Payment: ' + (d.paymentTerms||''));
+    R = _excInfoRow(ws, R, C, 'Tel: ' + (d.shipperPhone||''), '');
+    R++;
+
+    R = _excSplitHeader(ws, R, C, 'CONSIGNEE / 收货人', 'NOTIFY PARTY / 通知方');
+    R = _excInfoRow(ws, R, C, 'Company: ' + (d.consigneeCompany||''), 'Company: ' + (d.notifyPartyCompany||''));
+    R = _excInfoRow(ws, R, C, 'Address: ' + (d.consigneeAddress||''), 'Address: ' + (d.notifyPartyAddress||''));
+    R = _excInfoRow(ws, R, C, 'Contact: ' + (d.consigneeContact||''), 'Contact: ' + (d.notifyPartyContact||''));
+    R++;
+
+    R = _excSplitHeader(ws, R, C, 'TRANSPORT DETAILS / 运输细节', '');
+    var pol = '', pod = '', etd = '';
+    var vesselInfo = '';
+    if (modeLabel === 'OCEAN') {
+      pol = (modeData && modeData.portOfLoading) || '';
+      pod = (modeData && modeData.portOfDischarge) || '';
+      etd = (modeData && modeData.estSailingDate) || '';
+      if (modeData && modeData.vessel) vesselInfo = 'Vessel: ' + modeData.vessel;
+    } else {
+      pol = (modeData && modeData.pol) || '';
+      pod = (modeData && modeData.pod) || '';
+      etd = (modeData && modeData.etd) || '';
+      if (modeData && modeData.airline) vesselInfo = 'Airline: ' + modeData.airline + '  Flight: ' + (modeData.flightNo||'');
+    }
+    R = _excInfoRow(ws, R, C, 'POL / 起运港: ' + pol, 'POD / 目的港: ' + pod);
+    R = _excInfoRow(ws, R, C, 'ETD / 预计出发: ' + etd, vesselInfo);
+    R++;
+
+    // Items table
+    var SLI_COL_DEFS = [
+      { field:'_idx', align:'center' },
+      { field:'marks', align:'center' },
+      { field:'description', align:'left' },
+      { field:'hsCode', align:'center' },
+      { field:'quantity', align:'center' },
+      { field:'unitOfMeasure', align:'center' },
+      { field:'weight', align:'right', numFmt:'#,##0.00' },
+      { field:'volume', align:'right', numFmt:'#,##0.000' },
+      { field:'value', align:'right', numFmt:'#,##0.00' }
+    ];
+    var SLI_HEADERS = [
+      '#\n项号','MARKS\n唛头','DESCRIPTION\n货品描述','HS CODE\nHS编码','QTY\n数量',
+      'UNIT\n单位','WEIGHT\n重量(KG)','VOLUME\n体积(CBM)','VALUE\n价值'
+    ];
+    R = _excTableHeader(ws, R, SLI_HEADERS);
+    var items = (modeData && modeData.items) || [];
+    items.forEach(function(it, idx) {
+      R = _excDataRow(ws, R, SLI_COL_DEFS, it, idx);
+    });
+
+    // Special instructions
+    if (d.specialInstructions) {
+      R++;
+      ws.mergeCells(R, 1, R, C);
+      ws.getCell(R, 1).value = 'Special Instructions / 特别指示: ' + d.specialInstructions;
+      ws.getCell(R, 1).font = { size:9, italic:true, name:'Arial' };
+    }
+
+    _excSetPage(ws);
+  }
+
+  var hasSea = d.sea && d.sea.items && d.sea.items.length > 0;
+  var hasAir = d.air && d.air.items && d.air.items.length > 0;
+
+  if (hasSea) {
+    var ws1 = wb.addWorksheet('Ocean (海运)');
+    renderSLIMode(ws1, d.sea, 'OCEAN');
+  }
+  if (hasAir) {
+    var ws2 = wb.addWorksheet('Air (空运)');
+    renderSLIMode(ws2, d.air, 'AIR');
+  }
+  if (!hasSea && !hasAir) {
+    var ws3 = wb.addWorksheet('SLI');
+    var R2 = _excTitle(ws3, C, "SHIPPER'S LETTER INSTRUCTION", '发货人委托书');
+    ws3.mergeCells(R2, 1, R2 + 2, C);
+    ws3.getCell(R2, 1).value = 'No shipment data available.';
+  }
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -869,6 +957,9 @@ function doExportExcel(dt, data) {
         break;
       case 'cost_estimation':
         _renderCostEstimation(wb, data);
+        break;
+      case 'shipper_letter_instruction':
+        _renderShipperLetterInstruction(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
