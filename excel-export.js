@@ -412,6 +412,90 @@ function _renderCommercialPackingList(wb, data) {
   _excSetPage(ws);
 }
 
+function _renderTradeContract(wb, data) {
+  var ws = wb.addWorksheet('Trade Contract');
+  ws.columns = [{width:5},{width:16},{width:32},{width:8},{width:8},{width:12},{width:14}];
+  var C = 7, d = data, R = _excTitle(ws, C, 'TRADE CONTRACT', '外贸合同');
+  R++;
+
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = 'Contract No.: ' + (d.contractNo||'') + '    Date: ' + (d.dateOfSigning||'') + '    Place: ' + (d.placeOfSigning||'');
+  ws.getCell(R, 1).font = { size:10, bold:true, name:'Arial' };
+  ws.getRow(R).height = 22;
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'SELLER / 卖方', 'BUYER / 买方');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.sellerCompany||''), 'Company: ' + (d.buyerCompany||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Address: ' + (d.buyerAddress||''));
+  R++;
+
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = '1. Description of Goods / 商品描述';
+  ws.getCell(R, 1).font = _excSecFont;
+  ws.getRow(R).height = 22;
+  R++;
+
+  var TC_COL_DEFS = [
+    { field:'_idx', align:'center' },
+    { field:'itemNo', align:'center' },
+    { field:'description', align:'left' },
+    { field:'qty', align:'center' },
+    { field:'unitOfMeasure', align:'center' },
+    { field:'unitPrice', align:'right', numFmt:'#,##0.00' },
+    { field:'totalAmount', align:'right', numFmt:'#,##0.00' }
+  ];
+  var TC_HEADERS = [
+    '#\n项号','ITEM NO.\n编号','DESCRIPTION\n货品描述','QTY\n数量','UNIT\n单位',
+    'UNIT PRICE\n单价','AMOUNT\n金额'
+  ];
+  R = _excTableHeader(ws, R, TC_HEADERS);
+  var totalAmount = 0;
+  (d.items||[]).forEach(function(it, idx) {
+    R = _excDataRow(ws, R, TC_COL_DEFS, it, idx);
+    totalAmount += parseFloat(it.totalAmount) || 0;
+  });
+  R = _excTotalRow(ws, R, C, 'TOTAL / 总价', 3, 7);
+  ws.getCell(R-1, 7).value = totalAmount.toFixed(2);
+  R += 2;
+
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = 'Total Amount in Words / 总金额大写: ' + (d.remarks||'');
+  ws.getCell(R, 1).font = { size:10, italic:true, name:'Arial' };
+  R += 2;
+
+  var terms = [
+    { label:'2. Currency / 币种', val:d.currency },
+    { label:'3. Payment Terms / 付款条件', val:d.paymentTerms },
+    { label:'4. Delivery Terms / 交货条款', val:d.deliveryTerms },
+    { label:'5. Shipment Date / 装船日期', val:d.shipmentDate },
+    { label:'6. Port of Loading / 装运港', val:d.portOfLoading },
+    { label:'7. Port of Discharge / 卸货港', val:d.portOfDischarge },
+    { label:'8. Packaging / 包装', val:d.packagingType },
+    { label:'9. Insurance / 保险', val:d.insuranceTerms },
+    { label:'10. Inspection / 检验', val:d.inspectionTerms }
+  ];
+  terms.forEach(function(t) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = t.label + ':  ' + (t.val||'');
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    ws.getRow(R).height = 20;
+    R++;
+  });
+
+  if (d.arbitrationTerms) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = '11. Arbitration / 仲裁:';
+    ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    R++;
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = d.arbitrationTerms;
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
+  }
+
+  _excSetPage(ws);
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -432,6 +516,9 @@ function doExportExcel(dt, data) {
         break;
       case 'commercial_packing_list':
         _renderCommercialPackingList(wb, data);
+        break;
+      case 'trade_contract':
+        _renderTradeContract(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
