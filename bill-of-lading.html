@@ -85,6 +85,7 @@
 <div class="clear-modal hidden" id="clear-modal"><div class="clear-modal-content"><div class="clear-modal-title" id="clear-title"></div><div class="clear-modal-msg" id="clear-msg"></div><div class="clear-modal-actions"><button class="btn btn-secondary btn-sm" id="btn-cancel-clear"></button><button class="btn btn-danger" id="btn-confirm-clear"></button></div></div></div>
 <div class="tmpl-modal hidden" id="tmpl-modal"><div class="tmpl-modal-overlay"></div><div class="tmpl-modal-content"><div class="tmpl-modal-header"><span id="tmpl-modal-title"></span><button class="btn btn-secondary btn-sm" onclick="window._tmplCloseModal()">✕</button></div><div class="tmpl-modal-body" id="tmpl-modal-body"></div><div class="tmpl-modal-footer"><button class="btn btn-primary" onclick="window._doSaveTmplFromModal()" id="btn-tmpl-save"></button></div></div></div>
 <script src="common.js"></script>
+<script src="excel-export.js"></script>
 <script>
 // ===== Constants & State =====
 var DT='bill_of_lading',DT_META=DOC_META[DT],lang=getLang(),dark=isDark(),previewLang='en',data=null,showClearConfirm=false;
