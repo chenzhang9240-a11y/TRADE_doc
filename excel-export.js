@@ -256,6 +256,97 @@ function _renderCommercialInvoice(wb, data) {
   _excSetPage(ws);
 }
 
+function _renderCommercialQuotation(wb, data) {
+  var ws = wb.addWorksheet('Quotation');
+  ws.columns = [{width:4},{width:14},{width:30},{width:12},{width:8},{width:7},{width:12},{width:10},{width:14}];
+  var C = 9, d = data, R = _excTitle(ws, C, 'COMMERCIAL QUOTATION', '商业报价单');
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'SELLER / 卖方', 'QUOTATION INFO / 报价信息');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.sellerCompany||''), 'Quotation No.: ' + (d.quotationNo||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Date: ' + (d.date||''));
+  R = _excInfoRow(ws, R, C, 'Tel: ' + (d.sellerTel||''), 'Currency: ' + (d.currency||''));
+  R = _excInfoRow(ws, R, C, 'Fax: ' + (d.sellerFax||''), '');
+  R++;
+
+  R = _excSplitHeader(ws, R, C, 'BUYER / 买方', 'TERMS / 条款');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.buyerCompany||''), 'Payment: ' + (d.paymentTerms||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.buyerAddress||''), 'Delivery: ' + (d.deliveryTerms||''));
+  R = _excInfoRow(ws, R, C, '', 'Validity: ' + (d.validity||''));
+  R++;
+
+  // Table
+  var CQ_COL_DEFS = [
+    { field:'_idx', align:'center' },
+    { field:'itemNo', align:'center' },
+    { field:'description', align:'left' },
+    { field:'spec', align:'center' },
+    { field:'quantity', align:'center' },
+    { field:'unit', align:'center' },
+    { field:'unitPrice', align:'right', numFmt:'#,##0.00' },
+    { field:'discount', align:'right', numFmt:'#,##0.00' },
+    { field:'lineTotal', align:'right', numFmt:'#,##0.00' }
+  ];
+  var CQ_HEADERS = [
+    '#\n项号','ITEM NO.\n编号','DESCRIPTION\n货品描述','SPEC\n规格','QTY\n数量',
+    'UNIT\n单位','UNIT PRICE\n单价','DISCOUNT\n折扣','LINE TOTAL\n金额'
+  ];
+  R = _excTableHeader(ws, R, CQ_HEADERS);
+  (d.items||[]).forEach(function(it, idx) {
+    R = _excDataRow(ws, R, CQ_COL_DEFS, it, idx);
+  });
+
+  // Summary
+  R++; // blank
+  var summaries = [
+    { label:'Subtotal / 小计:', val:d.subTotal, col:9 },
+    { label:'Tax (' + (d.taxRate||0) + '%) / 税金:', val:d.taxAmount, col:9 },
+    { label:'Grand Total / 总计:', val:d.grandTotal, col:9 }
+  ];
+  summaries.forEach(function(s) {
+    ws.mergeCells(R, 6, R, 7);
+    ws.getCell(R, 6).value = s.label;
+    ws.getCell(R, 6).font = { bold:true, size:11, name:'Arial' };
+    ws.getCell(R, 6).alignment = _excRgt;
+    ws.mergeCells(R, 8, R, 9);
+    ws.getCell(R, 8).value = s.val;
+    ws.getCell(R, 8).font = { bold:true, size:11, name:'Arial' };
+    ws.getCell(R, 8).alignment = _excRgt;
+    ws.getCell(R, 8).numFmt = '#,##0.00';
+    ws.getRow(R).height = 22;
+    R++;
+  });
+  R++;
+
+  // Terms
+  if (d.terms) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'Terms & Conditions / 条款:';
+    ws.getCell(R, 1).font = _excSecFont;
+    R++;
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = d.terms;
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
+    ws.getRow(R).height = 48;
+    R += 2;
+  }
+
+  // Bank info
+  if (d.bankInfo) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'Bank Info / 银行信息:';
+    ws.getCell(R, 1).font = _excSecFont;
+    R++;
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = d.bankInfo;
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
+  }
+
+  _excSetPage(ws);
+}
+
 // ===== Main Export Entry =====
 
 function doExportExcel(dt, data) {
@@ -267,6 +358,9 @@ function doExportExcel(dt, data) {
     switch(dt) {
       case 'commercial_invoice':
         _renderCommercialInvoice(wb, data);
+        break;
+      case 'commercial_quotation':
+        _renderCommercialQuotation(wb, data);
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
