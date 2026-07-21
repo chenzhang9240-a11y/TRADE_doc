@@ -87,14 +87,14 @@
   <div class="tab-panel active" id="panel-edit">
     <div class="action-bar">
       <div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-load-sample"></button><button class="btn btn-secondary btn-sm" id="btn-clear"></button></div>
-      <div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button></div>
+      <div class="action-bar-right"><button class="btn btn-secondary btn-sm" id="btn-switch-preview"></button><button class="btn btn-primary" id="btn-pdf" data-pdf-btn></button><button class="btn btn-secondary btn-sm" id="btn-excel" data-excel-btn></button></div>
     </div>
     <div id="form-container"></div>
   </div>
   <div class="tab-panel" id="panel-preview">
     <div class="action-bar">
       <div class="action-bar-left"><button class="btn btn-secondary btn-sm" id="btn-back-edit"></button><button class="btn btn-secondary btn-sm" id="btn-preview-lang"></button></div>
-      <div class="action-bar-right"><button class="btn btn-primary" id="btn-pdf-preview" data-pdf-btn></button><button class="btn btn-secondary btn-sm" id="btn-print"></button></div>
+      <div class="action-bar-right"><button class="btn btn-primary" id="btn-pdf-preview" data-pdf-btn></button><button class="btn btn-secondary btn-sm" id="btn-excel-preview" data-excel-btn></button><button class="btn btn-secondary btn-sm" id="btn-print"></button></div>
     </div>
     <div id="preview-container"></div>
   </div>
@@ -142,6 +142,8 @@ function renderForm(){
   document.getElementById('btn-switch-preview').onclick=function(){switchTab('preview');renderPreview();};document.getElementById('btn-back-edit').onclick=function(){switchTab('edit');};
   document.getElementById('btn-pdf').onclick=function(){doExportPdf(DT,data,'preview-content');};document.getElementById('btn-pdf-preview').onclick=function(){doExportPdf(DT,data,'preview-content');};
   document.getElementById('btn-preview-lang').onclick=function(){previewLang=previewLang==='en'?'zh':'en';renderPreview();};document.getElementById('btn-print').onclick=function(){window._exportPdf();};
+  var excelBtn=document.getElementById('btn-excel');if(excelBtn){excelBtn.textContent=tr.exportExcel;excelBtn.onclick=function(){doExportExcel(DT,data);};}
+  var excelBtnP=document.getElementById('btn-excel-preview');if(excelBtnP){excelBtnP.textContent=tr.exportExcel;excelBtnP.onclick=function(){doExportExcel(DT,data);};}
 
   var h='';
 

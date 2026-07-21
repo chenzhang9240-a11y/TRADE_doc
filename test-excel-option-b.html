@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Excel 导出测试</title></head>
+<body style="font-family: Arial; max-width: 800px; margin: 40px auto; padding: 20px;">
+<h1>Excel 导出 — 布局匹配测试</h1>
+<p style="color:#666;">保留预览的左右分栏布局 + 表格对齐，不追求像素级还原。</p>
+<hr>
+
+<h2>1. Commercial Invoice（商业发票）</h2>
+<button onclick="testCI()" style="padding:10px 24px;background:#203764;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;">📥 下载 CI Excel</button>
+
+<h2>2. Commercial Quotation（商业报价单）</h2>
+<button onclick="testCQ()" style="padding:10px 24px;background:#203764;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;">📥 下载 CQ Excel</button>
+
+<h2>3. Packing List（装箱单）</h2>
+<button onclick="testPL()" style="padding:10px 24px;background:#203764;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;">📥 下载 PL Excel</button>
+
+<h2>4. Cost Estimation（成本估算单）</h2>
+<button onclick="testCE()" style="padding:10px 24px;background:#203764;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;">📥 下载 CE Excel</button>
+
+<h2>5. Bill of Lading（提单）</h2>
+<button onclick="testBL()" style="padding:10px 24px;background:#203764;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;">📥 下载 BL Excel</button>
+
+<p style="margin-top:40px;font-size:13px;color:#999;">请用 Excel 或 WPS 打开查看。</p>
+
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script>
+var DEEP_BLUE = 'FF203764';
+var _hFill = { type:'pattern', pattern:'solid', fgColor:{argb:DEEP_BLUE} };
+var _hFont = { bold:true, color:{argb:'FFFFFFFF'}, size:11, name:'Arial' };
+var _hBdr = { top:{style:'thin',color:{argb:'FFFFFFFF'}}, bottom:{style:'thin',color:{argb:'FFFFFFFF'}}, left:{style:'thin',color:{argb:'FFFFFFFF'}}, right:{style:'thin',color:{argb:'FFFFFFFF'}} };
+var _bdr = { top:{style:'thin',color:{argb:'FF000000'}}, bottom:{style:'thin',color:{argb:'FF000000'}}, left:{style:'thin',color:{argb:'FF000000'}}, right:{style:'thin',color:{argb:'FF000000'}} };
+var _ctr = { vertical:'middle', horizontal:'center' };
+var _lft = { vertical:'middle', horizontal:'left', wrapText:true };
+var _rgt = { vertical:'middle', horizontal:'right', wrapText:true };
+
+function dl(wb,fn) {
+  wb.xlsx.writeBuffer().then(function(b) {
+    var blob = new Blob([b], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    var u = URL.createObjectURL(blob);
+    var a = document.createElement('a'); a.href=u; a.download=fn;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){URL.revokeObjectURL(u);},10000);
+  });
+}
+
+// ===================== CI =====================
+function testCI() {
+  var d = {
+    shipperCompany:'ABC Import & Export Co., Ltd.', shipperAddress:'No. 888 Huaihai Road, Shanghai, China', shipperPhone:'+86-21-68888888', shipperTaxId:'91310000MA1K1234X',
+    consigneeCompany:'Global Trade Inc.', consigneeName:'John Smith', consigneeAddress:'123 Wall Street, New York, NY 10005, USA', consigneePhone:'+1-212-555-0199',
+    invoiceNo:'INV-2024-0012', dateOfExport:'2024-07-15', poNo:'PO-2024-088',
+    paymentTerms:'T/T 30% deposit, 70% against B/L', currency:'USD',
+    items:[
+      { marks:'ABC\nNEW YORK\nC/NO.1-50', noOfPkgs:50, typeOfPackaging:'CARTON', countryOfOrigin:'China', description:'Premium Cotton T-Shirts\nStyle: CT-2024\nSize: M/L/XL', hsCode:'6109.10', qty:1000, unitOfMeasure:'PCS', weight:500, unitValue:8.50, totalValue:8500.00 },
+      { marks:'ABC\nNEW YORK\nC/NO.51-80', noOfPkgs:30, typeOfPackaging:'CARTON', countryOfOrigin:'China', description:'Denim Jackets\nStyle: DJ-2024\nSize: S/M/L', hsCode:'6201.92', qty:300, unitOfMeasure:'PCS', weight:450, unitValue:35.00, totalValue:10500.00 },
+      { marks:'ABC\nNEW YORK\nC/NO.81-100', noOfPkgs:20, typeOfPackaging:'CARTON', countryOfOrigin:'China', description:'Silk Scarves\nAssorted Colors', hsCode:'6214.10', qty:500, unitOfMeasure:'PCS', weight:50, unitValue:12.00, totalValue:6000.00 }
+    ],
+    totalInvoiceValue:'25000.00',
+    declaration:'We hereby certify that the goods are of Chinese origin and that the information on this invoice is true and correct.',
+    signatureName:'Zhang Wei', signatureTitle:'Export Manager', signatureDate:'2024-07-15',
+    footerNote:'Thank you for your business!'
+  };
+  var wb=new ExcelJS.Workbook(); wb.creator='TRADE_doc';
+  var ws=wb.addWorksheet('Commercial Invoice');
+  ws.columns = [{width:4},{width:16},{width:7},{width:9},{width:9},{width:30},{width:10},{width:7},{width:6},{width:8},{width:10},{width:12}];
+  var R=1;
+  function L(t){ws.mergeCells(R,1,R,6);ws.getCell(R,1).value=t;ws.getCell(R,1).font={size:10,name:'Arial'};ws.getCell(R,1).alignment=_lft;}
+  function R_(t){ws.mergeCells(R,7,R,12);ws.getCell(R,7).value=t;ws.getCell(R,7).font={size:10,name:'Arial'};ws.getCell(R,7).alignment=_lft;}
+  function SL(t){ws.mergeCells(R,1,R,6);ws.getCell(R,1).value=t;ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,1).alignment=_lft;}
+  function SR(t){ws.mergeCells(R,7,R,12);ws.getCell(R,7).value=t;ws.getCell(R,7).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,7).alignment=_lft;}
+
+  ws.mergeCells(R,1,R,12);ws.getCell(R,1).value='COMMERCIAL INVOICE / 商业发票';ws.getCell(R,1).font={size:18,bold:true,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,1).alignment=_ctr;ws.getRow(R).height=38;R++;
+  ws.getRow(R).height=6;R++;
+  SL('SHIPPER / 发货人');SR('INVOICE INFO / 发票信息');ws.getRow(R).height=22;R++;
+  L('Company: '+d.shipperCompany);R_('Invoice: '+d.invoiceNo);R++;
+  L('Address: '+d.shipperAddress);R_('Date: '+d.dateOfExport);R++;
+  L('Tel: '+d.shipperPhone);R_('PO: '+d.poNo);R++;
+  L('Tax ID: '+d.shipperTaxId);R_('Currency: '+d.currency);R++;
+  ws.getRow(R).height=6;R++;
+  SL('CONSIGNEE / 收货人');SR('PAYMENT / 付款');ws.getRow(R).height=22;R++;
+  L('Company: '+d.consigneeCompany);R_('Terms: '+d.paymentTerms);R++;
+  L('Name: '+d.consigneeName);R_('');R++;
+  L('Address: '+d.consigneeAddress);R_('');R++;
+  L('Tel: '+d.consigneePhone);R_('');R++;
+  ws.getRow(R).height=6;R++;
+
+  var hdrs=['#\n项号','MARKS\n唛头','PKGS\n件数','PACKING\n包装','ORIGIN\n产地','DESCRIPTION\n货品描述','HS CODE\nHS编码','QTY\n数量','UNIT\n单位','WEIGHT\n重量(KG)','UNIT PRICE\n单价','AMOUNT\n总价'];
+  var hr=ws.getRow(R);hdrs.forEach(function(h,i){var c=hr.getCell(i+1);c.value=h;c.fill=_hFill;c.font=_hFont;c.border=_hBdr;c.alignment=_ctr;});hr.height=42;R++;
+  d.items.forEach(function(item,idx){
+    var vals=[idx+1,item.marks,item.noOfPkgs,item.typeOfPackaging,item.countryOfOrigin,item.description,item.hsCode,item.qty,item.unitOfMeasure,item.weight,parseFloat(item.unitValue),parseFloat(item.totalValue)];
+    var dr=ws.getRow(R);vals.forEach(function(v,i){var c=dr.getCell(i+1);c.value=v;c.border=_bdr;c.font={size:10,name:'Arial'};if(i===5)c.alignment=_lft;else if(i>=10){c.alignment=_rgt;if(typeof v==='number')c.numFmt='#,##0.00';}else c.alignment=_ctr;});dr.height=28;R++;
+  });
+  var tr=ws.getRow(R);for(var i=0;i<11;i++){tr.getCell(i+1).value='';tr.getCell(i+1).border={top:{style:'thin'},bottom:{style:'double'}};tr.getCell(i+1).alignment=_ctr;}tr.getCell(6).value='TOTAL / 合计';tr.getCell(6).font={bold:true,size:11,name:'Arial'};tr.getCell(6).alignment=_rgt;tr.getCell(12).value=d.totalInvoiceValue;tr.getCell(12).font={bold:true,size:11,name:'Arial'};tr.getCell(12).alignment=_rgt;tr.getCell(12).numFmt='#,##0.00';tr.height=26;R++;
+  ws.getRow(R).height=6;R++;
+  ws.mergeCells(R,8,R,12);ws.getCell(R,8).value='Signature: '+d.signatureName+'    Title: '+d.signatureTitle+'    Date: '+d.signatureDate;ws.getCell(R,8).font={size:10,italic:true,name:'Arial'};ws.getCell(R,8).alignment=_rgt;R++;
+  ws.getRow(R).height=6;R++;
+  ws.mergeCells(R,1,R,12);ws.getCell(R,1).value='Declaration: '+d.declaration;ws.getCell(R,1).font={size:9,italic:true,name:'Arial'};ws.getCell(R,1).alignment=_lft;R+=2;
+  ws.mergeCells(R,1,R,12);ws.getCell(R,1).value=d.footerNote;ws.getCell(R,1).font={size:9,color:{argb:'FF888888'},name:'Arial'};ws.getCell(R,1).alignment=_ctr;
+  ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,margins:{left:0.4,right:0.4,top:0.4,bottom:0.4}};
+  dl(wb,'ci_INV-2024-0012.xlsx');
+}
+
+// ===================== CQ =====================
+function testCQ() {
+  var d = {
+    sellerCompany:'ABC Import & Export Co., Ltd.', sellerAddress:'No. 888 Huaihai Road, Shanghai, China', sellerTel:'+86-21-68888888', sellerFax:'+86-21-68888889',
+    buyerCompany:'Global Trade Inc.', buyerAddress:'123 Wall Street, New York, NY 10005, USA',
+    quotationNo:'Q-2024-0012', date:'2024-07-15', currency:'USD',
+    paymentTerms:'T/T 30% deposit, 70% before shipment', deliveryTerms:'FOB Shanghai', validity:'30 days',
+    items:[
+      {itemNo:'CT-2024',description:'Premium Cotton T-Shirts\nSolid Color, Round Neck',spec:'M/L/XL',quantity:1000,unit:'PCS',unitPrice:8.50,discount:0,lineTotal:8500.00},
+      {itemNo:'DJ-2024',description:'Denim Jackets\nClassic Style',spec:'S/M/L',quantity:300,unit:'PCS',unitPrice:35.00,discount:0,lineTotal:10500.00},
+      {itemNo:'SS-2024',description:'Silk Scarves',spec:'90\xd790cm',quantity:500,unit:'PCS',unitPrice:12.00,discount:50,lineTotal:5950.00},
+      {itemNo:'LW-2024',description:'Leather Wallets\nGenuine Leather',spec:'Brown/Black',quantity:200,unit:'PCS',unitPrice:25.00,discount:0,lineTotal:5000.00}
+    ],
+    subTotal:29950,taxRate:5,taxAmount:1497.50,grandTotal:'31,447.50',
+    terms:'1. Payment: T/T 30% deposit, 70% before shipment.\n2. Delivery: Within 30 days after receipt of deposit.\n3. Validity: 30 days from date of quotation.',
+    bankInfo:'Bank of China, Shanghai Branch\nAccount: 1234 5678 9012 3456\nSwift: BKCHCNBJ'
+  };
+  var wb=new ExcelJS.Workbook();wb.creator='TRADE_doc';
+  var ws=wb.addWorksheet('Quotation');
+  ws.columns=[{width:4},{width:14},{width:30},{width:12},{width:8},{width:7},{width:12},{width:10},{width:14}];var R=1;
+  function L(t){ws.mergeCells(R,1,R,4);ws.getCell(R,1).value=t;ws.getCell(R,1).font={size:10,name:'Arial'};ws.getCell(R,1).alignment=_lft;}
+  function R_(t){ws.mergeCells(R,5,R,9);ws.getCell(R,5).value=t;ws.getCell(R,5).font={size:10,name:'Arial'};ws.getCell(R,5).alignment=_lft;}
+  function SL(t){ws.mergeCells(R,1,R,4);ws.getCell(R,1).value=t;ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};}
+  function SR(t){ws.mergeCells(R,5,R,9);ws.getCell(R,5).value=t;ws.getCell(R,5).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};}
+
+  ws.mergeCells(R,1,R,9);ws.getCell(R,1).value='COMMERCIAL QUOTATION / 商业报价单';ws.getCell(R,1).font={size:18,bold:true,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,1).alignment=_ctr;ws.getRow(R).height=38;R++;
+  ws.getRow(R).height=6;R++;
+  SL('SELLER / 卖方');SR('QUOTATION INFO / 报价信息');ws.getRow(R).height=22;R++;
+  L('Company: '+d.sellerCompany);R_('Quotation No.: '+d.quotationNo);R++;
+  L('Address: '+d.sellerAddress);R_('Date: '+d.date);R++;
+  L('Tel: '+d.sellerTel);R_('Currency: '+d.currency);R++;
+  L('Fax: '+d.sellerFax);R_('');R++;
+  ws.getRow(R).height=6;R++;
+  SL('BUYER / 买方');SR('TERMS / 条款');ws.getRow(R).height=22;R++;
+  L('Company: '+d.buyerCompany);R_('Payment: '+d.paymentTerms);R++;
+  L('Address: '+d.buyerAddress);R_('Delivery: '+d.deliveryTerms);R++;
+  R_('Validity: '+d.validity);R++;
+  ws.getRow(R).height=6;R++;
+
+  var hdrs=['#\n项号','ITEM NO.\n编号','DESCRIPTION\n货品描述','SPEC\n规格','QTY\n数量','UNIT\n单位','UNIT PRICE\n单价','DISCOUNT\n折扣','LINE TOTAL\n金额'];
+  var hr=ws.getRow(R);hdrs.forEach(function(h,i){var c=hr.getCell(i+1);c.value=h;c.fill=_hFill;c.font=_hFont;c.border=_hBdr;c.alignment=_ctr;});hr.height=42;R++;
+  d.items.forEach(function(item,idx){
+    var vals=[idx+1,item.itemNo,item.description,item.spec,item.quantity,item.unit,parseFloat(item.unitPrice),parseFloat(item.discount)||0,parseFloat(item.lineTotal)];
+    var dr=ws.getRow(R);vals.forEach(function(v,i){var c=dr.getCell(i+1);c.value=v;c.border=_bdr;c.font={size:10,name:'Arial'};if(i===2)c.alignment=_lft;else if(i>=6){c.alignment=_rgt;if(typeof v==='number')c.numFmt='#,##0.00';}else c.alignment=_ctr;});dr.height=28;R++;
+  });
+  ws.getRow(R).height=4;R++;
+  [{l:'Subtotal / 小计:',v:d.subTotal},{l:'Tax ('+d.taxRate+'%) / 税金:',v:d.taxAmount},{l:'Grand Total / 总计:',v:d.grandTotal}].forEach(function(s){
+    ws.mergeCells(R,6,R,7);ws.getCell(R,6).value=s.l;ws.getCell(R,6).font={bold:true,size:11,name:'Arial'};ws.getCell(R,6).alignment=_rgt;
+    ws.mergeCells(R,8,R,9);ws.getCell(R,8).value=s.v;ws.getCell(R,8).font={bold:true,size:11,name:'Arial'};ws.getCell(R,8).alignment=_rgt;ws.getCell(R,8).numFmt='#,##0.00';
+    ws.getRow(R).height=22;R++;
+  });R++;ws.getRow(R).height=6;R++;
+  ws.mergeCells(R,1,R,9);ws.getCell(R,1).value='Terms & Conditions / 条款:';ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};R++;
+  ws.mergeCells(R,1,R,9);ws.getCell(R,1).value=d.terms;ws.getCell(R,1).font={size:10,name:'Arial'};ws.getCell(R,1).alignment={wrapText:true,vertical:'top'};ws.getRow(R).height=48;R++;
+  ws.getRow(R).height=6;R++;
+  ws.mergeCells(R,1,R,9);ws.getCell(R,1).value='Bank Info / 银行信息:';ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};R++;
+  ws.mergeCells(R,1,R,9);ws.getCell(R,1).value=d.bankInfo;ws.getCell(R,1).font={size:10,name:'Arial'};ws.getCell(R,1).alignment={wrapText:true,vertical:'top'};
+  ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,margins:{left:0.4,right:0.4,top:0.4,bottom:0.4}};
+  dl(wb,'quotation_Q-2024-0012.xlsx');
+}
+
+// ===================== PL =====================
+function testPL() {
+  var d={
+    sellerCompany:'ABC Import & Export Co., Ltd.',sellerAddress:'No. 888 Huaihai Road, Shanghai, China',
+    consigneeCompany:'Global Trade Inc.',consigneeAddress:'123 Wall Street, New York, NY 10005, USA',
+    invoiceNo:'INV-2024-0012',date:'2024-07-15',portOfLoading:'Shanghai',portOfDestination:'New York',vessel:'M/V Evergreen',sailDate:'2024-08-01',
+    items:[
+      {itemNo:'CT-2024',description:'Premium Cotton T-Shirts\nSize: M/L/XL',qty:1000,unit:'PCS',grossWeight:600,netWeight:500,cbm:12.5},
+      {itemNo:'DJ-2024',description:'Denim Jackets\nSize: S/M/L',qty:300,unit:'PCS',grossWeight:520,netWeight:450,cbm:8.3},
+      {itemNo:'SS-2024',description:'Silk Scarves\nAssorted Colors',qty:500,unit:'PCS',grossWeight:65,netWeight:50,cbm:2.1}
+    ]
+  };
+  var wb=new ExcelJS.Workbook();wb.creator='TRADE_doc';
+  var ws=wb.addWorksheet('Packing List');
+  ws.columns=[{width:4},{width:14},{width:28},{width:8},{width:7},{width:12},{width:12},{width:10}];var R=1;
+  function L(t){ws.mergeCells(R,1,R,4);ws.getCell(R,1).value=t;ws.getCell(R,1).font={size:10,name:'Arial'};ws.getCell(R,1).alignment=_lft;}
+  function R_(t){ws.mergeCells(R,5,R,8);ws.getCell(R,5).value=t;ws.getCell(R,5).font={size:10,name:'Arial'};ws.getCell(R,5).alignment=_lft;}
+  function SL(t){ws.mergeCells(R,1,R,4);ws.getCell(R,1).value=t;ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};}
+  function SR(t){ws.mergeCells(R,5,R,8);ws.getCell(R,5).value=t;ws.getCell(R,5).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};}
+
+  ws.mergeCells(R,1,R,8);ws.getCell(R,1).value='PACKING LIST / 装箱单';ws.getCell(R,1).font={size:18,bold:true,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,1).alignment=_ctr;ws.getRow(R).height=38;R++;
+  ws.getRow(R).height=6;R++;
+  SL('SHIPPER / 发货人');SR('SHIPMENT / 装运信息');ws.getRow(R).height=22;R++;
+  L('Company: '+d.sellerCompany);R_('Invoice: '+d.invoiceNo);R++;
+  L('Address: '+d.sellerAddress);R_('Date: '+d.date);R++;
+  ws.getRow(R).height=6;R++;
+  SL('CONSIGNEE / 收货人');SR('');ws.getRow(R).height=22;R++;
+  L('Company: '+d.consigneeCompany);R_('Port of Loading: '+d.portOfLoading);R++;
+  L('Address: '+d.consigneeAddress);R_('Port of Dest.: '+d.portOfDestination);R++;
+  R_('Vessel: '+d.vessel);R++;R_('Sailing: '+d.sailDate);R++;
+  ws.getRow(R).height=6;R++;
+
+  var hdrs=['#\n项号','ITEM NO.\n编号','DESCRIPTION\n货品描述','QTY\n数量','UNIT\n单位','GROSS WT\n毛重(KG)','NET WT\n净重(KG)','CBM\n体积'];
+  var hr=ws.getRow(R);hdrs.forEach(function(h,i){var c=hr.getCell(i+1);c.value=h;c.fill=_hFill;c.font=_hFont;c.border=_hBdr;c.alignment=_ctr;});hr.height=42;R++;
+  d.items.forEach(function(item,idx){
+    var vals=[idx+1,item.itemNo,item.description,item.qty,item.unit,parseFloat(item.grossWeight),parseFloat(item.netWeight),parseFloat(item.cbm)];
+    var dr=ws.getRow(R);vals.forEach(function(v,i){var c=dr.getCell(i+1);c.value=v;c.border=_bdr;c.font={size:10,name:'Arial'};if(i===2)c.alignment=_lft;else if(i>=5){c.alignment=_rgt;if(typeof v==='number')c.numFmt='#,##0.00';}else c.alignment=_ctr;});dr.height=26;R++;
+  });
+  ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,margins:{left:0.4,right:0.4,top:0.4,bottom:0.4}};
+  dl(wb,'packing_list_INV-2024-0012.xlsx');
+}
+
+// ===================== CE (Cost Estimation) =====================
+function testCE() {
+  var d={
+    projectName:'Export of Cotton Garments to USA',
+    client:'Global Trade Inc.',
+    preparationDate:'2024-07-15',
+    preparedBy:'Zhang Wei',
+    origin:'Shanghai, China',
+    destination:'New York, USA',
+    tradeTerms:'FOB Shanghai',
+    priceValidity:'30 days',
+    exchangeRates:[{currency:'USD',rate:'7.25'},{currency:'EUR',rate:'7.85'}],
+    sea:{sections:[
+      {name:'Raw Materials / 原材料',items:[
+        {costItem:'Cotton Fabric',supplier:'Textile Co.',basePrice:'3.50',currency:'USD',qty:'1000',ourCost:'3.50',totalCost:'3500.00',sellPrice:'5.00',totalSell:'5000.00',note:'Grade A'},
+        {costItem:'Buttons & Thread',supplier:'Accessory Ltd.',basePrice:'0.50',currency:'USD',qty:'1000',ourCost:'0.50',totalCost:'500.00',sellPrice:'0.80',totalSell:'800.00',note:''}
+      ]},
+      {name:'Manufacturing / 加工',items:[
+        {costItem:'Cutting & Sewing',supplier:'Garment Factory',basePrice:'2.00',currency:'USD',qty:'1000',ourCost:'2.00',totalCost:'2000.00',sellPrice:'3.50',totalSell:'3500.00',note:'Labor'},
+        {costItem:'Packing & Labeling',supplier:'Garment Factory',basePrice:'0.80',currency:'USD',qty:'1000',ourCost:'0.80',totalCost:'800.00',sellPrice:'1.20',totalSell:'1200.00',note:''}
+      ]},
+      {name:'Logistics / 物流',items:[
+        {costItem:'Inland Transport',supplier:'Logistics Co.',basePrice:'2000',currency:'CNY',qty:'1',ourCost:'2000',totalCost:'2000.00',sellPrice:'3500',totalSell:'3500.00',note:'Shanghai port'},
+        {costItem:'Customs Clearance',supplier:'Broker Ltd.',basePrice:'1500',currency:'CNY',qty:'1',ourCost:'1500',totalCost:'1500.00',sellPrice:'2500',totalSell:'2500.00',note:''}
+      ]}
+    ]},
+    notes:'Prices are subject to final confirmation. Exchange rate: 1 USD = 7.25 CNY.'
+  };
+  var rateUSD=7.25;
+  var wb=new ExcelJS.Workbook();wb.creator='TRADE_doc';
+  var ws=wb.addWorksheet('Cost Estimation');
+  ws.columns=[{width:6},{width:22},{width:16},{width:12},{width:8},{width:12},{width:14},{width:12},{width:14},{width:10}];
+  var R=1,C=10;
+
+  // Title
+  ws.mergeCells(R,1,R,10);ws.getCell(R,1).value='COST ESTIMATION / 成本估算单';ws.getCell(R,1).font={size:18,bold:true,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,1).alignment=_ctr;ws.getRow(R).height=38;R++;
+  ws.getRow(R).height=6;R++;
+
+  // Info block — 2 column layout (left: project info, right: route info)
+  function infoL(t){ws.mergeCells(R,1,R,5);ws.getCell(R,1).value=t;ws.getCell(R,1).font={size:10,name:'Arial'};ws.getCell(R,1).alignment=_lft;}
+  function infoR(t){ws.mergeCells(R,6,R,10);ws.getCell(R,6).value=t;ws.getCell(R,6).font={size:10,name:'Arial'};ws.getCell(R,6).alignment=_lft;}
+  function sectionL(t){ws.mergeCells(R,1,R,5);ws.getCell(R,1).value=t;ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};}
+  function sectionR(t){ws.mergeCells(R,6,R,10);ws.getCell(R,6).value=t;ws.getCell(R,6).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};}
+
+  sectionL('PROJECT / 项目信息');sectionR('ROUTE / 运输路线');
+  ws.getRow(R).height=22;R++;
+  infoL('Name: '+d.projectName);infoR('Origin: '+d.origin);R++;
+  infoL('Client: '+d.client);infoR('Destination: '+d.destination);R++;
+  infoL('Date: '+d.preparationDate);infoR('Trade Terms: '+d.tradeTerms);R++;
+  infoL('Prepared By: '+d.preparedBy);infoR('Validity: '+d.priceValidity);R++;
+
+  // Exchange rate line
+  ws.getRow(R).height=4;R++;
+  ws.mergeCells(R,1,R,10);
+  var rateStr='Exchange Rates / 汇率: 1 USD = 7.25 CNY';
+  ws.getCell(R,1).value=rateStr;ws.getCell(R,1).font={size:9,color:{argb:'FF516272'},name:'Arial'};
+  ws.getRow(R).height=18;R++;
+  ws.getRow(R).height=6;R++;
+
+  // Transport mode badge
+  ws.mergeCells(R,1,R,10);
+  ws.getCell(R,1).value='  SEA FREIGHT / 海运 — Shanghai → New York · FOB Shanghai';
+  ws.getCell(R,1).font={size:10,bold:true,name:'Arial',color:{argb:'FF004c99'}};
+  ws.getCell(R,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFDCEAFF'}};
+  ws.getRow(R).height=22;R++;
+
+  // Cost table header
+  var hdrs=['#\n项号','COST ITEM\n成本科目','SUPPLIER\n供应商','BASE PRICE\n底价','QTY\n数量','OUR COST\n我司成本','TOTAL COST\n成本合计','SELL PRICE\n卖价','TOTAL SELL\n卖价合计','NOTE\n备注'];
+  var hr=ws.getRow(R);hdrs.forEach(function(h,i){var c=hr.getCell(i+1);c.value=h;c.fill=_hFill;c.font=_hFont;c.border=_hBdr;c.alignment=_ctr;});hr.height=42;R++;
+
+  var grandCost=0,grandSell=0;
+  d.sea.sections.forEach(function(sec){
+    // Section header row
+    var sr=ws.getRow(R);
+    ws.mergeCells(R,1,R,10);
+    sr.getCell(1).value=sec.name;
+    sr.getCell(1).font={bold:true,size:10,color:{argb:'FF003366'},name:'Arial'};
+    sr.getCell(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEEF3FC'}};
+    sr.height=22;R++;
+
+    sec.items.forEach(function(item,idx){
+      var base=parseFloat(item.basePrice)||0;
+      var qty=parseFloat(item.qty)||1;
+      var cost=parseFloat(item.ourCost)||0;
+      var totalCost=parseFloat(item.totalCost)||cost*qty;
+      var sell=parseFloat(item.sellPrice)||0;
+      var totalSell=parseFloat(item.totalSell)||sell*qty;
+      var profit=totalSell-totalCost;
+      // For CNY items, convert to CNY
+      var isCNY=item.currency==='CNY';
+      var costCNY=isCNY?cost:cost*rateUSD;
+      var sellCNY=isCNY?sell:sell*rateUSD;
+      // But we'll just show the raw values for simplicity
+      var vals=[idx+1,item.costItem,item.supplier,item.basePrice+' '+item.currency,qty,cost,totalCost.toFixed(2),sell,totalSell.toFixed(2),item.note];
+      var dr=ws.getRow(R);
+      vals.forEach(function(v,i){
+        var c=dr.getCell(i+1);c.value=v;c.border=_bdr;c.font={size:9,name:'Arial'};
+        if(i===0||i===3||i===4)c.alignment=_ctr;
+        else if(i>=5){c.alignment=_rgt;if(typeof v==='string'&&!isNaN(parseFloat(v)))c.numFmt='#,##0.00';}
+        else c.alignment=_lft;
+      });
+      dr.height=22;R++;
+      grandCost+=totalCost*rateUSD;
+      grandSell+=totalSell*rateUSD;
+    });
+    // Section subtotal
+    var secCost=sec.items.reduce(function(s,it){return s+(parseFloat(it.totalCost)||parseFloat(it.ourCost||0)*(parseFloat(it.qty)||1));},0);
+    var secSell=sec.items.reduce(function(s,it){return s+(parseFloat(it.totalSell)||parseFloat(it.sellPrice||0)*(parseFloat(it.qty)||1));},0);
+    var subtotalR=ws.getRow(R);
+    ws.mergeCells(R,1,R,4);
+    subtotalR.getCell(1).value='Subtotal / 小计';
+    subtotalR.getCell(1).font={bold:true,size:10,name:'Arial'};
+    subtotalR.getCell(1).alignment=_rgt;
+    subtotalR.getCell(6).value=secCost.toFixed(2);
+    subtotalR.getCell(6).font={bold:true,size:10,name:'Arial'};
+    subtotalR.getCell(6).alignment=_rgt;
+    subtotalR.getCell(6).numFmt='#,##0.00';
+    subtotalR.getCell(9).value=secSell.toFixed(2);
+    subtotalR.getCell(9).font={bold:true,size:10,name:'Arial'};
+    subtotalR.getCell(9).alignment=_rgt;
+    subtotalR.getCell(9).numFmt='#,##0.00';
+    subtotalR.getCell(10).value=(secSell-secCost).toFixed(2);
+    subtotalR.getCell(10).font={bold:true,size:10,name:'Arial'};
+    subtotalR.getCell(10).alignment=_rgt;
+    subtotalR.getCell(10).numFmt='#,##0.00';
+    ws.getRow(R).height=22;R++;
+  });
+
+  // Grand total across all modes (CNY)
+  ws.getRow(R).height=4;R++;
+  var gtr=ws.getRow(R);
+  ws.mergeCells(R,1,R,6);
+  gtr.getCell(1).value='GRAND TOTAL (CNY) / 总合计（人民币）';
+  gtr.getCell(1).font={bold:true,size:12,name:'Arial'};
+  gtr.getCell(1).alignment=_rgt;
+  gtr.getCell(7).value=grandCost.toFixed(2);
+  gtr.getCell(7).font={bold:true,size:12,name:'Arial'};
+  gtr.getCell(7).alignment=_rgt;
+  gtr.getCell(7).numFmt='#,##0.00';
+  gtr.getCell(9).value=grandSell.toFixed(2);
+  gtr.getCell(9).font={bold:true,size:12,name:'Arial'};
+  gtr.getCell(9).alignment=_rgt;
+  gtr.getCell(9).numFmt='#,##0.00';
+  gtr.getCell(10).value=(grandSell-grandCost).toFixed(2);
+  gtr.getCell(10).font={bold:true,size:12,name:'Arial'};
+  gtr.getCell(10).alignment=_rgt;
+  gtr.getCell(10).numFmt='#,##0.00';
+  ws.getRow(R).height=26;R++;
+
+  // Margin
+  ws.mergeCells(R,1,R,10);
+  ws.getCell(R,1).value='Gross Margin / 毛利率: '+ ((grandSell>0)?(grandSell-grandCost)/grandSell*100:0).toFixed(1)+'%';
+  ws.getCell(R,1).font={size:10,italic:true,name:'Arial'};
+  ws.getCell(R,1).alignment=_rgt;
+  R+=2;
+
+  // Notes
+  ws.mergeCells(R,1,R,10);
+  ws.getCell(R,1).value='NOTES / 备注: '+d.notes;
+  ws.getCell(R,1).font={size:9,italic:true,name:'Arial',color:{argb:'FF516272'}};
+  ws.getCell(R,1).alignment=_lft;
+
+  ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,margins:{left:0.4,right:0.4,top:0.4,bottom:0.4}};
+  dl(wb,'cost_estimation_2024-07-15.xlsx');
+}
+
+// ===================== BL (Bill of Lading) =====================
+function testBL() {
+  var d={
+    shipperName:'ABC Import & Export Co., Ltd.',
+    shipperContact:'Zhang Wei',
+    shipperPhone:'+86-21-68888888',
+    shipperEmail:'zhang@abc-export.com',
+    shipperAddress:'No. 888 Huaihai Road, Shanghai, China',
+    consigneeName:'Global Trade Inc.',
+    consigneeContact:'John Smith',
+    consigneePhone:'+1-212-555-0199',
+    consigneeEmail:'john@globaltrade.com',
+    consigneeAddress:'123 Wall Street, New York, NY 10005, USA',
+    notifyPartyName:'Global Trade Inc. (Same as Consignee)',
+    notifyPartyContact:'John Smith',
+    notifyPartyPhone:'+1-212-555-0199',
+    notifyPartyAddress:'123 Wall Street, New York, NY 10005, USA',
+    blNo:'B/L-2024-0012',
+    bookingNo:'BK-2024-088',
+    contractNo:'CT-2024-0012',
+    issueType:'Original',
+    vessel:'M/V Evergreen',
+    voyageNo:'V-001E',
+    portOfLoading:'Shanghai, China',
+    portOfDischarge:'New York, USA',
+    placeOfDelivery:'New York, USA',
+    preCarriageBy:'Truck from Nanjing',
+    items:[
+      {marks:'ABC\nNEW YORK\nC/NO.1-100',numberOfPkgs:100,packagingType:'CARTONS',description:'Premium Cotton T-Shirts & Denim Jackets\nHS CODE: 6109.10 / 6201.92\nCustoms Seal: CS-2024-088',grossWeight:'1050.00',measurement:'22.90'},
+      {marks:'ABC\nNEW YORK\nC/NO.101-120',numberOfPkgs:20,packagingType:'CARTONS',description:'Silk Scarves\nHS CODE: 6214.10',grossWeight:'50.00',measurement:'2.10'}
+    ],
+    totalPkgs:'120',
+    totalGrossWeight:'1100.00',
+    totalMeasurement:'25.00',
+    containers:[
+      {containerNo:'MSCU4823047',sealNo:'SL-2024-088',containerType:'40HQ',cPkgs:120,cGrossWeight:1100,cMeasurement:25.0}
+    ],
+    totalPkgsWords:'SAY ONE HUNDRED TWENTY (120) CARTONS ONLY',
+    freightTerms:'FREIGHT COLLECT',
+    freightPayableAt:'New York',
+    declaration:'Received on board in apparent good order and condition.',
+    noOfOriginals:'THREE (3)',
+    placeOfIssue:'Shanghai, China',
+    carrierSignatureDate:'2024-07-15',
+    shippedOnBoardDate:'2024-07-14',
+    carrierName:'Evergreen Shipping Line'
+  };
+
+  var wb=new ExcelJS.Workbook();wb.creator='TRADE_doc';
+  var ws=wb.addWorksheet('Bill of Lading');
+  // 12 cols: A=party info, G=BL refs
+  ws.columns=[{width:2},{width:20},{width:20},{width:20},{width:2},{width:2},{width:16},{width:16},{width:2},{width:2},{width:2},{width:2}];
+  var R=1;
+
+  // Title
+  ws.mergeCells(R,1,R,12);ws.getCell(R,1).value='OCEAN BILL OF LADING';ws.getCell(R,1).font={size:18,bold:true,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,1).alignment=_ctr;ws.getRow(R).height=38;R++;
+  ws.mergeCells(R,1,R,12);ws.getCell(R,1).value='提单';ws.getCell(R,1).font={size:12,color:{argb:DEEP_BLUE},name:'Arial'};ws.getCell(R,1).alignment=_ctr;ws.getRow(R).height=18;R++;
+  ws.getRow(R).height=6;R++;
+
+  // Upper section: Party boxes (cols 1-7) + BL No / Booking No (cols 8-12)
+  // Shipper box
+  function partyBox(name,dataLines) {
+    ws.mergeCells(R,1,R,7);
+    ws.getCell(R,1).value=name;
+    ws.getCell(R,1).font={bold:true,size:9,color:{argb:DEEP_BLUE},name:'Arial'};
+    ws.getCell(R,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+    ws.getCell(R,1).border={bottom:{style:'thin'}};
+    ws.getRow(R).height=20;R++;
+    dataLines.forEach(function(line){
+      ws.mergeCells(R,1,R,7);
+      ws.getCell(R,1).value=line;
+      ws.getCell(R,1).font={size:9,name:'Arial'};
+      ws.getCell(R,1).alignment=_lft;
+      ws.getRow(R).height=16;R++;
+    });
+    ws.getRow(R).height=4;R++;
+  }
+
+  function blRefLeft(label,val){
+    ws.mergeCells(R,8,R,12);
+    ws.getCell(R,8).value=label+':  '+val;
+    ws.getCell(R,8).font={size:9,name:'Arial'};
+    ws.getCell(R,8).alignment=_lft;
+    ws.getRow(R).height=16;R++;
+  }
+
+  // We need to interleave: on the same rows, left = party, right = BL info
+  // Shipper header
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value='SHIPPER / 发货人';
+  ws.getCell(R,1).font={bold:true,size:9,color:{argb:DEEP_BLUE},name:'Arial'};
+  ws.getCell(R,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+  ws.getCell(R,1).border={bottom:{style:'thin'}};
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value='B/L NO. / 提单号';
+  ws.getCell(R,8).font={bold:true,size:9,color:{argb:DEEP_BLUE},name:'Arial'};
+  ws.getCell(R,8).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+  ws.getCell(R,8).border={bottom:{style:'thin'}};
+  ws.getRow(R).height=20;R++;
+
+  // Shipper details (left) + BL No (right)
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value=d.shipperName+'  Contact: '+d.shipperContact+'  Tel: '+d.shipperPhone;
+  ws.getCell(R,1).font={size:9,name:'Arial'};ws.getCell(R,1).alignment=_lft;
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value=d.blNo;
+  ws.getCell(R,8).font={size:11,bold:true,name:'Arial'};
+  ws.getRow(R).height=18;R++;
+
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value=d.shipperAddress;
+  ws.getCell(R,1).font={size:9,name:'Arial'};ws.getCell(R,1).alignment=_lft;
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value=''; // empty row on right
+  ws.getRow(R).height=16;R++;
+
+  // Booking No row
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value='Email: '+d.shipperEmail;
+  ws.getCell(R,1).font={size:9,name:'Arial'};ws.getCell(R,1).alignment=_lft;
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value='BOOKING NO. / 订舱号:  '+d.bookingNo;
+  ws.getCell(R,8).font={size:9,name:'Arial'};
+  ws.getRow(R).height=16;R++;
+
+  // Contract No row
+  ws.getRow(R).height=4;R++;
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value='Contract No.: '+d.contractNo+'    Issue: '+d.issueType;
+  ws.getCell(R,8).font={size:9,name:'Arial'};
+  ws.getRow(R).height=16;R++;
+
+  // Consignee
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value='CONSIGNEE / 收货人';
+  ws.getCell(R,1).font={bold:true,size:9,color:{argb:DEEP_BLUE},name:'Arial'};
+  ws.getCell(R,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+  ws.getCell(R,1).border={bottom:{style:'thin'}};
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value='CARRIER / 承运人';
+  ws.getCell(R,8).font={bold:true,size:9,color:{argb:DEEP_BLUE},name:'Arial'};
+  ws.getCell(R,8).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+  ws.getCell(R,8).border={bottom:{style:'thin'}};
+  ws.getRow(R).height=20;R++;
+
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value=d.consigneeName+'  Contact: '+d.consigneeContact+'  Tel: '+d.consigneePhone;
+  ws.getCell(R,1).font={size:9,name:'Arial'};ws.getCell(R,1).alignment=_lft;
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value='ORIGINAL';
+  ws.getCell(R,8).font={size:14,bold:true,color:{argb:'FFCC0000'},name:'Arial'};
+  ws.getCell(R,8).alignment=_ctr;
+  ws.getRow(R).height=20;R++;
+
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value=d.consigneeAddress+'  Email: '+d.consigneeEmail;
+  ws.getCell(R,1).font={size:9,name:'Arial'};ws.getCell(R,1).alignment=_lft;
+  ws.mergeCells(R,8,R,12);
+  ws.getCell(R,8).value='';R++;
+  ws.getRow(R).height=4;R++;
+
+  // Notify Party
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value='NOTIFY PARTY / 通知方';
+  ws.getCell(R,1).font={bold:true,size:9,color:{argb:DEEP_BLUE},name:'Arial'};
+  ws.getCell(R,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+  ws.getCell(R,1).border={bottom:{style:'thin'}};
+  ws.getRow(R).height=20;R++;
+
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value=d.notifyPartyName+'  Contact: '+d.notifyPartyContact+'  Tel: '+d.notifyPartyPhone;
+  ws.getCell(R,1).font={size:9,name:'Arial'};ws.getCell(R,1).alignment=_lft;
+  ws.getRow(R).height=18;R++;
+
+  ws.mergeCells(R,1,R,7);
+  ws.getCell(R,1).value=d.notifyPartyAddress;
+  ws.getCell(R,1).font={size:9,name:'Arial'};ws.getCell(R,1).alignment=_lft;
+  ws.getRow(R).height=16;R++;
+  ws.getRow(R).height=6;R++;
+
+  // Transport info row
+  function transport(label,val,col1,col2){
+    ws.mergeCells(R,col1,R,col2);
+    ws.getCell(R,col1).value=label+':  '+val;
+    ws.getCell(R,col1).font={size:9,name:'Arial'};
+    ws.getCell(R,col1).alignment=_lft;
+  }
+
+  ws.mergeCells(R,1,R,12);
+  ws.getCell(R,1).value='TRANSPORT INFO / 运输信息';
+  ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};
+  ws.getCell(R,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+  ws.getRow(R).height=20;R++;
+
+  // 3 items per row using 4-col blocks
+  function tRow(items){
+    var cols=[1,5,9];
+    items.forEach(function(item,i){
+      if(!item)return;
+      ws.mergeCells(R,cols[i],R,cols[i]+3);
+      ws.getCell(R,cols[i]).value=item[0]+':  '+item[1];
+      ws.getCell(R,cols[i]).font={size:9,name:'Arial'};
+      ws.getCell(R,cols[i]).alignment=_lft;
+    });
+    ws.getRow(R).height=18;R++;
+  }
+  tRow([['Vessel / 船名',d.vessel],['Voyage / 航次',d.voyageNo],['Pre-carriage / 前程',d.preCarriageBy]]);
+  tRow([['Port of Loading / 装货港',d.portOfLoading],['Port of Discharge / 卸货港',d.portOfDischarge],['Place of Delivery / 交货地',d.placeOfDelivery]]);
+  ws.getRow(R).height=6;R++;
+
+  // Goods table
+  ws.mergeCells(R,1,R,12);
+  ws.getCell(R,1).value='GOODS / 货物';
+  ws.getCell(R,1).font={bold:true,size:10,color:{argb:DEEP_BLUE},name:'Arial'};
+  ws.getCell(R,1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFF0F4FA'}};
+  ws.getRow(R).height=20;R++;
+
+  var cols=[{w:22},{w:20},{w:30},{w:14},{w:14}];
+  // Reset column widths for table portion - but table spans all 12 cols, so we need to merge properly
+  // Let me use colgroup approach - 12 cols with specific widths
+  // Actually, the columns were set already. Let me just merge cells for table.
+  // Table header: MARKS, PKGS, DESCRIPTION, GROSS WEIGHT, MEASUREMENT = 5 logical columns
+  // Using cols 1-4, 5-6, 7-9, 10-11, 12
+  var tblHeaders=[
+    {label:'MARKS & NUMBERS\n唛头',c1:1,c2:4},
+    {label:'QTY & KIND OF PKGS\n件数',c1:5,c2:6},
+    {label:'DESCRIPTION OF GOODS\n货品描述',c1:7,c2:9},
+    {label:'GROSS WEIGHT\n毛重(KGS)',c1:10,c2:11},
+    {label:'MEASUREMENT\n体积(CBM)',c1:12,c2:12}
+  ];
+  var hr=ws.getRow(R);
+  tblHeaders.forEach(function(h){
+    ws.mergeCells(R,h.c1,R,h.c2);
+    var c=hr.getCell(h.c1);
+    c.value=h.label;
+    c.fill=_hFill;c.font=_hFont;c.border=_hBdr;c.alignment=_ctr;
+  });
+  hr.height=36;R++;
+
+  d.items.forEach(function(item,idx){
+    var pkgsVal=(item.numberOfPkgs||'—')+' '+item.packagingType;
+    var vals=[{v:item.marks,c1:1,c2:4},{v:pkgsVal,c1:5,c2:6},{v:item.description,c1:7,c2:9},{v:item.grossWeight,c1:10,c2:11},{v:item.measurement,c1:12,c2:12}];
+    var dr=ws.getRow(R);
+    vals.forEach(function(col){
+      ws.mergeCells(R,col.c1,R,col.c2);
+      var c=dr.getCell(col.c1);
+      c.value=col.v;c.border=_bdr;c.font={size:9,name:'Arial'};
+      if(col.c1===10||col.c1===12)c.alignment=_rgt;else c.alignment=_lft;
+    });
+    dr.height=32;R++;
+  });
+
+  // Total row
+  var tr=ws.getRow(R);
+  ws.mergeCells(R,1,R,4);
+  tr.getCell(1).value='TOTAL / 合计:';
+  tr.getCell(1).font={bold:true,size:10,name:'Arial'};
+  tr.getCell(1).alignment=_rgt;
+  tr.getCell(1).border=_bdr;
+  ws.mergeCells(R,5,R,6);
+  tr.getCell(5).value=d.totalPkgs+' CARTONS';
+  tr.getCell(5).font={bold:true,size:10,name:'Arial'};
+  tr.getCell(5).alignment=_ctr;
+  tr.getCell(5).border=_bdr;
+  ws.mergeCells(R,7,R,9);
+  tr.getCell(7).value='';
+  tr.getCell(7).border=_bdr;
+  ws.mergeCells(R,10,R,11);
+  tr.getCell(10).value=d.totalGrossWeight;
+  tr.getCell(10).font={bold:true,size:10,name:'Arial'};
+  tr.getCell(10).alignment=_rgt;
+  tr.getCell(10).border=_bdr;
+  ws.mergeCells(R,12,R,12);
+  tr.getCell(12).value=d.totalMeasurement;
+  tr.getCell(12).font={bold:true,size:10,name:'Arial'};
+  tr.getCell(12).alignment=_rgt;
+  tr.getCell(12).border=_bdr;
+  tr.height=22;R++;
+
+  // Container info
+  ws.getRow(R).height=4;R++;
+  ws.mergeCells(R,1,R,12);
+  ws.getCell(R,1).value='CONTAINER / 集装箱:  '+d.containers[0].containerNo+'/'+d.containers[0].sealNo+'  '+d.containers[0].containerType+'  '+d.containers[0].cPkgs+' pkgs  '+d.containers[0].cGrossWeight+' KG  '+d.containers[0].cMeasurement+' CBM';
+  ws.getCell(R,1).font={size:9,name:'Arial'};
+  ws.getRow(R).height=18;R++;
+
+  // Total packages in words
+  ws.getRow(R).height=4;R++;
+  ws.mergeCells(R,1,R,12);
+  ws.getCell(R,1).value='Total Packages (in words) / 大写件数:  '+d.totalPkgsWords;
+  ws.getCell(R,1).font={size:10,bold:true,name:'Arial'};
+  ws.getCell(R,1).border={top:{style:'thin'}};
+  ws.getRow(R).height=22;R++;
+
+  // Freight
+  ws.mergeCells(R,1,R,12);
+  ws.getCell(R,1).value='FREIGHT & CHARGES / 运费:  '+d.freightTerms+'  Payable at: '+d.freightPayableAt+'  Declaration: '+d.declaration;
+  ws.getCell(R,1).font={size:9,name:'Arial'};
+  ws.getRow(R).height=18;R++;
+
+  // Bottom section: Originals | Place+Date | Shipped on Board + Signature
+  ws.getRow(R).height=4;R++;
+  // 3 columns layout
+  var botR=ws.getRow(R);
+  // Column 1: No of Originals
+  ws.mergeCells(R,1,R,4);
+  botR.getCell(1).value='No. of Original B(s)/L\n正本份数:\n'+d.noOfOriginals;
+  botR.getCell(1).font={size:9,name:'Arial'};
+  botR.getCell(1).alignment=_ctr;
+  // Column 2: Place + Date
+  ws.mergeCells(R,5,R,8);
+  botR.getCell(5).value='Place of Issue / 签发地点:\n'+d.placeOfIssue+'\nDate of Issue / 签发日期:\n'+d.carrierSignatureDate;
+  botR.getCell(5).font={size:9,name:'Arial'};
+  botR.getCell(5).alignment=_ctr;
+  // Column 3: Shipped on board + signature
+  ws.mergeCells(R,9,R,12);
+  botR.getCell(9).value='Shipped on Board / 已装船:\n'+d.shippedOnBoardDate+'\nSigned for the Carrier / 承运人签章:\n'+d.carrierName;
+  botR.getCell(9).font={size:9,name:'Arial'};
+  botR.getCell(9).alignment=_ctr;
+  ws.getRow(R).height=64;R++;
+
+  ws.pageSetup={orientation:'landscape',paperSize:9,fitToPage:true,margins:{left:0.3,right:0.3,top:0.3,bottom:0.3}};
+  dl(wb,'bl_B-L-2024-0012.xlsx');
+}
+</script>
+</body>
+</html>
