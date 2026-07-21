@@ -1199,7 +1199,10 @@ function doExportExcel(dt, data) {
         break;
       default:
         var ws = wb.addWorksheet('Sheet1');
-        ws.getCell(1, 1).value = 'Export not yet implemented for ' + dt;
+        ws.getCell(1, 1).value = 'Export not available for: ' + dt;
+        ws.getCell(1, 1).font = { size:14, name:'Arial' };
+        ws.getCell(2, 1).value = 'Please select a document type with Excel export support.';
+        ws.getCell(2, 1).font = { size:11, name:'Arial' };
     }
 
     var prefix = PDF_PREFIX[dt] || 'document';
