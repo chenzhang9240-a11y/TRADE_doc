@@ -188,15 +188,22 @@ function _renderCommercialInvoice(wb, data) {
 
   R = _excSplitHeader(ws, R, C, 'SHIPPER / 发货人', 'INVOICE INFO / 发票信息');
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.shipperCompany||''), 'Invoice: ' + (d.invoiceNo||''));
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.shipperName||''), 'L/C No: ' + (d.lCNo||''));
   R = _excInfoRow(ws, R, C, 'Address: ' + (d.shipperAddress||''), 'Date: ' + (d.dateOfExport||''));
   R = _excInfoRow(ws, R, C, 'Tel: ' + (d.shipperPhone||''), 'PO: ' + (d.poNo||''));
   R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.shipperTaxId||''), 'Currency: ' + (d.currency||''));
+  R = _excInfoRow(ws, R, C, '', 'Waybill No: ' + (d.waybillNo||''));
+  R = _excInfoRow(ws, R, C, '', 'Reason: ' + (d.reasonForExport||''));
+  R = _excInfoRow(ws, R, C, '', 'Country of Export: ' + (d.exportCountry||''));
+  R = _excInfoRow(ws, R, C, '', 'Destination: ' + (d.destinationCountry||''));
   R++; // blank
 
   R = _excSplitHeader(ws, R, C, 'CONSIGNEE / 收货人', 'PAYMENT / 付款');
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.consigneeCompany||d.consigneeName||''), 'Terms: ' + (d.paymentTerms||''));
   R = _excInfoRow(ws, R, C, 'Address: ' + (d.consigneeAddress||''), '');
   R = _excInfoRow(ws, R, C, 'Tel: ' + (d.consigneePhone||''), '');
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.consigneeName||''), '');
+  R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.consigneeTaxId||''), '');
   R++; // blank
 
   // Table
@@ -365,19 +372,23 @@ function _renderCommercialQuotation(wb, data) {
 
 function _renderPackingList(wb, data) {
   var ws = wb.addWorksheet('Packing List');
-  ws.columns = [{width:4},{width:16},{width:28},{width:8},{width:7},{width:12},{width:12},{width:10}];
-  var C = 8, d = data, R = _excTitle(ws, C, 'PACKING LIST', '装箱单');
+  ws.columns = [{width:4},{width:16},{width:8},{width:10},{width:28},{width:8},{width:7},{width:12},{width:12},{width:10}];
+  var C = 10, d = data, R = _excTitle(ws, C, 'PACKING LIST', '装箱单');
   R++;
 
   R = _excSplitHeader(ws, R, C, 'SHIPPER / 发货人', 'SHIPMENT / 装运信息');
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.shipperCompany||''), 'Invoice: ' + (d.invoiceNo||''));
   R = _excInfoRow(ws, R, C, 'Address: ' + (d.shipperAddress||''), 'Date: ' + (d.dateOfExport||''));
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.shipperName||''), 'PO: ' + (d.poNo||''));
+  R = _excInfoRow(ws, R, C, 'Phone: ' + (d.shipperPhone||''), 'Waybill: ' + (d.waybillNo||''));
   R++;
 
   R = _excSplitHeader(ws, R, C, 'CONSIGNEE / 收货人', '');
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.consigneeCompany||''), 'Port of Loading: ' + (d.portOfLoading||''));
   R = _excInfoRow(ws, R, C, 'Address: ' + (d.consigneeAddress||''), 'Port of Discharge: ' + (d.portOfDischarge||''));
   R = _excInfoRow(ws, R, C, '', 'Vessel: ' + (d.vessel||''));
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.consigneeName||''), '');
+  R = _excInfoRow(ws, R, C, 'Phone: ' + (d.consigneePhone||''), '');
   R++;
 
   var PL_COL_DEFS = [
@@ -398,6 +409,41 @@ function _renderPackingList(wb, data) {
   (d.items||[]).forEach(function(it, idx) {
     R = _excDataRow(ws, R, PL_COL_DEFS, it, idx);
   });
+
+  // Totals
+  if (d.totalPkgs || d.totalNetWeight || d.totalGrossWeight || d.totalMeasurement) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'TOTAL / 合计';
+    ws.getCell(R, 1).font = { bold:true, size:11, name:'Arial' };
+    R++;
+    ws.mergeCells(R, 1, R, C);
+    var parts = [];
+    if (d.totalPkgs) parts.push('Pkgs: ' + d.totalPkgs);
+    if (d.totalNetWeight) parts.push('N.W: ' + d.totalNetWeight + ' KG');
+    if (d.totalGrossWeight) parts.push('G.W: ' + d.totalGrossWeight + ' KG');
+    if (d.totalMeasurement) parts.push('Meas: ' + d.totalMeasurement + ' CBM');
+    ws.getCell(R, 1).value = parts.join('  |  ');
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    R += 2;
+  }
+
+  // Remarks
+  if (d.remarks) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'Remarks: ' + d.remarks;
+    ws.getCell(R, 1).font = { size:9, italic:true, name:'Arial' };
+    ws.getCell(R, 1).alignment = _excLft;
+    R += 2;
+  }
+
+  // Signature
+  if (d.signatureName || d.signatureTitle || d.signatureDate) {
+    R = _excSignatureBlock(ws, R, C, [
+      'Signature: ' + (d.signatureName||'____________') + '    Title: ' + (d.signatureTitle||'') + '    Date: ' + (d.signatureDate||'')
+    ]);
+    R++;
+  }
+
   _excSetPage(ws);
 }
 
@@ -983,12 +1029,28 @@ function _renderShipperLetterInstruction(wb, data) {
     R = _excInfoRow(ws, R, C, 'Company: ' + (d.shipperName||''), 'Date: ' + (d.signatureDate||''));
     R = _excInfoRow(ws, R, C, 'Address: ' + (d.shipperAddress||''), 'Payment: ' + (d.paymentTerms||''));
     R = _excInfoRow(ws, R, C, 'Tel: ' + (d.shipperPhone||''), '');
+    R = _excInfoRow(ws, R, C, 'Email: ' + (d.shipperEmail||''), (modeLabel === 'OCEAN' ? 'BL Type: ' : '') + ((modeData && modeData.blType) || ''));
+    R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.shipperTaxId||''), 'Insurance: ' + ((modeData && modeData.insuranceRequired) ? 'Yes' : 'No'));
+    if (modeData && modeData.insuranceValue) {
+      R = _excInfoRow(ws, R, C, '', 'Ins. Amt: ' + modeData.insuranceValue + ((modeData.currency && modeLabel !== 'OCEAN') ? ' ' + modeData.currency : ''));
+    }
+    R++;
+
+    R = _excSplitHeader(ws, R, C, 'CLIENT / 委托人', '');
+    R = _excInfoRow(ws, R, C, 'Name: ' + (d.clientName||''), '');
+    R = _excInfoRow(ws, R, C, 'Address: ' + (d.clientAddress||''), '');
+    R = _excInfoRow(ws, R, C, 'Contact: ' + (d.clientContact||''), '');
+    R = _excInfoRow(ws, R, C, 'Tel: ' + (d.clientPhone||''), '');
+    R = _excInfoRow(ws, R, C, 'Email: ' + (d.clientEmail||''), '');
     R++;
 
     R = _excSplitHeader(ws, R, C, 'CONSIGNEE / 收货人', 'NOTIFY PARTY / 通知方');
     R = _excInfoRow(ws, R, C, 'Company: ' + (d.consigneeCompany||''), 'Company: ' + (d.notifyPartyCompany||''));
     R = _excInfoRow(ws, R, C, 'Address: ' + (d.consigneeAddress||''), 'Address: ' + (d.notifyPartyAddress||''));
     R = _excInfoRow(ws, R, C, 'Contact: ' + (d.consigneeContact||''), 'Contact: ' + (d.notifyPartyContact||''));
+    R = _excInfoRow(ws, R, C, 'Tel: ' + (d.consigneePhone||''), 'Tel: ' + (d.notifyPartyPhone||''));
+    R = _excInfoRow(ws, R, C, 'Email: ' + (d.consigneeEmail||''), 'Email: ' + (d.notifyPartyEmail||''));
+    R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.consigneeTaxId||''), 'Tax ID: ' + (d.notifyPartyTaxId||''));
     R++;
 
     R = _excSplitHeader(ws, R, C, 'TRANSPORT DETAILS / 运输细节', '');
@@ -1007,29 +1069,113 @@ function _renderShipperLetterInstruction(wb, data) {
     }
     R = _excInfoRow(ws, R, C, 'POL / 起运港: ' + pol, 'POD / 目的港: ' + pod);
     R = _excInfoRow(ws, R, C, 'ETD / 预计出发: ' + etd, vesselInfo);
+    if (modeLabel === 'OCEAN') {
+      R = _excInfoRow(ws, R, C, 'Place of Delivery: ' + ((modeData && modeData.placeOfDelivery)||''), 'Trade Terms: ' + ((modeData && modeData.tradeTerms)||''));
+      R = _excInfoRow(ws, R, C, 'Direct Voyage: ' + ((modeData && modeData.directVoyage === 'Y') ? 'Yes' : ((modeData && modeData.directVoyage === 'N') ? 'No' : (modeData && modeData.directVoyage)||'')), 'Free Demurrage: ' + ((modeData && modeData.freeDemurrage)||''));
+      R = _excInfoRow(ws, R, C, 'Shipment Mode: ' + ((modeData && modeData.shipmentMode)||''), 'Container Info: ' + ((modeData && modeData.containerInfo)||''));
+    } else {
+      R = _excInfoRow(ws, R, C, 'Place of Delivery: ' + ((modeData && modeData.placeOfDelivery)||''), 'Trade Terms: ' + ((modeData && modeData.tradeTerms)||''));
+      R = _excInfoRow(ws, R, C, 'Master/House: ' + ((modeData && modeData.masterHouse)||''), 'Accompanying Docs: ' + ((modeData && modeData.randomDocs)||''));
+      var dgr = [];
+      if (modeData && modeData.hasBattery) dgr.push('Battery');
+      if (modeData && modeData.hasMagnet) dgr.push('Magnet');
+      if (modeData && modeData.hasLiquidGas) dgr.push('Liquid/Gas');
+      R = _excInfoRow(ws, R, C, 'Battery/Magnet/Liquid: ' + (dgr.length ? dgr.join(', ') : ''), '');
+    }
     R++;
 
-    // Items table
-    var SLI_COL_DEFS = [
-      { field:'_idx', align:'center' },
-      { field:'marks', align:'center' },
-      { field:'description', align:'left' },
-      { field:'hsCode', align:'center' },
-      { field:'quantity', align:'center' },
-      { field:'unitOfMeasure', align:'center' },
-      { field:'weight', align:'right', numFmt:'#,##0.00' },
-      { field:'volume', align:'right', numFmt:'#,##0.000' },
-      { field:'value', align:'right', numFmt:'#,##0.00' }
-    ];
-    var SLI_HEADERS = [
-      '#\n项号','MARKS\n唛头','DESCRIPTION\n货品描述','HS CODE\nHS编码','QTY\n数量',
-      'UNIT\n单位','WEIGHT\n重量(KG)','VOLUME\n体积(CBM)','VALUE\n价值'
-    ];
-    R = _excTableHeader(ws, R, SLI_HEADERS);
+    // Items table (sea vs air have different columns)
+    var itemColDefs, itemHeaders;
+    if (modeLabel === 'OCEAN') {
+      itemColDefs = [
+        { field:'_idx', align:'center' },
+        { field:'marks', align:'center' },
+        { field:'description', align:'left' },
+        { field:'hsCode', align:'center' },
+        { field:'quantity', align:'center' },
+        { field:'unitOfMeasure', align:'center' },
+        { field:'weight', align:'right', numFmt:'#,##0.00' },
+        { field:'volume', align:'right', numFmt:'#,##0.000' },
+        { field:'value', align:'right', numFmt:'#,##0.00' }
+      ];
+      itemHeaders = [
+        '#\n项号','MARKS\n唛头','DESCRIPTION\n货品描述','HS CODE\nHS编码','QTY\n数量',
+        'UNIT\n单位','WEIGHT\n重量(KG)','VOLUME\n体积(CBM)','VALUE\n价值'
+      ];
+    } else {
+      itemColDefs = [
+        { field:'_idx', align:'center' },
+        { field:'marks', align:'center' },
+        { field:'description', align:'left' },
+        { field:'hsCode', align:'center' },
+        { field:'quantity', align:'center' },
+        { field:'unitOfMeasure', align:'center' },
+        { field:'weight', align:'right', numFmt:'#,##0.00' },
+        { field:'length', align:'center' },
+        { field:'width', align:'center' },
+        { field:'height', align:'center' },
+        { field:'volume', align:'right', numFmt:'#,##0.000' },
+        { field:'value', align:'right', numFmt:'#,##0.00' }
+      ];
+      itemHeaders = [
+        '#\n项号','MARKS\n唛头','DESCRIPTION\n货品描述','HS CODE\nHS编码','QTY\n数量',
+        'UNIT\n单位','WEIGHT\n重量(KG)','LENGTH\n长(mm)','WIDTH\n宽(mm)','HEIGHT\n高(mm)',
+        'VOLUME\n体积(CBM)','VALUE\n价值'
+      ];
+    }
+    R = _excTableHeader(ws, R, itemHeaders);
     var items = (modeData && modeData.items) || [];
     items.forEach(function(it, idx) {
-      R = _excDataRow(ws, R, SLI_COL_DEFS, it, idx);
+      R = _excDataRow(ws, R, itemColDefs, it, idx);
     });
+
+    // Totals (per mode)
+    if (modeLabel === 'OCEAN') {
+      R++;
+      ws.mergeCells(R, 1, R, 2);
+      ws.getCell(R, 1).value = 'TOTAL PACKAGES: ' + ((modeData && modeData.totalPkgs)||'');
+      ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 3, R, 4);
+      ws.getCell(R, 3).value = 'TOTAL WEIGHT: ' + ((modeData && modeData.totalWeight)||'');
+      ws.getCell(R, 3).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 6, R, 7);
+      ws.getCell(R, 6).value = 'TOTAL VOLUME: ' + ((modeData && modeData.totalVolume)||'');
+      ws.getCell(R, 6).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 8, R, C);
+      ws.getCell(R, 8).value = 'TOTAL VALUE: ' + ((modeData && modeData.totalValue)||'');
+      ws.getCell(R, 8).font = { bold:true, size:10, name:'Arial' };
+      ws.getRow(R).height = 22;
+    } else {
+      R++;
+      ws.mergeCells(R, 1, R, 2);
+      ws.getCell(R, 1).value = 'TOTAL PKGS: ' + ((modeData && modeData.totalPkgs)||'');
+      ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 3, R, 4);
+      ws.getCell(R, 3).value = 'GROSS WT: ' + ((modeData && modeData.totalGrossWeight)||'');
+      ws.getCell(R, 3).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 6, R, 7);
+      ws.getCell(R, 6).value = 'VOLUME: ' + ((modeData && modeData.totalVolume)||'');
+      ws.getCell(R, 6).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 8, R, 9);
+      ws.getCell(R, 8).value = 'TOTAL VALUE: ' + ((modeData && modeData.totalValue)||'');
+      ws.getCell(R, 8).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 10, R, 11);
+      ws.getCell(R, 10).value = 'VOL WT: ' + ((modeData && modeData.volumeWeight)||'');
+      ws.getCell(R, 10).font = { bold:true, size:10, name:'Arial' };
+      ws.mergeCells(R, 12, R, C);
+      ws.getCell(R, 12).value = 'CHG WT: ' + ((modeData && modeData.chargeableWeight)||'');
+      ws.getCell(R, 12).font = { bold:true, size:10, name:'Arial' };
+      ws.getRow(R).height = 22;
+    }
+
+    // Signature
+    R++;
+    ws.mergeCells(R, 1, R, Math.floor(C / 2));
+    ws.getCell(R, 1).value = 'Shipper Signature: ' + (d.shipperSignature||'');
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    ws.mergeCells(R, Math.floor(C / 2) + 1, R, C);
+    ws.getCell(R, Math.floor(C / 2) + 1).value = 'Signature Date: ' + (d.signatureDate||'');
+    ws.getCell(R, Math.floor(C / 2) + 1).font = { size:10, name:'Arial' };
 
     // Special instructions
     if (d.specialInstructions) {
