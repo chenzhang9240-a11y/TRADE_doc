@@ -266,12 +266,18 @@ function _renderCommercialQuotation(wb, data) {
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.sellerCompany||''), 'Quotation No.: ' + (d.quotationNo||''));
   R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Date: ' + (d.quotationDate||''));
   R = _excInfoRow(ws, R, C, 'Tel: ' + (d.sellerPhone||''), 'Currency: ' + (d.currency||''));
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.sellerName||''), '');
+  R = _excInfoRow(ws, R, C, 'Email: ' + (d.sellerEmail||''), '');
+  R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.sellerTaxId||''), '');
   R++;
 
   R = _excSplitHeader(ws, R, C, 'BUYER / 买方', 'TERMS / 条款');
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.buyerCompany||''), 'Payment: ' + (d.paymentTerms||''));
   R = _excInfoRow(ws, R, C, 'Address: ' + (d.buyerAddress||''), 'Delivery: ' + (d.deliveryTerms||''));
-  R = _excInfoRow(ws, R, C, '', 'Validity: ' + (d.validityPeriod||''));
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.buyerName||''), 'Validity: ' + (d.validityPeriod||''));
+  R = _excInfoRow(ws, R, C, 'Tel: ' + (d.buyerPhone||''), 'Lead Time: ' + (d.leadTime||''));
+  R = _excInfoRow(ws, R, C, 'Email: ' + (d.buyerEmail||''), 'Min Order Qty: ' + (d.minOrderQty||''));
+  R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.buyerTaxId||''), '');
   R++;
 
   // Table
@@ -300,6 +306,7 @@ function _renderCommercialQuotation(wb, data) {
   var summaries = [
     { label:'Subtotal / 小计:', val:d.subtotal, col:9 },
     { label:'Total Discount / 总折扣:', val:d.totalDiscount, col:9 },
+    { label:'Total Tax / 税费:', val:d.totalTax, col:9 },
     { label:'Grand Total / 总计:', val:d.grandTotal, col:9 }
   ];
   summaries.forEach(function(s) {
@@ -329,6 +336,28 @@ function _renderCommercialQuotation(wb, data) {
     ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
     ws.getRow(R).height = 48;
     R += 2;
+  }
+
+  // Remarks
+  if (d.remarks) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'Remarks / 备注:';
+    ws.getCell(R, 1).font = _excSecFont;
+    R++;
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = d.remarks;
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
+    ws.getRow(R).height = 48;
+    R += 2;
+  }
+
+  // Signature
+  if (d.signatureName || d.signatureTitle || d.signatureDate) {
+    R = _excSignatureBlock(ws, R, C, [
+      'Signature: ' + (d.signatureName||'____________') + '    Title: ' + (d.signatureTitle||'') + '    Date: ' + (d.signatureDate||'')
+    ]);
+    R++;
   }
 
   _excSetPage(ws);
@@ -424,11 +453,26 @@ function _renderTradeContract(wb, data) {
   ws.getRow(R).height = 22;
   R++;
 
-  R = _excSplitHeader(ws, R, C, 'SELLER / 卖方', 'BUYER / 买方');
-  R = _excInfoRow(ws, R, C, 'Company: ' + (d.sellerCompany||''), 'Company: ' + (d.buyerCompany||''));
-  R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Address: ' + (d.buyerAddress||''));
+  // Seller block (left) + Contract Info (right) + Buyer block (below)
+  R = _excSplitHeader(ws, R, C, 'SELLER / 卖方', 'CONTRACT / 合同信息');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.sellerCompany||''), 'Currency: ' + (d.currency||''));
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Payment: ' + (d.paymentTerms||''));
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.sellerName||''), 'Delivery: ' + (d.deliveryTerms||''));
+  R = _excInfoRow(ws, R, C, 'Tel: ' + (d.sellerPhone||''), 'Shipment Date: ' + (d.shipmentDate||''));
+  R = _excInfoRow(ws, R, C, 'Email: ' + (d.sellerEmail||''), '');
+  R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.sellerTaxId||''), '');
   R++;
 
+  R = _excSplitHeader(ws, R, C, 'BUYER / 买方', '');
+  R = _excInfoRow(ws, R, C, 'Company: ' + (d.buyerCompany||''), '');
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.buyerAddress||''), '');
+  R = _excInfoRow(ws, R, C, 'Name: ' + (d.buyerName||''), '');
+  R = _excInfoRow(ws, R, C, 'Tel: ' + (d.buyerPhone||''), '');
+  R = _excInfoRow(ws, R, C, 'Email: ' + (d.buyerEmail||''), '');
+  R = _excInfoRow(ws, R, C, 'Tax ID: ' + (d.buyerTaxId||''), '');
+  R++;
+
+  // 1. Description of Goods
   ws.mergeCells(R, 1, R, C);
   ws.getCell(R, 1).value = '1. Description of Goods / 商品描述';
   ws.getCell(R, 1).font = _excSecFont;
@@ -449,49 +493,109 @@ function _renderTradeContract(wb, data) {
     'UNIT PRICE\n单价','AMOUNT\n金额'
   ];
   R = _excTableHeader(ws, R, TC_HEADERS);
-  var totalAmount = 0;
+  var totalAmt = 0;
   (d.items||[]).forEach(function(it, idx) {
     R = _excDataRow(ws, R, TC_COL_DEFS, it, idx);
-    totalAmount += parseFloat(it.totalAmount) || 0;
+    totalAmt += parseFloat(it.totalAmount) || 0;
   });
   R = _excTotalRow(ws, R, C, 'TOTAL / 总价', 3, 7);
-  ws.getCell(R-1, 7).value = totalAmount.toFixed(2);
-  R += 2;
+  ws.getCell(R-1, 7).value = (d.totalAmount || totalAmt.toFixed(2));
+  R++;
 
+  // 2. Shipping Terms
   ws.mergeCells(R, 1, R, C);
-  ws.getCell(R, 1).value = 'Total Amount in Words / 总金额大写: ' + (d.remarks||'');
-  ws.getCell(R, 1).font = { size:10, italic:true, name:'Arial' };
-  R += 2;
-
-  var terms = [
-    { label:'2. Currency / 币种', val:d.currency },
-    { label:'3. Payment Terms / 付款条件', val:d.paymentTerms },
-    { label:'4. Delivery Terms / 交货条款', val:d.deliveryTerms },
-    { label:'5. Shipment Date / 装船日期', val:d.shipmentDate },
-    { label:'6. Port of Loading / 装运港', val:d.portOfLoading },
-    { label:'7. Port of Discharge / 卸货港', val:d.portOfDischarge },
-    { label:'8. Packaging / 包装', val:d.packagingType },
-    { label:'9. Insurance / 保险', val:d.insuranceTerms },
-    { label:'10. Inspection / 检验', val:d.inspectionTerms }
-  ];
-  terms.forEach(function(t) {
+  ws.getCell(R, 1).value = '2. Shipping Terms / 装运条款';
+  ws.getCell(R, 1).font = _excSecFont;
+  ws.getRow(R).height = 22;
+  R++;
+  [
+    ['Packaging / 包装种类:', d.packagingType],
+    ['Time of Shipment / 装运时间:', d.shipmentTime],
+    ['Port of Loading / 装货港:', d.portOfLoading],
+    ['Port of Discharge / 卸货港:', d.portOfDischarge],
+    ['Partial & Transshipment / 分批与转船:', d.partialTransshipment]
+  ].forEach(function(t) {
     ws.mergeCells(R, 1, R, C);
-    ws.getCell(R, 1).value = t.label + ':  ' + (t.val||'');
+    ws.getCell(R, 1).value = t[0] + '  ' + (t[1]||'');
     ws.getCell(R, 1).font = { size:10, name:'Arial' };
-    ws.getRow(R).height = 20;
-    R++;
+    ws.getRow(R).height = 20; R++;
   });
 
+  // 3. Commercial Terms
+  ws.mergeCells(R, 1, R, C);
+  ws.getCell(R, 1).value = '3. Commercial Terms / 商业条款';
+  ws.getCell(R, 1).font = _excSecFont;
+  ws.getRow(R).height = 22;
+  R++;
+  var commTerms = [
+    ['Insurance / 保险:', d.insuranceTerms],
+    ['Inspection / 检验:', d.inspectionTerms],
+    ['Force Majeure / 不可抗力:', d.forceMajeure]
+  ];
+  commTerms.forEach(function(t) {
+    if (t[1]) {
+      ws.mergeCells(R, 1, R, C);
+      ws.getCell(R, 1).value = t[0];
+      ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+      R++;
+      ws.mergeCells(R, 1, R, C);
+      ws.getCell(R, 1).value = t[1];
+      ws.getCell(R, 1).font = { size:10, name:'Arial' };
+      ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
+      ws.getRow(R).height = 36; R++;
+    }
+  });
+
+  // Arbitration
   if (d.arbitrationTerms) {
     ws.mergeCells(R, 1, R, C);
-    ws.getCell(R, 1).value = '11. Arbitration / 仲裁:';
+    ws.getCell(R, 1).value = 'Arbitration / 仲裁:';
     ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
     R++;
     ws.mergeCells(R, 1, R, C);
     ws.getCell(R, 1).value = d.arbitrationTerms;
     ws.getCell(R, 1).font = { size:10, name:'Arial' };
     ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
+    ws.getRow(R).height = 36; R++;
   }
+
+  // Penalty
+  if (d.penaltyClause) {
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = 'Penalty / 违约条款:';
+    ws.getCell(R, 1).font = { bold:true, size:10, name:'Arial' };
+    R++;
+    ws.mergeCells(R, 1, R, C);
+    ws.getCell(R, 1).value = d.penaltyClause;
+    ws.getCell(R, 1).font = { size:10, name:'Arial' };
+    ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
+    ws.getRow(R).height = 36; R++;
+  }
+
+  // Signatures
+  R++; ws.getRow(R).height = 4; R++;
+  var sigMid = Math.ceil(C / 2);
+  R = _excSplitHeader(ws, R, C, 'SELLER SIGNATURE / 卖方签章', 'BUYER SIGNATURE / 买方签章');
+  R = _excSignatureBlock(ws, R, sigMid, [
+    'Name: ' + (d.sellerSignatureName||''),
+    'Title: ' + (d.sellerSignatureTitle||''),
+    'Date: ' + (d.sellerSignatureDate||'')
+  ]);
+  // Rewind to write buyer sig block on the right at the same rows
+  var buyerStartR = R - 3;
+  var buyerFields = [
+    'Name: ' + (d.buyerSignatureName||''),
+    'Title: ' + (d.buyerSignatureTitle||''),
+    'Date: ' + (d.buyerSignatureDate||'')
+  ];
+  buyerFields.forEach(function(f, idx) {
+    ws.mergeCells(buyerStartR + idx, sigMid + 1, buyerStartR + idx, C);
+    ws.getCell(buyerStartR + idx, sigMid + 1).value = f;
+    ws.getCell(buyerStartR + idx, sigMid + 1).font = { size:10, name:'Arial' };
+    ws.getCell(buyerStartR + idx, sigMid + 1).alignment = _excRgt;
+    if (f.indexOf(':') > 0) ws.getCell(buyerStartR + idx, sigMid + 1).border = { bottom:{style:'thin'} };
+  });
+  R += 2;
 
   _excSetPage(ws);
 }
@@ -556,6 +660,8 @@ function _renderBillOfLading(wb, data) {
   _blVal(ws, R, 1, 7, (d.notifyPartyName||'') + '  Contact: ' + (d.notifyPartyContact||'') + '  Tel: ' + (d.notifyPartyPhone||''), {height:18});
   R++;
   _blVal(ws, R, 1, 7, d.notifyPartyAddress || '');
+  R++;
+  _blVal(ws, R, 1, 7, 'Email: ' + (d.notifyPartyEmail||''));
   R++;
   R++; // blank
 
@@ -655,8 +761,14 @@ function _renderBillOfLading(wb, data) {
   if (containers.length) {
     ws.mergeCells(R, 1, R, C);
     var cInfo = containers.map(function(c) {
-      return (c.containerNo||'') + '/' + (c.sealNo||'') + ' ' + (c.containerType||'');
-    }).join('  ');
+      var parts = [];
+      if (c.containerNo || c.sealNo) parts.push((c.containerNo||'') + '/' + (c.sealNo||''));
+      if (c.containerType) parts.push(c.containerType);
+      if (c.cPkgs) parts.push(c.cPkgs + ' pkgs');
+      if (c.cGrossWeight) parts.push(c.cGrossWeight + ' KG');
+      if (c.cMeasurement) parts.push(c.cMeasurement + ' CBM');
+      return parts.join('  ');
+    }).join('  |  ');
     ws.getCell(R, 1).value = 'CONTAINER / 集装箱:  ' + cInfo;
     ws.getCell(R, 1).font = { size:9, name:'Arial' };
     R++;
@@ -698,8 +810,8 @@ function _renderBillOfLading(wb, data) {
 
 function _renderCostEstimation(wb, data) {
   var ws = wb.addWorksheet('Cost Estimation');
-  ws.columns = [{width:5},{width:22},{width:16},{width:12},{width:7},{width:12},{width:14},{width:12},{width:14},{width:10}];
-  var C = 10, d = data, R = _excTitle(ws, C, 'COST ESTIMATION', '成本估算单');
+  ws.columns = [{width:5},{width:22},{width:16},{width:12},{width:7},{width:12},{width:14},{width:12},{width:14},{width:12},{width:10}];
+  var C = 11, d = data, R = _excTitle(ws, C, 'COST ESTIMATION', '成本估算单');
   R++;
 
   R = _excSplitHeader(ws, R, C, 'PROJECT / 项目信息', 'ROUTE / 运输路线');
@@ -729,9 +841,21 @@ function _renderCostEstimation(wb, data) {
     if (!modeData || !modeData.sections || !modeData.sections.length) return;
     modeCount++;
 
-    // Mode badge
+    // Mode badge with route details
+    var routeParts = [MODE_LABELS[modeKey]];
+    if (modeKey === 'sea') {
+      if (d.containerSpec) routeParts.push(d.containerSpec);
+      if (d.tradeTerms) routeParts.push(d.tradeTerms);
+    } else if (modeKey === 'lcl') {
+      if (d.tradeTerms) routeParts.push(d.tradeTerms);
+    } else if (modeKey === 'air') {
+      if (d.chargeableWeight) routeParts.push(d.chargeableWeight + 'kg');
+    } else if (modeKey === 'courier' || modeKey === 'parcel') {
+      if (d.cargoType) routeParts.push(d.cargoType);
+      if (d.chargeableWeight) routeParts.push(d.chargeableWeight + 'kg');
+    }
     ws.mergeCells(R, 1, R, C);
-    ws.getCell(R, 1).value = '  ' + MODE_LABELS[modeKey];
+    ws.getCell(R, 1).value = '  ' + routeParts.join(' · ');
     ws.getCell(R, 1).font = { size:10, bold:true, color:{argb:'FF004c99'}, name:'Arial' };
     ws.getCell(R, 1).fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FFDCEAFF'} };
     ws.getRow(R).height = 22;
@@ -739,7 +863,7 @@ function _renderCostEstimation(wb, data) {
 
     var CE_HEADERS = [
       '#\n项号','COST ITEM\n成本科目','SUPPLIER\n供应商','BASE PRICE\n底价','QTY\n数量',
-      'OUR COST\n我司成本','TOTAL COST\n成本合计','SELL PRICE\n卖价','TOTAL SELL\n卖价合计','NOTE\n备注'
+      'OUR COST\n我司成本','TOTAL COST\n成本合计','SELL PRICE\n卖价','TOTAL SELL\n卖价合计','PROFIT\n毛利','NOTE\n备注'
     ];
     R = _excTableHeader(ws, R, CE_HEADERS);
 
@@ -764,6 +888,7 @@ function _renderCostEstimation(wb, data) {
           parseFloat(it.totalCost) || 0,
           parseFloat(it.sellPrice) || 0,
           parseFloat(it.totalSell) || 0,
+          (parseFloat(it.totalSell)||0) - (parseFloat(it.totalCost)||0),
           it.note || ''
         ];
         var dr = ws.getRow(R);
@@ -795,6 +920,10 @@ function _renderCostEstimation(wb, data) {
       ws.getCell(R, 9).font = { bold:true, size:10, name:'Arial' };
       ws.getCell(R, 9).alignment = _excRgt;
       ws.getCell(R, 9).numFmt = '#,##0.00';
+      ws.getCell(R, 10).value = (secSell - secCost).toFixed(2);
+      ws.getCell(R, 10).font = { bold:true, size:10, name:'Arial' };
+      ws.getCell(R, 10).alignment = _excRgt;
+      ws.getCell(R, 10).numFmt = '#,##0.00';
       ws.getRow(R).height = 22;
       R++;
 
@@ -818,6 +947,10 @@ function _renderCostEstimation(wb, data) {
     ws.getCell(R, 9).font = { bold:true, size:12, name:'Arial' };
     ws.getCell(R, 9).alignment = _excRgt;
     ws.getCell(R, 9).numFmt = '#,##0.00';
+    ws.getCell(R, 10).value = (grandSell - grandCost).toFixed(2);
+    ws.getCell(R, 10).font = { bold:true, size:12, name:'Arial' };
+    ws.getCell(R, 10).alignment = _excRgt;
+    ws.getCell(R, 10).numFmt = '#,##0.00';
     ws.getRow(R).height = 26;
     R++;
 
