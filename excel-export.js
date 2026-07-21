@@ -394,6 +394,8 @@ function _renderPackingList(wb, data) {
   var PL_COL_DEFS = [
     { field:'_idx', align:'center' },
     { field:'marks', align:'center' },
+    { field:'noOfPkgs', align:'center' },
+    { field:'typeOfPackaging', align:'center' },
     { field:'description', align:'left' },
     { field:'qty', align:'center' },
     { field:'unitOfMeasure', align:'center' },
@@ -402,7 +404,7 @@ function _renderPackingList(wb, data) {
     { field:'measurement', align:'right', numFmt:'#,##0.00' }
   ];
   var PL_HEADERS = [
-    '#\n项号','MARKS\n唛头','DESCRIPTION\n货品描述','QTY\n数量','UNIT\n单位',
+    '#\n项号','MARKS\n唛头','NO.PKGS\n件数','PACKING\n包装','DESCRIPTION\n货品描述','QTY\n数量','UNIT\n单位',
     'GROSS WT\n毛重(KG)','NET WT\n净重(KG)','MEAS.\n体积(CBM)'
   ];
   R = _excTableHeader(ws, R, PL_HEADERS);
