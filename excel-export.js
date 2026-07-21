@@ -264,15 +264,14 @@ function _renderCommercialQuotation(wb, data) {
 
   R = _excSplitHeader(ws, R, C, 'SELLER / 卖方', 'QUOTATION INFO / 报价信息');
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.sellerCompany||''), 'Quotation No.: ' + (d.quotationNo||''));
-  R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Date: ' + (d.date||''));
-  R = _excInfoRow(ws, R, C, 'Tel: ' + (d.sellerTel||''), 'Currency: ' + (d.currency||''));
-  R = _excInfoRow(ws, R, C, 'Fax: ' + (d.sellerFax||''), '');
+  R = _excInfoRow(ws, R, C, 'Address: ' + (d.sellerAddress||''), 'Date: ' + (d.quotationDate||''));
+  R = _excInfoRow(ws, R, C, 'Tel: ' + (d.sellerPhone||''), 'Currency: ' + (d.currency||''));
   R++;
 
   R = _excSplitHeader(ws, R, C, 'BUYER / 买方', 'TERMS / 条款');
   R = _excInfoRow(ws, R, C, 'Company: ' + (d.buyerCompany||''), 'Payment: ' + (d.paymentTerms||''));
   R = _excInfoRow(ws, R, C, 'Address: ' + (d.buyerAddress||''), 'Delivery: ' + (d.deliveryTerms||''));
-  R = _excInfoRow(ws, R, C, '', 'Validity: ' + (d.validity||''));
+  R = _excInfoRow(ws, R, C, '', 'Validity: ' + (d.validityPeriod||''));
   R++;
 
   // Table
@@ -280,9 +279,9 @@ function _renderCommercialQuotation(wb, data) {
     { field:'_idx', align:'center' },
     { field:'itemNo', align:'center' },
     { field:'description', align:'left' },
-    { field:'spec', align:'center' },
+    { field:'specification', align:'center' },
     { field:'quantity', align:'center' },
-    { field:'unit', align:'center' },
+    { field:'unitOfMeasure', align:'center' },
     { field:'unitPrice', align:'right', numFmt:'#,##0.00' },
     { field:'discount', align:'right', numFmt:'#,##0.00' },
     { field:'lineTotal', align:'right', numFmt:'#,##0.00' }
@@ -299,8 +298,8 @@ function _renderCommercialQuotation(wb, data) {
   // Summary
   R++; // blank
   var summaries = [
-    { label:'Subtotal / 小计:', val:d.subTotal, col:9 },
-    { label:'Tax (' + (d.taxRate||0) + '%) / 税金:', val:d.taxAmount, col:9 },
+    { label:'Subtotal / 小计:', val:d.subtotal, col:9 },
+    { label:'Total Discount / 总折扣:', val:d.totalDiscount, col:9 },
     { label:'Grand Total / 总计:', val:d.grandTotal, col:9 }
   ];
   summaries.forEach(function(s) {
@@ -319,29 +318,17 @@ function _renderCommercialQuotation(wb, data) {
   R++;
 
   // Terms
-  if (d.terms) {
+  if (d.termsAndConditions) {
     ws.mergeCells(R, 1, R, C);
     ws.getCell(R, 1).value = 'Terms & Conditions / 条款:';
     ws.getCell(R, 1).font = _excSecFont;
     R++;
     ws.mergeCells(R, 1, R, C);
-    ws.getCell(R, 1).value = d.terms;
+    ws.getCell(R, 1).value = d.termsAndConditions;
     ws.getCell(R, 1).font = { size:10, name:'Arial' };
     ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
     ws.getRow(R).height = 48;
     R += 2;
-  }
-
-  // Bank info
-  if (d.bankInfo) {
-    ws.mergeCells(R, 1, R, C);
-    ws.getCell(R, 1).value = 'Bank Info / 银行信息:';
-    ws.getCell(R, 1).font = _excSecFont;
-    R++;
-    ws.mergeCells(R, 1, R, C);
-    ws.getCell(R, 1).value = d.bankInfo;
-    ws.getCell(R, 1).font = { size:10, name:'Arial' };
-    ws.getCell(R, 1).alignment = { wrapText:true, vertical:'top' };
   }
 
   _excSetPage(ws);
