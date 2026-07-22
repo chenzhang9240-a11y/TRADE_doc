@@ -2,3 +2,13 @@
 
 # Test files
 test-print-*
+
+# Development artifacts
+.superpowers/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules (if any)
+node_modules/
